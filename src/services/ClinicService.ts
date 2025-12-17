@@ -1,5 +1,10 @@
 // src/services/ClinicService.ts
 
+export interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
 export interface Dentist {
   id: string;
   name: string;
@@ -7,11 +12,25 @@ export interface Dentist {
   experience: number;
   specialities: string[];
   rating?: number;
-  slots?: {time: string; available: boolean}[];
+  slots?: TimeSlot[];
   availabledays: string[];
   image?: string;
   gender?: "male" | "female" | "other";
   languages?: string[];
+}
+
+export interface Appointment {
+  id: string;
+  dentistId: string;
+  clinicId: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  status: 'confirmed' | 'cancelled' | 'rescheduled';
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Clinic {
@@ -25,7 +44,7 @@ export interface Clinic {
   website?: string;
   rating?: number;
   logo?: string;
-  slots?: {time: string; available: boolean}[];
+  slots?: TimeSlot[];
   time: {
     monday: string;
     tuesday: string;
@@ -34,7 +53,7 @@ export interface Clinic {
     friday: string;
     saturday: string;
     sunday: string;
-  },
+  };
   description?: string;
   establishedYear?: number;
   dentists?: Dentist[];
@@ -83,14 +102,14 @@ const clinics: Clinic[] = [
         rating: 4.8,
         availabledays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         slots: [
-      { time:"09:00 AM", available:false},
-      { time:"10:30 AM", available:true},
-      { time:"11:00 AM", available:false},
-      { time:"02:00 PM", available:true},
-      { time:"02:30 PM", available:false},
-      { time:"04:00 PM", available:true},
-      { time:"05:30 PM", available:true}
-    ],
+          { time: "09:00 AM", available: false },
+          { time: "10:30 AM", available: true },
+          { time: "11:00 AM", available: false },
+          { time: "02:00 PM", available: true },
+          { time: "02:30 PM", available: false },
+          { time: "04:00 PM", available: true },
+          { time: "05:30 PM", available: true }
+        ],
         image: "/dentist/male-dentist.jpg",
         gender: "male",
         languages: ["English", "Mandarin", "Cantonese"]
@@ -104,14 +123,14 @@ const clinics: Clinic[] = [
         rating: 4.7,
         availabledays: ["Monday", "Wednesday", "Friday", "Saturday"],
         slots: [
-      { time:"09:00 AM", available:true},
-      { time:"10:30 AM", available:false},
-      { time:"11:00 AM", available:true},
-      { time:"02:00 PM", available:false},
-      { time:"02:30 PM", available:true},
-      { time:"04:00 PM", available:false},
-      { time:"05:30 PM", available:false}
-    ],
+          { time: "09:00 AM", available: true },
+          { time: "10:30 AM", available: false },
+          { time: "11:00 AM", available: true },
+          { time: "02:00 PM", available: false },
+          { time: "02:30 PM", available: true },
+          { time: "04:00 PM", available: false },
+          { time: "05:30 PM", available: false }
+        ],
         image: "/dentist/female-dentist.jpg",
         gender: "female",
         languages: ["English", "Mandarin", "Malay"]
@@ -154,14 +173,14 @@ const clinics: Clinic[] = [
         rating: 4.9,
         availabledays: ["Tuesday", "Thursday", "Saturday", "Sunday"],
         slots: [
-      { time: "10:00 AM", available: true},
-      { time: "11:15 AM", available: true},
-      { time: "12:00 PM", available: false},
-      { time: "02:30 PM", available: true},
-      { time: "03:15 PM", available: true},
-      { time: "05:00 PM", available: true},
-      { time: "06:30 PM", available: false}
-    ],
+          { time: "10:00 AM", available: true },
+          { time: "11:15 AM", available: true },
+          { time: "12:00 PM", available: false },
+          { time: "02:30 PM", available: true },
+          { time: "03:15 PM", available: true },
+          { time: "05:00 PM", available: true },
+          { time: "06:30 PM", available: false }
+        ],
         image: "https://via.placeholder.com/100x100.png?text=DR3",
         gender: "female",
         languages: ["English", "Italian", "Greek"]
@@ -175,15 +194,15 @@ const clinics: Clinic[] = [
         rating: 4.6,
         availabledays: ["Monday", "Wednesday", "Friday", "Saturday"],
         slots: [
-      { time: "10:00 AM", available: false},
-      { time: "11:15 AM", available: false},
-      { time: "12:00 PM", available: true},
-      { time: "02:30 PM", available: false},
-      { time: "03:15 PM", available: false},
-      { time: "05:00 PM", available: false},
-      { time: "06:30 PM", available: true}
-    ],
-        image: "https://via.placeholder.com/100x100.png?text=DR4",
+          { time: "10:00 AM", available: false },
+          { time: "11:15 AM", available: false },
+          { time: "12:00 PM", available: true },
+          { time: "02:30 PM", available: false },
+          { time: "03:15 PM", available: false },
+          { time: "05:00 PM", available: false },
+          { time: "06:30 PM", available: true }
+        ],
+        image: "data:image/jpeg;base64,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",
         gender: "male",
         languages: ["English", "Vietnamese", "Arabic"]
       }
@@ -211,7 +230,7 @@ const clinics: Clinic[] = [
     logo: "/head3.jpg",
     description: "Advanced dental care center specializing in implants and cosmetic procedures with modern technology.",
     establishedYear: 2012,
-    
+
     facilities: ["3D CBCT Scanner", "Laser Dentistry", "Surgical Suite", "In-house Lab", "WiFi"],
     insurance: ["Bajaj Allianz", "United India", "Oriental Insurance"],
     parking: true,
@@ -226,14 +245,14 @@ const clinics: Clinic[] = [
         rating: 4.9,
         availabledays: ["Monday", "Tuesday", "Thursday", "Friday"],
         slots: [
-      { time: "08:30 AM", available: true},
-      { time: "09:45 AM", available: false},
-      { time: "11:15 AM", available: false},
-      { time: "01:00 PM", available: true},
-      { time: "03:00 PM", available: true},
-      { time: "04:30 PM", available: false},
-      { time: "05:30 PM", available: true}
-    ],
+          { time: "08:30 AM", available: true },
+          { time: "09:45 AM", available: false },
+          { time: "11:15 AM", available: false },
+          { time: "01:00 PM", available: true },
+          { time: "03:00 PM", available: true },
+          { time: "04:30 PM", available: false },
+          { time: "05:30 PM", available: true }
+        ],
         image: "https://via.placeholder.com/100x100.png?text=DR5",
         gender: "male",
         languages: ["English", "Mandarin", "Kannada"]
@@ -247,14 +266,14 @@ const clinics: Clinic[] = [
         rating: 4.7,
         availabledays: ["Wednesday", "Thursday", "Friday", "Saturday"],
         slots: [
-      { time: "08:30 AM", available: false},
-      { time: "09:45 AM", available: true},
-      { time: "11:15 AM", available: true},
-      { time: "01:00 PM", available: false},
-      { time: "03:00 PM", available: false},
-      { time: "04:30 PM", available: true},
-      { time: "05:30 PM", available: false}
-    ],
+          { time: "08:30 AM", available: false },
+          { time: "09:45 AM", available: true },
+          { time: "11:15 AM", available: true },
+          { time: "01:00 PM", available: false },
+          { time: "03:00 PM", available: false },
+          { time: "04:30 PM", available: true },
+          { time: "05:30 PM", available: false }
+        ],
         image: "https://via.placeholder.com/100x100.png?text=DR6",
         gender: "female",
         languages: ["English", "French", "Hindi"]
@@ -283,7 +302,7 @@ const clinics: Clinic[] = [
     logo: "/head1.avif",
     description: "Comprehensive dental care center focusing on cosmetic dentistry and restorative procedures.",
     establishedYear: 2016,
-    
+
     facilities: ["Digital Smile Design", "CAD/CAM System", "Teeth Whitening Studio", "Orthodontic Treatment", "Coffee Bar"],
     insurance: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"],
     parking: false,
@@ -298,14 +317,14 @@ const clinics: Clinic[] = [
         rating: 4.8,
         availabledays: ["Monday", "Wednesday", "Friday", "Saturday"],
         slots: [
-      { time: "9:00 AM", available: true },
-      { time: "12:30 PM", available: true },
-      { time: "02:00 PM", available: false },
-      { time: "03:30 PM", available: true },
-      { time: "05:00 PM", available: false },
-      { time: "06:30 PM", available: true },
-      { time: "08:00 PM", available: true }
-    ],
+          { time: "9:00 AM", available: true },
+          { time: "12:30 PM", available: true },
+          { time: "02:00 PM", available: false },
+          { time: "03:30 PM", available: true },
+          { time: "05:00 PM", available: false },
+          { time: "06:30 PM", available: true },
+          { time: "08:00 PM", available: true }
+        ],
         image: "https://via.placeholder.com/100x100.png?text=DR7",
         gender: "male",
         languages: ["English", "Hindi", "Punjabi"]
@@ -319,14 +338,14 @@ const clinics: Clinic[] = [
         rating: 4.5,
         availabledays: ["Tuesday", "Thursday", "Saturday", "Sunday"],
         slots: [
-      { time: "9:00 AM", available: false},
-      { time: "12:30 PM", available: false},
-      { time: "02:00 PM", available: true},
-      { time: "03:30 PM", available: false},
-      { time: "05:00 PM", available: true},
-      { time: "06:30 PM", available: false},
-      { time: "08:00 PM", available: false}
-    ],
+          { time: "9:00 AM", available: false },
+          { time: "12:30 PM", available: false },
+          { time: "02:00 PM", available: true },
+          { time: "03:30 PM", available: false },
+          { time: "05:00 PM", available: true },
+          { time: "06:30 PM", available: false },
+          { time: "08:00 PM", available: false }
+        ],
         image: "https://via.placeholder.com/100x100.png?text=DR8",
         gender: "female",
         languages: ["English", "Hindi", "Gujarati"]
@@ -339,7 +358,7 @@ const clinics: Clinic[] = [
 
 
 export const ClinicService = {
-  getAllClinics: async() => clinics,
+  getAllClinics: async () => clinics,
 
   getClinicById: (id: string) => clinics.find(c => c.id === id),
 
@@ -352,9 +371,9 @@ export const ClinicService = {
     );
   },
 
-  extractStateCode : (address: string): string => {
-  const parts = address.split(" ");
-  return parts[parts.length - 2]; // second last value
+  extractStateCode: (address: string): string => {
+    const parts = address.split(" ");
+    return parts[parts.length - 2]; // second last value
   },
 
   searchClinicsByLocation: (location: string) => {
@@ -364,7 +383,7 @@ export const ClinicService = {
 
   searchClinicsBySpeciality: (speciality: string) => {
     const lower = speciality.toLowerCase();
-    return clinics.filter(c => 
+    return clinics.filter(c =>
       c.specialities.some(s => s.toLowerCase().includes(lower))
     );
   },
@@ -373,12 +392,12 @@ export const ClinicService = {
     const clinic = clinics.find(c => c.id === clinicId);
     return clinic?.dentists || [];
   },
-  
+
 
   searchDentists: (keyword: string) => {
     const lower = keyword.toLowerCase();
-    const allDentists: {dentist: Dentist, clinic: Clinic}[] = [];
-    
+    const allDentists: { dentist: Dentist, clinic: Clinic }[] = [];
+
     clinics.forEach(clinic => {
       if (clinic.dentists) {
         clinic.dentists.forEach(dentist => {
@@ -392,7 +411,7 @@ export const ClinicService = {
         });
       }
     });
-    
+
     return allDentists;
   },
 
@@ -435,7 +454,7 @@ export const ClinicService = {
         if (!clinic.dentists || clinic.dentists.length === 0) {
           return !filters.language && !filters.gender && !filters.insurance && !filters.availabiledays;
         }
-        
+
         return clinic.dentists.some(dentist => {
           let matchesLanguage = true;
           let matchesGender = true;
@@ -444,28 +463,28 @@ export const ClinicService = {
 
           if (filters.language) {
             const languages = filters.language.split(',').map(l => l.trim().toLowerCase());
-            matchesLanguage = dentist.languages?.some(lang => 
+            matchesLanguage = dentist.languages?.some(lang =>
               languages.some(filterLang => lang.toLowerCase().includes(filterLang))
             ) || false;
           }
 
           if (filters.gender) {
             const genders = filters.gender.split(',').map(g => g.trim().toLowerCase());
-            matchesGender = genders.some(filterGender => 
+            matchesGender = genders.some(filterGender =>
               dentist.gender?.toLowerCase() === filterGender
             ) || false;
           }
 
           if (filters.insurance) {
             const insurances = filters.insurance.split(',').map(i => i.trim().toLowerCase());
-            matchesInsurance = clinic.insurance?.some(ins => 
+            matchesInsurance = clinic.insurance?.some(ins =>
               insurances.some(filterIns => ins.toLowerCase().includes(filterIns))
             ) || false;
           }
 
           if (filters.availabiledays) {
             const days = filters.availabiledays.split(',').map(d => d.trim().toLowerCase());
-            matchesAvailableDays = dentist.availabledays?.some(day => 
+            matchesAvailableDays = dentist.availabledays?.some(day =>
               days.some(filterDay => day.toLowerCase() === filterDay)
             ) || false;
           }
@@ -519,10 +538,84 @@ export const ClinicService = {
       });
     });
     return Array.from(days).sort();
+  },
+
+  // Appointment API methods
+  bookAppointment: (appointmentData: Omit<Appointment, 'id' | 'status' | 'createdAt'>): Appointment => {
+    // Simulate API call to backend
+    const appointment: Appointment = {
+      id: `APT-${Date.now()}`,
+      status: "confirmed",
+      createdAt: new Date().toISOString(),
+      ...appointmentData
+    };
+
+    // Store in localStorage for demo purposes
+    const appointments: Appointment[] = JSON.parse(localStorage.getItem('appointments') || '[]');
+    appointments.push(appointment);
+    localStorage.setItem('appointments', JSON.stringify(appointments));
+
+    return appointment;
+  },
+
+  getAppointments: (): Appointment[] => {
+    return JSON.parse(localStorage.getItem('appointments') || '[]');
+  },
+
+  getAppointmentById: (appointmentId: string): Appointment | undefined => {
+    const appointments: Appointment[] = JSON.parse(localStorage.getItem('appointments') || '[]');
+    return appointments.find((apt) => apt.id === appointmentId);
+  },
+
+  cancelAppointment: (appointmentId: string): Appointment | undefined => {
+    const appointments: Appointment[] = JSON.parse(localStorage.getItem('appointments') || '[]');
+    const updatedAppointments: Appointment[] = appointments.map((apt) =>
+      apt.id === appointmentId ? { ...apt, status: 'cancelled' } : apt
+    );
+    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    return updatedAppointments.find((apt) => apt.id === appointmentId);
+  },
+
+  rescheduleAppointment: (appointmentId: string, newDate: string, newTime: string): Appointment | undefined => {
+    const appointments: Appointment[] = JSON.parse(localStorage.getItem('appointments') || '[]');
+    const updatedAppointments: Appointment[] = appointments.map((apt) =>
+      apt.id === appointmentId
+        ? { ...apt, appointmentDate: newDate, appointmentTime: newTime, updatedAt: new Date().toISOString(), status: 'rescheduled' }
+        : apt
+    );
+    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    return updatedAppointments.find((apt) => apt.id === appointmentId);
+  },
+
+  getDentistById: (dentistId: string) => {
+    for (const clinic of clinics) {
+      const dentist = clinic.dentists?.find(d => d.id === dentistId);
+      if (dentist) {
+        return { ...dentist, clinicId: clinic.id, clinicName: clinic.name };
+      }
+    }
+    return null;
+  },
+
+  getClinicDentists: (clinicId: string) => {
+    const clinic = clinics.find(c => c.id === clinicId);
+    return clinic?.dentists || [];
+  },
+
+  updateDentistSlots: (clinicId: string, dentistId: string, slots: TimeSlot[]): boolean => {
+    const clinic = clinics.find(c => c.id === clinicId);
+    if (clinic) {
+      const dentist = clinic.dentists?.find(d => d.id === dentistId);
+      if (dentist) {
+        dentist.slots = slots;
+        return true;
+      }
+    }
+    return false;
   }
 
 };
- 
+
 
 
 export default ClinicService;
