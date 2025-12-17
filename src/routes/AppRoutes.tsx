@@ -3,6 +3,7 @@ import Home from '../pages/Home'
 import Login from '../pages/Login'
 import Signup from '../pages/Signup'
 import ClinicProfile from '../pages/ClinicProfile'
+import DentistProfile from '../pages/DentistProfile'
 
 
 
@@ -11,13 +12,14 @@ import ClinicProfile from '../pages/ClinicProfile'
 function App() {
     return (
         <>
-<Routes>
+            <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/clinicprofile/:id" element={<ClinicProfile />} />
+                <Route path="/dentist/:id" element={<DentistProfile />} />
             </Routes>
         </>
     )
-} 
+}
 export default App

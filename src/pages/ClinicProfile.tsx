@@ -175,10 +175,10 @@ const ClinicProfile = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Banner */}
       <section id="basic-info"
-                ref={(el) => {
-                  sectionRefs.current["basic-info"] = el;
-                }}
-                className="scroll-mt-20"></section>
+        ref={(el) => {
+          sectionRefs.current["basic-info"] = el;
+        }}
+        className="scroll-mt-20"></section>
       <div className="relative h-56 sm:h-64 md:h-80 w-full overflow-visible">
         <img
           src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop"
@@ -240,11 +240,10 @@ const ClinicProfile = () => {
                       {[...Array(5)].map((_, i) => (
                         <svg
                           key={i}
-                          className={`w-3 h-3 sm:w-4 sm:h-4 ${
-                            i < Math.floor(clinic.rating || 0)
-                              ? "text-yellow-500"
-                              : "text-white-300"
-                          }`}
+                          className={`w-3 h-3 sm:w-4 sm:h-4 ${i < Math.floor(clinic.rating || 0)
+                            ? "text-yellow-500"
+                            : "text-white-300"
+                            }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
@@ -279,11 +278,10 @@ const ClinicProfile = () => {
                 <button
                   key={link.id}
                   onClick={() => scrollToSection(link.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-all duration-200 font-medium ${
-                    activeSection === link.id
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
+                    ? "bg-orange-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
+                    }`}
                 >
                   <i className={`bi ${link.icon} text-lg`}></i>
                   <span>{link.label}</span>
@@ -625,11 +623,10 @@ const ClinicProfile = () => {
                       <div
                         key={day}
                         className={`flex justify-between items-center px-4 py-3 rounded-md
-            ${
-              time === "Closed"
-                ? "bg-red-50 text-red-500"
-                : "bg-gray-100 text-gray-700"
-            }`}
+            ${time === "Closed"
+                            ? "bg-red-50 text-red-500"
+                            : "bg-gray-100 text-gray-700"
+                          }`}
                       >
                         <span className="font-medium">{day}</span>
                         <span
@@ -795,6 +792,8 @@ const ClinicProfile = () => {
 
 // Team Member Card Component
 const TeamMemberCard = ({ dentist }: { dentist: Dentist }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white rounded-2xl border shadow-sm h-full flex flex-col">
       {/* Image */}
@@ -817,6 +816,7 @@ const TeamMemberCard = ({ dentist }: { dentist: Dentist }) => {
       {/* Actions (always bottom aligned) */}
       <div className="pb-6 pt-4 flex justify-center gap-4">
         <button
+          onClick={() => navigate(`/dentist/${dentist.id}`)}
           className="px-6 py-2 rounded-full border border-gray-300 text-sm 
           font-semibold hover:border-orange-500 hover:text-orange-600"
         >
