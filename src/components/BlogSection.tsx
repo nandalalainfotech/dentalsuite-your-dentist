@@ -54,26 +54,26 @@ const blogPosts: BlogPost[] = [
 ];
 const BlogSection: React.FC = () => {
     return (
-        <section className="py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-8 sm:py-12 md:py-16 lg:py-20">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
                 {/* Section Header */}
-                <div className="mb-10">
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
+                <div className="mb-8 sm:mb-10 md:mb-12">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4">
                         Discover Our Latest Blogs!
                     </h2>
-                    <p className="text-gray-600 mt-2 text-lg">
+                    <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-2">
                         Explore everything you need to know with our latest blog posts.
                     </p>
                 </div>
                 {/* Blog Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                     {blogPosts.map((post) => (
                         <article
                             key={post.id}
                             className="flex flex-col group cursor-pointer bg-white border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
                         >
                             {/* Image Container */}
-                            <div className="w-full h-56 sm:h-64 overflow-hidden">
+                            <div className="w-full h-40 sm:h-48 md:h-56 lg:h-64 overflow-hidden">
                                 <img
                                     src={post.imageUrl}
                                     alt={post.title}
@@ -81,20 +81,20 @@ const BlogSection: React.FC = () => {
                                 />
                             </div>
                             {/* Content */}
-                            <div className="flex flex-col flex-grow p-4 sm:p-6">
-                                <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-tight mb-3">
+                            <div className="flex flex-col flex-grow p-3 sm:p-4 md:p-6">
+                                <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-tight mb-2 sm:mb-3">
                                     {post.title}
                                 </h3>
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3">
                                     {post.excerpt}
                                 </p>
                                 {/* Bottom section with date and view details */}
-                                <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
+                                <div className="mt-auto flex justify-between items-center pt-3 sm:pt-4 border-t border-gray-100">
                                     <span className="text-xs text-gray-500">
                                         {post.date}
                                     </span>
-                                    <button className="flex items-center text-orange-600 hover:text-orange-600 text-medium font-medium  transition-colors duration-200">
-                                        View Details    
+                                    <button className="flex items-center text-orange-600 hover:text-orange-600 text-xs sm:text-sm font-medium  transition-colors duration-200">
+                                        View Details
                                     </button>
                                 </div>
                             </div>
