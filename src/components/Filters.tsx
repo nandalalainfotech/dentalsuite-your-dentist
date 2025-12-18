@@ -42,17 +42,17 @@ const Filter: React.FC<FilterProps> = ({
 }) => {
   const hasActiveFilters = selectedLanguages.length > 0 ||
     selectedGenders.length > 0 || selectedSpecialties.length > 0 || selectedInsurances && selectedInsurances.length > 0 || selectedAvailableDays && selectedAvailableDays.length > 0;
-  
+
   return (
     <div className={`bg-white border border-gray-300 rounded-lg shadow-sm ${className}`}>
       {/* Header */}
-      <div className="bg-gray-100 px-3 sm:px-4 py-3 border-b border-gray-300 rounded-t-lg">
+      <div className="bg-gray-100 px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-300 rounded-t-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900">Filter By</h2>
+          <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">Filter By</h2>
           {hasActiveFilters && (
             <button
               onClick={onClearAll}
-              className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 font-medium underline"
+              className="text-xs text-orange-600 hover:text-orange-700 font-medium underline"
             >
               Clear All
             </button>
@@ -61,7 +61,7 @@ const Filter: React.FC<FilterProps> = ({
       </div>
 
       {/* Filter Sections */}
-      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+      <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3 md:space-y-4">
         {/* Specialty Filter */}
         <FilterSection
           title="Specialty"
@@ -96,7 +96,7 @@ const Filter: React.FC<FilterProps> = ({
           />
 
         )}
-        
+
         {/* Available Days Filter */}
         {availableDaysOptions && onAvailableDaysChange && (
           <FilterSection
@@ -105,14 +105,14 @@ const Filter: React.FC<FilterProps> = ({
             selectedValues={selectedAvailableDays || []}
             onChange={onAvailableDaysChange}
           />
-        )}  
-        
+        )}
+
       </div>
 
       {/* Active Filters Summary */}
       {hasActiveFilters && (
-        <div className="bg-gray-50 px-3 sm:px-4 py-3 border-t border-gray-200 rounded-b-lg">
-          <div className="text-xs sm:text-sm text-gray-600 mb-2">Active Filters:</div>
+        <div className="bg-gray-50 px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-t border-gray-200 rounded-b-lg">
+          <div className="text-xs text-gray-600 mb-2">Active Filters:</div>
           <div className="flex flex-wrap gap-1 sm:gap-2">
             {selectedLanguages.map((lang) => (
               <span
@@ -169,7 +169,7 @@ const Filter: React.FC<FilterProps> = ({
                   ×
                 </button>
               </span>
-            ))} 
+            ))}
             {selectedAvailableDays && selectedAvailableDays.map((day) => (
               <span
                 key={day}
@@ -183,7 +183,7 @@ const Filter: React.FC<FilterProps> = ({
                   ×
                 </button>
               </span>
-            ))} 
+            ))}
           </div>
         </div>
       )}

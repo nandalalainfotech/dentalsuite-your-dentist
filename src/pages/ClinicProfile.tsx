@@ -6,6 +6,7 @@ import ClinicService, {
   type Dentist,
 } from "../services/ClinicService";
 import BookingModal from "../components/BookingModal";
+import Footer from "../components/layout/Footer";
 
 const ClinicProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -308,7 +309,7 @@ const ClinicProfile = () => {
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 bg-gray-100 backdrop-blur-sm hover:bg-white text-gray-900 px-4 py-2 rounded-lg shadow-md transition-all flex items-center gap-2"
+            className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-4 bg-gray-100 backdrop-blur-sm hover:bg-white text-gray-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm sm:text-base font-medium"
           >
             <i className="bi bi-arrow-left"></i>
             <span className="font-medium">Back</span>
@@ -316,21 +317,21 @@ const ClinicProfile = () => {
         </div>
 
         {/* Quick Links - Top Horizontal Navigation with Modern Scroll */}
-        <div className="bg-white justify-center items-center sticky top-14 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-7">
+        <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
+          <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
-              <nav className="flex flex-row gap-2 py-3 min-w-max">
+              <nav className="flex flex-row gap-1.5 sm:gap-2 py-2 sm:py-3 min-w-max">
                 {sidebarLinks.map((link) => (
                   <button
                     key={link.id}
                     onClick={() => scrollToSection(link.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
                       ? "bg-orange-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
                       }`}
                   >
-                    <i className={`bi ${link.icon} text-lg`}></i>
-                    <span>{link.label}</span>
+                    <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
+                    <span className="hidden sm:inline">{link.label}</span>
                   </button>
                 ))}
               </nav>
@@ -339,24 +340,24 @@ const ClinicProfile = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-5 py-7 ">
-          <div className="flex flex-col lg:flex-row gap-5">
+        <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7 py-4 sm:py-6 md:py-8 ">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-5">
             {/* Main Content Area - All Sections */}
-            <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <main className="flex-1 min-w-0 space-y-10">
+            <div className="bg-white p-4 sm:p-6 md:p-10 rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
                 {/* ==================== BASIC INFO SECTION ==================== */}
                 <section
                 >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-info-circle text-orange-600"></i>
                       Basic Info
                     </h2>
                   </div>
 
-                  <div className="bg-white p-4 md:p-4">
+                  <div className="bg-white p-2 sm:p-3 md:p-4">
                     {/* Description Card */}
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
                       {clinic.description}
                     </p>
                   </div>
@@ -368,18 +369,18 @@ const ClinicProfile = () => {
                   ref={(el) => { sectionRefs.current["services"] = el; }}
                   className="scroll-mt-36"
                 >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-briefcase text-orange-600"></i>
                       Our Services
                     </h2>
                   </div>
 
-                  <div className="flex flex-wrap p-4 md:p-4 gap-4">
+                  <div className="flex flex-wrap p-2 sm:p-3 md:p-4 gap-2 sm:gap-3 md:gap-4">
                     {clinic.specialities.map((service, index) => (
                       <div
                         key={index}
-                        className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                        className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
                       >
                         <span>{service}</span>
                       </div>
@@ -398,13 +399,13 @@ const ClinicProfile = () => {
                       <i className="bi bi-people text-orange-600"></i>
                       Our Team
                     </h2>
-                    <span className="bg-orange-100 text-orange-600 text-xs font-bold px-3 py-1 rounded-full mb-1">
+                    <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
                       {clinic.dentists?.length || 0} Dentist{clinic.dentists?.length !== 1 ? 's' : ''}
                     </span>
                   </div>
 
                   {/* Added consistent padding: p-4 md:p-4 */}
-                  <div className="p-4 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {clinic.dentists?.map((dentist) => (
                       <TeamMemberCard key={dentist.id} dentist={dentist} clinic={clinic} />
                     ))}
@@ -417,55 +418,98 @@ const ClinicProfile = () => {
                   ref={(el: HTMLElement | null) => {
                     sectionRefs.current["gallery"] = el;
                   }}
-                  className="scroll-mt-36"
+                  className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
                 >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-images text-orange-600"></i>
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
+                    <h2 className="text-sm sm:text-md font-bold text-gray-900 uppercase tracking-wider sm:tracking-widest flex items-center gap-1.5 sm:gap-2 pb-2">
+                      <i className="bi bi-images text-orange-600 text-sm sm:text-base"></i>
                       Gallery
                     </h2>
                   </div>
 
-                  <div className="bg-white p-6 relative">
-                    <div className="relative overflow-hidden rounded-xl">
+                  <div className="bg-white p-3 sm:p-4 md:p-6 relative">
+                    <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
                       <div
                         className="flex transition-transform duration-500 ease-in-out"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                       >
                         {galleryImages.map((url, index) => (
                           <div key={index} className="w-full flex-shrink-0">
-                            <div className="aspect-video">
+                            <div className="aspect-video sm:aspect-video md:aspect-[16/9]">
                               <img
                                 src={url}
                                 alt={`Gallery ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                               />
                             </div>
                           </div>
                         ))}
                       </div>
 
+                      {/* Navigation Buttons - Smaller on mobile */}
                       <button
-                        onClick={() => setCurrentSlide((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                        onClick={() =>
+                          setCurrentSlide(
+                            (prev) => (prev - 1 + galleryImages.length) % galleryImages.length
+                          )
+                        }
+                        className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 
+                        bg-black/40 hover:bg-black/70 active:bg-black/80 
+                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
+                        transition-all duration-200 
+                        focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        aria-label="Previous image"
                       >
-                        <i className="bi bi-chevron-left text-xl"></i>
+                        <i className="bi bi-chevron-left text-sm sm:text-lg md:text-xl"></i>
                       </button>
                       <button
-                        onClick={() => setCurrentSlide((prev) => (prev + 1) % galleryImages.length)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                        onClick={() =>
+                          setCurrentSlide((prev) => (prev + 1) % galleryImages.length)
+                        }
+                        className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 
+                        bg-black/40 hover:bg-black/70 active:bg-black/80 
+                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
+                        transition-all duration-200 
+                        focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        aria-label="Next image"
                       >
-                        <i className="bi bi-chevron-right text-xl"></i>
+                        <i className="bi bi-chevron-right text-sm sm:text-lg md:text-xl"></i>
                       </button>
+
+                      {/* Image Counter - Mobile only */}
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
+                      bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                        {currentSlide + 1} / {galleryImages.length}
+                      </div>
                     </div>
 
-                    <div className="flex justify-center gap-2 mt-4">
+                    {/* Dot Indicators - Hidden on very small screens, shown on sm+ */}
+                    <div className="hidden sm:flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
                       {galleryImages.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentSlide(index)}
-                          className={`w-3 h-3 rounded-full transition-colors ${currentSlide === index ? 'bg-orange-500' : 'bg-gray-300'
+                          className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
+                              transition-all duration-200 
+                              focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
+                              ${currentSlide === index
+                              ? "bg-orange-500 scale-110"
+                              : "bg-gray-300 hover:bg-gray-400"
                             }`}
+                          aria-label={`Go to slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Mobile Dot Indicators - Simplified for small screens */}
+                    <div className="flex sm:hidden justify-center gap-1 mt-3">
+                      {galleryImages.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentSlide(index)}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors
+                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"}`}
+                          aria-label={`Go to slide ${index + 1}`}
                         />
                       ))}
                     </div>
@@ -479,44 +523,44 @@ const ClinicProfile = () => {
                     sectionRefs.current["achievements"] = el;
                   }}
                   className="scroll-mt-36">
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-trophy text-orange-600"></i>
                       Achievements
                     </h2>
                   </div>
 
-                  <div className="bg-white grid grid-cols-1 p-4 md:p-4  md:grid-cols-3 gap-4">
-                    <div className="text-center p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
-                      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i className="bi bi-award text-yellow-600 text-2xl"></i>
+                  <div className="bg-white grid grid-cols-1 p-2 sm:p-3 md:p-4  md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg sm:rounded-xl border border-yellow-100">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                        <i className="bi bi-award text-yellow-600 text-lg sm:text-xl md:text-2xl"></i>
                       </div>
-                      <h4 className="font-bold text-gray-900 mb-1">
+                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
                         Best Dental Clinic 2023
                       </h4>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-gray-500 text-xs sm:text-sm">
                         Healthcare Excellence Award
                       </p>
                     </div>
-                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i className="bi bi-star text-blue-600 text-2xl"></i>
+                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl border border-blue-100">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                        <i className="bi bi-star text-blue-600 text-lg sm:text-xl md:text-2xl"></i>
                       </div>
-                      <h4 className="font-bold text-gray-900 mb-1">
+                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
                         5-Star Rating
                       </h4>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-gray-500 text-xs sm:text-sm">
                         10,000+ Patient Reviews
                       </p>
                     </div>
-                    <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i className="bi bi-patch-check text-green-600 text-2xl"></i>
+                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl border border-green-100">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                        <i className="bi bi-patch-check text-green-600 text-lg sm:text-xl md:text-2xl"></i>
                       </div>
-                      <h4 className="font-bold text-gray-900 mb-1">
+                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
                         ISO Certified
                       </h4>
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-gray-500 text-xs sm:text-sm">
                         International Standards
                       </p>
                     </div>
@@ -531,14 +575,14 @@ const ClinicProfile = () => {
                   }}
                   className="scroll-mt-36"
                 >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-chat-quote text-orange-600"></i>
                       Reviews
                     </h2>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2 sm:space-y-3 md:space-y-4">
                     {[1, 2, 3].map((item) => (
                       <div
                         key={item}
@@ -873,11 +917,14 @@ const ClinicProfile = () => {
           </div>
         </div>
       </div>
+      <div>
+        <Footer />
+      </div>
     </>
   );
 };
 
-const TeamMemberCard = ({ dentist, clinic }: { dentist: Dentist; clinic: Clinic | null }) => {
+const TeamMemberCard = ({ dentist, clinic }: { dentist: Dentist; clinic: Clinic }) => {
   const navigate = useNavigate();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
@@ -903,7 +950,11 @@ const TeamMemberCard = ({ dentist, clinic }: { dentist: Dentist; clinic: Clinic 
       {/* Actions (always bottom aligned) */}
       <div className="pb-6 pt-4 flex justify-center gap-4">
         <button
-          onClick={() => navigate(`/dentist/${dentist.id}`)}
+          onClick={() =>
+            navigate(`/dentist/${dentist.id}`, {
+              state: { clinicId: clinic.id }
+            })
+          }
           className="px-6 py-2 rounded-full border border-gray-300 text-sm 
           font-semibold hover:border-orange-500 hover:text-orange-600"
         >

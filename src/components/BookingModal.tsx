@@ -181,7 +181,7 @@ const BookingModal = ({
             <div className="fixed inset-0 z-[9999] flex items-center justify-center sm:p-4 md:p-6">
 
                 {/* Main Box */}
-                <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="bg-white w-half h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
                     <div className="w-full md:w-[350px] lg:w-[400px] bg-gray-50 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0">
 
                         {/* Mobile Header (Close Button logic shifted here for mobile) */}
