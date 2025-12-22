@@ -46,7 +46,7 @@ const Filter: React.FC<FilterProps> = ({
   return (
     <div className={`bg-white border border-gray-300 rounded-lg shadow-sm ${className}`}>
       {/* Header */}
-      <div className="bg-gray-100 px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-300 rounded-t-lg">
+      <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-300 rounded-t-lg">
         <div className="flex items-center justify-between">
           <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">Filter By</h2>
           {hasActiveFilters && (

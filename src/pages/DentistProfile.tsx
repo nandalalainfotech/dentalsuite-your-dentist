@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import ClinicService, { type Dentist } from "../services/ClinicService";
+import ClinicService, { type Clinic, type Dentist } from "../services/ClinicService";
+import Footer from "../components/layout/Footer";
+import BookingModal from "../components/BookingModal";
 
 interface DentistData extends Dentist {
   clinicId?: string;
@@ -11,7 +13,9 @@ const DentistProfile = () => {
   const navigate = useNavigate();
   const [dentist, setDentist] = useState<DentistData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedService, setSelectedService] = useState<string>("Dentistry");
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [clinic, setClinic] = useState<Clinic | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [activeSection, setActiveSection] = useState("about");
   const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
@@ -51,20 +55,20 @@ const DentistProfile = () => {
         // Get all clinics and find the dentist
         const allClinics = ClinicService.getAllClinics();
         let foundDentist: DentistData | null = null;
-
-        for (const clinic of await allClinics) {
-          const dentistData = clinic.dentists?.find((d) => d.id === dentistId);
+        let foundClinic: Clinic | null = null;
+        for (const clinicData of await allClinics) {
+          const dentistData = clinicData.dentists?.find((d) => d.id === dentistId);
           if (dentistData) {
-            foundDentist = { ...dentistData, clinicId: clinic.id };
+            foundDentist = { ...dentistData, clinicId: clinicData.id };
+            foundClinic = clinicData;
             break;
           }
         }
-
         setDentist(foundDentist);
+        setClinic(foundClinic);
       }
       setLoading(false);
     };
-
     fetchDentist();
   }, [dentistId]);
 
@@ -90,6 +94,13 @@ const DentistProfile = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [galleryImages.length, isAutoPlaying]);
+
+  const getTomorrowDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split("T")[0];
+  };
+  const [selectedDate, setSelectedDate] = useState<string>(getTomorrowDate);
 
   if (loading) {
     return (
@@ -208,15 +219,15 @@ const DentistProfile = () => {
       </div>
 
       {/* Quick Links - Top Horizontal Navigation */}
-      <div className="bg-white justify-center items-center sticky top-14 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-7">
+      <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
+        <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
-            <nav className="flex flex-row gap-2 py-3 min-w-max">
+            <nav className="flex flex-row gap-2 py-2 sm:py-3 min-w-max">
               {sidebarLinks.map((link) => (
                 <button
                   key={link.id}
                   onClick={() => scrollToSection(link.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm whitespace-nowrap transition-all duration-200 font-medium ${
+                  className={`flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-sm sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${
                     activeSection === link.id
                       ? "bg-orange-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
@@ -334,6 +345,56 @@ const DentistProfile = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Reviews List */}
+                <div className="mt-8 pl-3">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="bi bi-star text-orange-600"></i>
+                    Reviews
+                  </h4>
+                <div className="space-y-3 pl-6">
+                  {dentist.reviews && dentist.reviews.length > 0 ? (
+                    dentist.reviews.map((review, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 border rounded-lg p-4"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {review.patientName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {review.date}
+                            </p>
+                          </div>
+
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <i
+                                key={star}
+                                className={`bi bi-star-fill text-sm ${
+                                  star <= review.rating
+                                    ? "text-orange-500"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {review.comment}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      No patient reviews available.
+                    </p>
+                  )}
+                  </div>
+                  </div>
               </section>
 
               {/* Practice-Information */}
@@ -393,7 +454,6 @@ const DentistProfile = () => {
                         <i className="bi bi-telephone-fill text-orange-500"></i>
                         Phone
                       </h4>
-
                       <a
                         href="tel:+61291234567"
                         className="pl-6 text-gray-700 hover:text-orange-600 transition-colors"
@@ -423,11 +483,11 @@ const DentistProfile = () => {
                         <div
                           key={day}
                           className={`flex justify-between items-center px-4 py-3 rounded-md
-            ${
-              time === "Closed"
-                ? "bg-red-50 text-red-500"
-                : "bg-gray-100 text-gray-700"
-            }`}
+                            ${
+                              time === "Closed"
+                                ? "bg-red-50 text-red-500"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
                         >
                           <span className="font-medium">{day}</span>
                           <span
@@ -510,66 +570,56 @@ const DentistProfile = () => {
           <aside className="w-full lg:w-96 flex-shrink-0 hidden lg:block">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24 h-fit">
               {/* Header */}
-              <div className="p-4 md:p-5 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white">
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <i className="bi bi-calendar-check text-orange-600"></i>
+              <div className="p-6 border-b border-gray-100">
+                <h3 className="text-2xl font-bold text-gray-900">
                   Book appointment
                 </h3>
               </div>
-
-              {/* Dropdowns */}
-              <div className="p-4 md:p-5 space-y-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-300 scrollbar-track-orange-50 hover:scrollbar-thumb-orange-400">
-                {/* Select Date */}
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Show times for - Service Dropdown */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">
-                    Select Date
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Show times for
                   </label>
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((day) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() + day);
-                      const dateStr = date.toISOString().split("T")[0];
-                      const dateLabel = date.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                      });
-
-                      return (
-                        <button
-                          key={day}
-                          onClick={() => setSelectedDate(dateStr)}
-                          className={`w-full p-3 rounded-lg border-2 font-medium text-left transition-all ${
-                            selectedDate === dateStr
-                              ? "border-orange-600 bg-orange-50 text-orange-700"
-                              : "border-gray-200 text-gray-700 hover:border-orange-400 hover:bg-orange-50"
-                          }`}
-                        >
-                          {dateLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <select
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="Dentistry">Dentistry</option>
+                    <option value="Orthodontics">Orthodontics</option>
+                    <option value="Cosmetic">Cosmetic</option>
+                    <option value="Pediatric">Pediatric</option>
+                  </select>
                 </div>
-
-                {/* Select Time Slot */}
+                {/* Date Display */}
                 {selectedDate && (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-3">
-                      Select Time
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <p className="text-gray-700 font-medium text-base">
+                      {new Date(selectedDate).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                )}
+                {/* Time Slots */}
+                {selectedDate && dentist.slots && dentist.slots.length > 0 && (
+                  <div>
+                    <div className="flex flex-wrap gap-3">
                       {dentist.slots
                         ?.filter((slot) => slot.available)
+                        .slice(0, 3)
                         .map((slot, index) => (
                           <button
                             key={index}
                             onClick={() => setSelectedSlot(slot.time)}
-                            className={`p-2 rounded-lg border-2 font-medium text-sm transition-all ${
-                              selectedSlot === slot.time
-                                ? "border-orange-600 bg-orange-50 text-orange-700"
-                                : "border-gray-200 text-gray-700 hover:border-orange-400 hover:bg-orange-50"
-                            }`}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${selectedSlot === slot.time
+                              ? "bg-orange-600 text-white"
+                              : "bg-white border-2 border-gray-300 text-gray-600 hover:border-orange-400"
+                              }`}
                           >
                             {slot.time}
                           </button>
@@ -577,61 +627,48 @@ const DentistProfile = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Patient Name */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter your name"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-orange-600 transition-colors text-sm md:text-base"
-                  />
-                </div>
-
-                {/* Patient Email */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-orange-600 transition-colors text-sm md:text-base"
-                  />
-                </div>
-
-                {/* Patient Phone */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="Enter your phone"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-orange-600 transition-colors text-sm md:text-base"
-                  />
-                </div>
-
-                {/* Book Button */}
+                {/* See all appointments Button */}
                 <button
-                  onClick={() =>
-                    alert(
-                      `Appointment booked with ${dentist?.name} on ${selectedDate} at ${selectedSlot}`
-                    )
-                  }
-                  disabled={!selectedDate || !selectedSlot}
-                  className="w-full border border-orange-600 hover:bg-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-orange-600 hover:text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-lg shadow-orange-200 disabled:shadow-none transform hover:-translate-y-0.5 disabled:cursor-not-allowed"
+                  onClick={() => setIsBookingModalOpen(true)}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-full transition-all shadow-md"
                 >
-                  <i className="bi bi-check-circle mr-2"></i>
-                  Book Appointment
+                  See all appointments
                 </button>
+                {/* Select Date - Hidden but maintaining functionality */}
+                <div className="hidden">
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((day) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() + day);
+                      const dateStr = date.toISOString().split("T")[0];
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => setSelectedDate(dateStr)}
+                          className={`w-full p-3 rounded-lg border-2 font-medium text-left transition-all ${selectedDate === dateStr
+                            ? "border-orange-600 bg-orange-50 text-orange-700"
+                            : "border-gray-200 text-gray-700"
+                            }`}
+                        >
+                          {date.toLocaleDateString("en-US")}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </aside>
         </div>
       </div>
+      <Footer />
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        clinic={clinic}
+        selectedDentistId={dentistId}
+      />
     </div>
   );
 };
