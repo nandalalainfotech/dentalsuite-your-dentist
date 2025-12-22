@@ -5,6 +5,14 @@ export interface TimeSlot {
   available: boolean;
 }
 
+export interface Review {
+  patientName: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+
 export interface Dentist {
   id: string;
   name: string;
@@ -18,6 +26,7 @@ export interface Dentist {
   gender?: "male" | "female" | "other";
   languages?: string[];
   overview?: string;
+  reviews?: Review[];
 }
 
 export interface Appointment {
@@ -114,7 +123,32 @@ const clinics: Clinic[] = [
         image: "/dentist/male-dentist.jpg",
         gender: "male",
         languages: ["English", "Mandarin", "Cantonese"],
-        overview: "Dr. James Mitchell is an accomplished oral surgeon with 12 years of experience in complex dental procedures. Specializing in dental implants and wisdom tooth extractions, he combines technical expertise with patient comfort. Known for his meticulous approach and innovative surgical techniques, Dr. Mitchell has transformed smiles and restored confidence in hundreds of patients."
+        overview: "Dr. James Mitchell is an accomplished oral surgeon with 12 years of experience in complex dental procedures. Specializing in dental implants and wisdom tooth extractions, he combines technical expertise with patient comfort. Known for his meticulous approach and innovative surgical techniques, Dr. Mitchell has transformed smiles and restored confidence in hundreds of patients.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
+
       },
       {
         id: "d2",
@@ -136,7 +170,31 @@ const clinics: Clinic[] = [
         image: "/dentist/female-dentist.jpg",
         gender: "female",
         languages: ["English", "Mandarin", "Malay"],
-        overview: "Dr. Sarah Chen is a dedicated conservative dentist with 8 years of experience in cosmetic and restorative dentistry. Her gentle approach and attention to detail have made her a patient favorite. Dr. Chen specializes in creating beautiful, natural-looking smiles while preserving tooth structure and maintaining optimal oral health for her patients."
+        overview: "Dr. Sarah Chen is a dedicated conservative dentist with 8 years of experience in cosmetic and restorative dentistry. Her gentle approach and attention to detail have made her a patient favorite. Dr. Chen specializes in creating beautiful, natural-looking smiles while preserving tooth structure and maintaining optimal oral health for her patients.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       }
     ]
   },
@@ -187,7 +245,31 @@ const clinics: Clinic[] = [
         image: "https://via.placeholder.com/100x100.png?text=DR3",
         gender: "female",
         languages: ["English", "Italian", "Greek"],
-        overview: "Dr. Emily Watson is a compassionate pediatric dentist with 10 years of experience making dental visits fun and stress-free for children. Her warm demeanor and child-friendly approach have earned her the trust of thousands of young patients and parents. Dr. Watson believes in preventive care and education to ensure children develop healthy dental habits for life."
+        overview: "Dr. Emily Watson is a compassionate pediatric dentist with 10 years of experience making dental visits fun and stress-free for children. Her warm demeanor and child-friendly approach have earned her the trust of thousands of young patients and parents. Dr. Watson believes in preventive care and education to ensure children develop healthy dental habits for life.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       },
       {
         id: "d4",
@@ -209,7 +291,31 @@ const clinics: Clinic[] = [
         image: "",
         gender: "male",
         languages: ["English", "Vietnamese", "Arabic"],
-        overview: "Dr. Michael Roberts is an expert orthodontist with 15 years of experience creating beautiful, straight smiles using the latest technology. From traditional braces to modern Invisalign aligners, he offers personalized treatment plans to achieve optimal results. His patients appreciate his professionalism and commitment to achieving their dream smile."
+        overview: "Dr. Michael Roberts is an expert orthodontist with 15 years of experience creating beautiful, straight smiles using the latest technology. From traditional braces to modern Invisalign aligners, he offers personalized treatment plans to achieve optimal results. His patients appreciate his professionalism and commitment to achieving their dream smile.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       }
     ]
   },
@@ -261,7 +367,31 @@ const clinics: Clinic[] = [
         image: "https://via.placeholder.com/100x100.png?text=DR5",
         gender: "male",
         languages: ["English", "Mandarin", "Kannada"],
-        overview: "Dr. Michael Chen is a highly skilled implantologist with 18 years of expertise in complex dental implant procedures and full mouth rehabilitation. His advanced training in bone grafting and surgical techniques allows him to handle even the most challenging cases. Patients trust Dr. Chen for his meticulous attention to detail and commitment to restoring their smile permanently."
+        overview: "Dr. Michael Chen is a highly skilled implantologist with 18 years of expertise in complex dental implant procedures and full mouth rehabilitation. His advanced training in bone grafting and surgical techniques allows him to handle even the most challenging cases. Patients trust Dr. Chen for his meticulous attention to detail and commitment to restoring their smile permanently.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       },
       {
         id: "d6",
@@ -283,7 +413,31 @@ const clinics: Clinic[] = [
         image: "https://via.placeholder.com/100x100.png?text=DR6",
         gender: "female",
         languages: ["English", "French", "Hindi"],
-        overview: "Dr. Sarah Johnson is an accomplished oral surgeon with 14 years of experience performing complex extractions, gum treatments, and cosmetic whitening procedures. Her comprehensive surgical skills combined with her gentle approach make her an excellent choice for patients needing specialized oral care. Dr. Johnson's patients appreciate her professionalism and her ability to explain procedures clearly."
+        overview: "Dr. Sarah Johnson is an accomplished oral surgeon with 14 years of experience performing complex extractions, gum treatments, and cosmetic whitening procedures. Her comprehensive surgical skills combined with her gentle approach make her an excellent choice for patients needing specialized oral care. Dr. Johnson's patients appreciate her professionalism and her ability to explain procedures clearly.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       }
     ]
   },
@@ -335,7 +489,31 @@ const clinics: Clinic[] = [
         image: "https://via.placeholder.com/100x100.png?text=DR7",
         gender: "male",
         languages: ["English", "Hindi", "Punjabi"],
-        overview: "Dr. Amit Verma is a renowned cosmetic dentist with 11 years of experience creating stunning smile makeovers using veneers, crowns, and aesthetic restorations. His artistic eye and technical precision allow him to design smiles that complement each patient's unique features. Dr. Verma's passion for cosmetic dentistry has transformed countless smiles and boosted patient confidence."
+        overview: "Dr. Amit Verma is a renowned cosmetic dentist with 11 years of experience creating stunning smile makeovers using veneers, crowns, and aesthetic restorations. His artistic eye and technical precision allow him to design smiles that complement each patient's unique features. Dr. Verma's passion for cosmetic dentistry has transformed countless smiles and boosted patient confidence.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       },
       {
         id: "d8",
@@ -357,7 +535,31 @@ const clinics: Clinic[] = [
         image: "https://via.placeholder.com/100x100.png?text=DR8",
         gender: "female",
         languages: ["English", "Hindi", "Gujarati"],
-        overview: "Dr. Neha Patel is an innovative orthodontist with 9 years of experience offering both traditional braces and modern clear aligner solutions. Her personalized treatment plans and supportive guidance help patients achieve their ideal smile while maintaining comfort throughout the process. Dr. Patel's young patients particularly appreciate her friendly demeanor and flexible appointment scheduling."
+        overview: "Dr. Neha Patel is an innovative orthodontist with 9 years of experience offering both traditional braces and modern clear aligner solutions. Her personalized treatment plans and supportive guidance help patients achieve their ideal smile while maintaining comfort throughout the process. Dr. Patel's young patients particularly appreciate her friendly demeanor and flexible appointment scheduling.",
+        reviews: [
+          {
+            patientName: "Aarav Sharma",
+            rating: 5,
+            comment:
+              "Very professional and friendly. Explained the procedure clearly and made me feel comfortable.",
+            date: "12 Dec 2024"
+          },
+          {
+            patientName: "Meera Patel",
+            rating: 4,
+            comment:
+              "Good experience overall. Clinic is clean and well maintained.",
+            date: "28 Nov 2024"
+          },
+          {
+            patientName: "Rahul Verma",
+            rating: 5,
+            comment:
+              "Highly recommended! Painless treatment and great care.",
+            date: "10 Nov 2024"
+          }
+        ]
+
       }
     ]
   }

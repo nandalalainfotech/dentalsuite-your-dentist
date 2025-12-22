@@ -41,7 +41,7 @@ const BookingModal = ({
             setSelectedDateStr("");
             setSelectedTime("");
         }
-    }, [isOpen, clinic, selectedDentistId]);
+    }, [isOpen, clinic, selectedDentistId, selectedPractitioner]);
 
     useEffect(() => {
         if (selectedPractitioner) {

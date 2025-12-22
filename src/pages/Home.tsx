@@ -249,7 +249,7 @@ const Home = () => {
               <div className="relative w-full sm:w-1/2 flex items-center">
                 <div className="flex items-center w-full">
                   <svg
-                    className="w-9 h-5 text-gray-800 mr-3 flex-shrink-0"
+                    className="w-5 sm:w-9 h-5 text-gray-800 mr-3 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

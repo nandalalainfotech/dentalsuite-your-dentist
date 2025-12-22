@@ -89,7 +89,7 @@ const ClinicProfile = () => {
       setCurrentSlide((prev) => (prev + 1) % galleryImages.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [galleryImages.length, isAutoPlaying]);
 
   const scrollToSection = (sectionId: string): void => {
     const element = sectionRefs.current[sectionId];
@@ -121,9 +121,9 @@ const ClinicProfile = () => {
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [sidebarLinks]);
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -395,7 +395,7 @@ const ClinicProfile = () => {
                   className="scroll-mt-36"
                 >
                   <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-people text-orange-600"></i>
                       Our Team
                     </h2>
@@ -421,8 +421,8 @@ const ClinicProfile = () => {
                   className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
                 >
                   <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-md font-bold text-gray-900 uppercase tracking-wider sm:tracking-widest flex items-center gap-1.5 sm:gap-2 pb-2">
-                      <i className="bi bi-images text-orange-600 text-sm sm:text-base"></i>
+                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <i className="bi bi-images text-orange-600"></i>
                       Gallery
                     </h2>
                   </div>
@@ -457,7 +457,7 @@ const ClinicProfile = () => {
                         bg-black/40 hover:bg-black/70 active:bg-black/80 
                         text-white p-1.5 sm:p-2 md:p-3 rounded-full 
                         transition-all duration-200 
-                        focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        focus:outline-none focus:ring-2"
                         aria-label="Previous image"
                       >
                         <i className="bi bi-chevron-left text-sm sm:text-lg md:text-xl"></i>
@@ -470,7 +470,7 @@ const ClinicProfile = () => {
                         bg-black/40 hover:bg-black/70 active:bg-black/80 
                         text-white p-1.5 sm:p-2 md:p-3 rounded-full 
                         transition-all duration-200 
-                        focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        focus:outline-none focus:ring-2 "
                         aria-label="Next image"
                       >
                         <i className="bi bi-chevron-right text-sm sm:text-lg md:text-xl"></i>
@@ -906,7 +906,7 @@ const ClinicProfile = () => {
 
                   {/* See all appointments button */}
                   <button
-                    onClick={() => scrollToSection("appointment")}
+                    onClick={() => setIsBookingModalOpen(true)}
                     className="w-full mt-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                   >
                     See all appointments
@@ -947,16 +947,15 @@ const TeamMemberCard = ({ dentist, clinic }: { dentist: Dentist; clinic: Clinic 
         </p>
       </div>
 
-      {/* Actions (always bottom aligned) */}
+      {/* Profile& Book Button */}
       <div className="pb-6 pt-4 flex justify-center gap-4">
         <button
-          onClick={() =>
-            navigate(`/dentist/${dentist.id}`, {
-              state: { clinicId: clinic.id }
-            })
-          }
+          onClick={() => {
+            navigate(`/dentist/${dentist.id}`);
+            window.scrollTo(0, 0);
+          }}
           className="px-6 py-2 rounded-full border border-gray-300 text-sm 
-          font-semibold hover:border-orange-500 hover:text-orange-600"
+  font-semibold hover:border-orange-500 hover:text-orange-600"
         >
           Profile
         </button>
