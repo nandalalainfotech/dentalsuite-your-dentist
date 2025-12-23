@@ -94,16 +94,16 @@ const BookingModal = ({
     }, [selectedPractitioner, clinic?.dentists, viewDate]);
 
     // --- Handlers ---
-    const handleBookAppointment = () => {
-        if (!selectedDateStr || !selectedTime) return;
-        const practitioner = clinic?.dentists?.find(
-            (d: Dentist) => d.id === selectedPractitioner
-        );
-        alert(
-            `Booking Confirmed!\n\nService: ${selectedService}\nPractitioner: ${practitioner?.name}\nDate: ${selectedDateStr}\nTime: ${selectedTime}`
-        );
-        onClose();
-    };
+    // const handleBookAppointment = () => {
+    //     if (!selectedDateStr || !selectedTime) return;
+    //     const practitioner = clinic?.dentists?.find(
+    //         (d: Dentist) => d.id === selectedPractitioner
+    //     );
+    //     alert(
+    //         `Booking Confirmed!\n\nService: ${selectedService}\nPractitioner: ${practitioner?.name}\nDate: ${selectedDateStr}\nTime: ${selectedTime}`
+    //     );
+    //     onClose();
+    // };
 
     const changeMonth = (offset: number) => {
         const newDate = new Date(viewDate);
@@ -350,7 +350,7 @@ const BookingModal = ({
                         </div>
 
                         {/* Sticky Footer */}
-                        <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
+                        {/* <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
                             <div className="hidden sm:block text-sm text-gray-500 mr-auto">
                                 {selectedDateStr && selectedTime ? (
                                     <span>Selected: <strong className="text-gray-800">{selectedDateStr}</strong> at <strong className="text-gray-800">{selectedTime}</strong></span>
@@ -371,7 +371,7 @@ const BookingModal = ({
                             >
                                 Confirm Booking
                             </button>
-                        </div>
+                        </div> */}
 
                     </div>
                 </div>

@@ -13,10 +13,10 @@ const DentistProfile = () => {
   const navigate = useNavigate();
   const [dentist, setDentist] = useState<DentistData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedService, setSelectedService] = useState<string>("Dentistry");
+  const [selectedService, setSelectedService] = useState<string>("");
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [clinic, setClinic] = useState<Clinic | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [selectedSlot] = useState<string>("");
   const [activeSection, setActiveSection] = useState("about");
   const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
@@ -66,6 +66,9 @@ const DentistProfile = () => {
         }
         setDentist(foundDentist);
         setClinic(foundClinic);
+        if (foundDentist?.specialities && foundDentist.specialities.length > 0) {
+          setSelectedService(foundDentist.specialities[0]);
+        }
       }
       setLoading(false);
     };
@@ -227,11 +230,11 @@ const DentistProfile = () => {
                 <button
                   key={link.id}
                   onClick={() => scrollToSection(link.id)}
-                  className={`flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-sm sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${
-                    activeSection === link.id
+                  className={`flex items-center gap-2 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-sm sm:text-sm whitespace-nowrap transition-all duration-200 font-medium 
+                    ${activeSection === link.id
                       ? "bg-orange-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                  }`}
+                    }`}
                 >
                   <i className={`bi ${link.icon} text-lg`}></i>
                   <span>{link.label}</span>
@@ -333,11 +336,10 @@ const DentistProfile = () => {
                         <span
                           key={index}
                           className={`px-4 py-2 rounded-full text-sm font-medium border transition
-            ${
-              slot.available
-                ? "bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
-                : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-            }`}
+                          ${slot.available
+                              ? "bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
+                              : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            }`}
                         >
                           {slot.time}
                         </span>
@@ -352,49 +354,49 @@ const DentistProfile = () => {
                     <i className="bi bi-star text-orange-600"></i>
                     Reviews
                   </h4>
-                <div className="space-y-3 pl-6">
-                  {dentist.reviews && dentist.reviews.length > 0 ? (
-                    dentist.reviews.map((review, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-50 border rounded-lg p-4"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="font-medium text-gray-800">
-                              {review.patientName}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {review.date}
-                            </p>
+                  <div className="space-y-3 pl-6">
+                    {dentist.reviews && dentist.reviews.length > 0 ? (
+                      dentist.reviews.map((review, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 border rounded-lg p-4"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <p className="font-medium text-gray-800">
+                                {review.patientName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {review.date}
+                              </p>
+                            </div>
+
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <i
+                                  key={star}
+                                  className={`bi bi-star-fill text-sm 
+                                    ${star <= review.rating
+                                      ? "text-orange-500"
+                                      : "text-gray-300"
+                                    }`}
+                                />
+                              ))}
+                            </div>
                           </div>
 
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <i
-                                key={star}
-                                className={`bi bi-star-fill text-sm ${
-                                  star <= review.rating
-                                    ? "text-orange-500"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {review.comment}
+                          </p>
                         </div>
-
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {review.comment}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">
-                      No patient reviews available.
-                    </p>
-                  )}
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">
+                        No patient reviews available.
+                      </p>
+                    )}
                   </div>
-                  </div>
+                </div>
               </section>
 
               {/* Practice-Information */}
@@ -483,10 +485,9 @@ const DentistProfile = () => {
                         <div
                           key={day}
                           className={`flex justify-between items-center px-4 py-3 rounded-md
-                            ${
-                              time === "Closed"
-                                ? "bg-red-50 text-red-500"
-                                : "bg-gray-100 text-gray-700"
+                            ${time === "Closed"
+                              ? "bg-red-50 text-red-500"
+                              : "bg-gray-100 text-gray-700"
                             }`}
                         >
                           <span className="font-medium">{day}</span>
@@ -553,11 +554,11 @@ const DentistProfile = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentSlide(index)}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          currentSlide === index
+                        className={`w-3 h-3 rounded-full transition-colors
+                           ${currentSlide === index
                             ? "bg-orange-500"
                             : "bg-gray-300"
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>
@@ -567,7 +568,7 @@ const DentistProfile = () => {
           </div>
 
           {/* Right Sidebar - Book Appointment Widget */}
-          <aside className="w-full lg:w-96 flex-shrink-0 hidden lg:block">
+          <aside className="w-full lg:w-80 flex-shrink-0 hidden lg:block">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24 h-fit">
               {/* Header */}
               <div className="p-6 border-b border-gray-100">
@@ -587,10 +588,15 @@ const DentistProfile = () => {
                     onChange={(e) => setSelectedService(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
-                    <option value="Dentistry">Dentistry</option>
-                    <option value="Orthodontics">Orthodontics</option>
-                    <option value="Cosmetic">Cosmetic</option>
-                    <option value="Pediatric">Pediatric</option>
+                    {dentist?.specialities && dentist.specialities.length > 0 ? (
+                      dentist.specialities.map((speciality: string, index: number) => (
+                        <option key={index} value={speciality}>
+                          {speciality}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="General">General</option>
+                    )}
                   </select>
                 </div>
                 {/* Date Display */}
@@ -615,7 +621,15 @@ const DentistProfile = () => {
                         .map((slot, index) => (
                           <button
                             key={index}
-                            onClick={() => setSelectedSlot(slot.time)}
+                            onClick={() => {
+                              navigate(`/booking/${dentistId}`, {
+                                state: {
+                                  date: selectedDate,
+                                  time: slot.time,
+                                  service: selectedService,
+                                }
+                              });
+                            }}
                             className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${selectedSlot === slot.time
                               ? "bg-orange-600 text-white"
                               : "bg-white border-2 border-gray-300 text-gray-600 hover:border-orange-400"
