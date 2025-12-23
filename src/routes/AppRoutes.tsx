@@ -4,6 +4,7 @@ import Login from '../pages/Login'
 import Signup from '../pages/Signup'
 import ClinicProfile from '../pages/ClinicProfile'
 import DentistProfile from '../pages/DentistProfile'
+import BookingPage from '../pages/BookingPage'
 
 
 
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/clinicprofile/:id" element={<ClinicProfile />} />
                 <Route path="/dentist/:id" element={<DentistProfile />} />
+                <Route path="/booking/:id" element={<BookingPage />} />
             </Routes>
         </>
     )

@@ -242,7 +242,7 @@ const clinics: Clinic[] = [
           { time: "05:00 PM", available: true },
           { time: "06:30 PM", available: false }
         ],
-        image: "https://via.placeholder.com/100x100.png?text=DR3",
+        image: "/dentist/female-dentist.jpg",
         gender: "female",
         languages: ["English", "Italian", "Greek"],
         overview: "Dr. Emily Watson is a compassionate pediatric dentist with 10 years of experience making dental visits fun and stress-free for children. Her warm demeanor and child-friendly approach have earned her the trust of thousands of young patients and parents. Dr. Watson believes in preventive care and education to ensure children develop healthy dental habits for life.",
@@ -288,7 +288,7 @@ const clinics: Clinic[] = [
           { time: "05:00 PM", available: false },
           { time: "06:30 PM", available: true }
         ],
-        image: "",
+        image: "/dentist/male-dentist.jpg",
         gender: "male",
         languages: ["English", "Vietnamese", "Arabic"],
         overview: "Dr. Michael Roberts is an expert orthodontist with 15 years of experience creating beautiful, straight smiles using the latest technology. From traditional braces to modern Invisalign aligners, he offers personalized treatment plans to achieve optimal results. His patients appreciate his professionalism and commitment to achieving their dream smile.",
