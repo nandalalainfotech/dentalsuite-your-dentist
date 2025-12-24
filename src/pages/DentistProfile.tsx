@@ -320,33 +320,7 @@ const DentistProfile = () => {
                 </div>
 
                 {/* Available Slots */}
-                <div className="mt-8 pl-3">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <i className="bi bi-clock text-orange-600"></i>
-                    Available Slots
-                  </h4>
-
-                  {/* Slots Grid */}
-                  <div className="flex flex-wrap gap-3 pl-6">
-                    {dentist.slots?.map(
-                      (
-                        slot: { time: string; available: boolean },
-                        index: number
-                      ) => (
-                        <span
-                          key={index}
-                          className={`px-4 py-2 rounded-full text-sm font-medium border transition
-                          ${slot.available
-                              ? "bg-green-50 text-green-700 border-green-300 cursor-pointer hover:bg-green-100"
-                              : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                            }`}
-                        >
-                          {slot.time}
-                        </span>
-                      )
-                    )}
-                  </div>
-                </div>
+                {/*  */}
 
                 {/* Reviews List */}
                 <div className="mt-8 pl-3">
