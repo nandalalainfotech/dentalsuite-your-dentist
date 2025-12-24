@@ -543,7 +543,7 @@ const DentistProfile = () => {
 
           {/* Right Sidebar - Book Appointment Widget */}
           <aside className="w-full lg:w-80 flex-shrink-0 hidden lg:block">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24 h-fit">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-36 h-fit">
               {/* Header */}
               <div className="p-6 border-b border-gray-100">
                 <h3 className="text-2xl font-bold text-gray-900">

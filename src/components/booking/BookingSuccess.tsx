@@ -51,7 +51,7 @@ const BookingSuccess: React.FC = () => {
                     {/* Go Home Button */}
                     <button
                         onClick={handleGoHome}
-                        className="w-full bg-teal-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 shadow-md"
+                        className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none shadow-md"
                     >
                         Go Back Home
                     </button>
