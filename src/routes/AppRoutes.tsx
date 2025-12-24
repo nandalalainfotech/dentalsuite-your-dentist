@@ -5,13 +5,12 @@ import Signup from '../pages/Signup'
 import ClinicProfile from '../pages/ClinicProfile'
 import DentistProfile from '../pages/DentistProfile'
 import BookingPage from '../pages/BookingPage'
-import BookingStep1 from '../pages/booking/BookingStep1'
-import BookingStep2 from '../pages/booking/BookingStep2'
-import BookingStep3 from '../pages/booking/BookingStep3'
-import BookingStep4 from '../pages/booking/BookingStep4'
-import BookingStep5 from '../pages/booking/BookingStep5'
-import BookingStep6 from '../pages/booking/BookingStep6'
-import BookingSuccess from '../pages/booking/BookingSuccess'
+import BookingStep1 from '../components/booking/BookingStep1'
+import BookingStep2 from '../components/booking/BookingStep2'
+import BookingStep3 from '../components/booking/BookingStep3'
+import BookingStep4 from '../components/booking/BookingStep4'
+import BookingStep5 from '../components/booking/BookingStep5'
+import BookingSuccess from '../components/booking/BookingSuccess'
 
 
 
@@ -32,7 +31,6 @@ function App() {
                 <Route path="/booking/:id/step-3" element={<BookingStep3 />} />
                 <Route path="/booking/:id/step-4" element={<BookingStep4 />} />
                 <Route path="/booking/:id/step-5" element={<BookingStep5 />} />
-                <Route path="/booking/:id/step-6" element={<BookingStep6 />} />
                 <Route path="/booking/success" element={<BookingSuccess />} />
             </Routes>
         </>

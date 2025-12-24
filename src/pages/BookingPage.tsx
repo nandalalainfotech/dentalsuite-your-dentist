@@ -83,11 +83,11 @@ const BookingPage: React.FC = () => {
         };
 
         fetchData();
-    }, [dentistId]);
+    }, [dentistId, location.state, navigate, setClinic, setDateTime, setDentist, setDentistId, setSelectedService]);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-teal-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-orange-600"></div>
         </div>
     );
 
@@ -96,7 +96,7 @@ const BookingPage: React.FC = () => {
             <div className="text-center">
                 <h2 className="text-xl font-bold text-gray-900">Error</h2>
                 <p className="text-gray-600">{error || "Data not found"}</p>
-                <button onClick={() => navigate(-1)} className="mt-4 text-teal-600 font-medium hover:underline">Go Back</button>
+                <button onClick={() => navigate(-1)} className="mt-4 text-orange-600 font-medium hover:underline">Go Back</button>
             </div>
         </div>
     );
@@ -104,7 +104,7 @@ const BookingPage: React.FC = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-teal-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-orange-600 mx-auto mb-4"></div>
                 <h2 className="text-xl font-bold text-gray-900">Loading booking...</h2>
                 <p className="text-gray-600">Setting up your appointment</p>
             </div>
