@@ -351,7 +351,7 @@ const DentistProfile = () => {
                                   key={star}
                                   className={`bi bi-star-fill text-sm 
                                     ${star <= review.rating
-                                      ? "text-orange-500"
+                                      ? "text-yellow-500"
                                       : "text-gray-300"
                                     }`}
                                 />
@@ -604,9 +604,9 @@ const DentistProfile = () => {
                                 }
                               });
                             }}
-                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${selectedSlot === slot.time
+                            className={`px-4 py-2 text-sm rounded-full transition-colors ${selectedSlot === slot.time
                               ? "bg-orange-600 text-white"
-                              : "bg-white border-2 border-gray-300 text-gray-600 hover:border-orange-400"
+                              : "border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white "
                               }`}
                           >
                             {slot.time}

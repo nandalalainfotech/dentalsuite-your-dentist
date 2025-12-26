@@ -71,16 +71,16 @@ const ClinicProfile = () => {
   const [isAutoPlaying] = useState<boolean>(true);
 
   const galleryImages: string[] = [
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop',
+    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
   ];
 
   useEffect(() => {
@@ -221,7 +221,9 @@ const ClinicProfile = () => {
         {/* Hero Banner */}
         <section
           id="basic-info"
-          ref={(el) => { sectionRefs.current["basic-info"] = el; }}
+          ref={(el) => {
+            sectionRefs.current["basic-info"] = el;
+          }}
           className="scroll-mt-36"
         ></section>
         <div className="relative h-56 sm:h-64 md:h-80 w-full overflow-visible">
@@ -238,10 +240,8 @@ const ClinicProfile = () => {
               {/* Clinic Info Box */}
               <div className="bg-black/60 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 rounded-xl shadow-2xl w-full sm:w-auto sm:max-w-2xl">
                 <div className="flex flex-col items-start gap-3">
-
                   {/* Clinic Information Wrapper */}
                   <div className="w-full flex flex-col items-start text-left">
-
                     {/* Clinic Name & Logo */}
                     <h1 className="flex flex-row items-center justify-start gap-3 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-orange-600 mb-2">
                       <img
@@ -249,12 +249,16 @@ const ClinicProfile = () => {
                         alt={clinic.name}
                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-orange-100 flex-shrink-0"
                       />
-                      <span className="break-words line-clamp-2">{clinic.name.toUpperCase()}</span>
+                      <span className="break-words line-clamp-2">
+                        {clinic.name.toUpperCase()}
+                      </span>
                     </h1>
 
                     {/* Address */}
                     <div className="text-gray-300 text-sm sm:text-base lg:text-lg mb-2">
-                      <p className="font-medium line-clamp-1 sm:line-clamp-none text-left">{clinic.address}</p>
+                      <p className="font-medium line-clamp-1 sm:line-clamp-none text-left">
+                        {clinic.address}
+                      </p>
                     </div>
 
                     {/* Emergency Badge */}
@@ -287,10 +291,11 @@ const ClinicProfile = () => {
                         {[...Array(5)].map((_, i) => (
                           <svg
                             key={i}
-                            className={`w-4 h-4 sm:w-5 sm:h-5 ${i < Math.floor(clinic.rating || 0)
-                              ? "text-yellow-500"
-                              : "text-gray-400"
-                              }`}
+                            className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                              i < Math.floor(clinic.rating || 0)
+                                ? "text-yellow-500"
+                                : "text-gray-400"
+                            }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -325,10 +330,11 @@ const ClinicProfile = () => {
                   <button
                     key={link.id}
                     onClick={() => scrollToSection(link.id)}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                      }`}
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${
+                      activeSection === link.id
+                        ? "bg-orange-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
+                    }`}
                   >
                     <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
                     <span className="hidden sm:inline">{link.label}</span>
@@ -346,8 +352,7 @@ const ClinicProfile = () => {
             <div className="bg-white p-4 sm:p-6 md:p-10 rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
                 {/* ==================== BASIC INFO SECTION ==================== */}
-                <section
-                >
+                <section>
                   <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
                     <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-info-circle text-orange-600"></i>
@@ -366,7 +371,9 @@ const ClinicProfile = () => {
                 {/* ==================== SERVICES SECTION ==================== */}
                 <section
                   id="services"
-                  ref={(el) => { sectionRefs.current["services"] = el; }}
+                  ref={(el) => {
+                    sectionRefs.current["services"] = el;
+                  }}
                   className="scroll-mt-36"
                 >
                   <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
@@ -391,7 +398,9 @@ const ClinicProfile = () => {
                 {/* ==================== TEAM SECTION ==================== */}
                 <section
                   id="team"
-                  ref={(el) => { sectionRefs.current["team"] = el; }}
+                  ref={(el) => {
+                    sectionRefs.current["team"] = el;
+                  }}
                   className="scroll-mt-36"
                 >
                   <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
@@ -400,14 +409,19 @@ const ClinicProfile = () => {
                       Our Team
                     </h2>
                     <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
-                      {clinic.dentists?.length || 0} Dentist{clinic.dentists?.length !== 1 ? 's' : ''}
+                      {clinic.dentists?.length || 0} Dentist
+                      {clinic.dentists?.length !== 1 ? "s" : ""}
                     </span>
                   </div>
 
                   {/* Added consistent padding: p-4 md:p-4 */}
                   <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                     {clinic.dentists?.map((dentist) => (
-                      <TeamMemberCard key={dentist.id} dentist={dentist} clinic={clinic} />
+                      <TeamMemberCard
+                        key={dentist.id}
+                        dentist={dentist}
+                        clinic={clinic}
+                      />
                     ))}
                   </div>
                 </section>
@@ -431,7 +445,9 @@ const ClinicProfile = () => {
                     <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
                       <div
                         className="flex transition-transform duration-500 ease-in-out"
-                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                        style={{
+                          transform: `translateX(-${currentSlide * 100}%)`,
+                        }}
                       >
                         {galleryImages.map((url, index) => (
                           <div key={index} className="w-full flex-shrink-0">
@@ -450,7 +466,9 @@ const ClinicProfile = () => {
                       <button
                         onClick={() =>
                           setCurrentSlide(
-                            (prev) => (prev - 1 + galleryImages.length) % galleryImages.length
+                            (prev) =>
+                              (prev - 1 + galleryImages.length) %
+                              galleryImages.length
                           )
                         }
                         className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 
@@ -464,7 +482,9 @@ const ClinicProfile = () => {
                       </button>
                       <button
                         onClick={() =>
-                          setCurrentSlide((prev) => (prev + 1) % galleryImages.length)
+                          setCurrentSlide(
+                            (prev) => (prev + 1) % galleryImages.length
+                          )
                         }
                         className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 
                         bg-black/40 hover:bg-black/70 active:bg-black/80 
@@ -477,8 +497,10 @@ const ClinicProfile = () => {
                       </button>
 
                       {/* Image Counter - Mobile only */}
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
-                      bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                      <div
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
+                      bg-black/50 text-white text-xs px-2 py-1 rounded-full"
+                      >
                         {currentSlide + 1} / {galleryImages.length}
                       </div>
                     </div>
@@ -492,10 +514,11 @@ const ClinicProfile = () => {
                           className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
                               transition-all duration-200 
                               focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
-                              ${currentSlide === index
-                              ? "bg-orange-500 scale-110"
-                              : "bg-gray-300 hover:bg-gray-400"
-                            }`}
+                              ${
+                                currentSlide === index
+                                  ? "bg-orange-500 scale-110"
+                                  : "bg-gray-300 hover:bg-gray-400"
+                              }`}
                           aria-label={`Go to slide ${index + 1}`}
                         />
                       ))}
@@ -508,7 +531,9 @@ const ClinicProfile = () => {
                           key={index}
                           onClick={() => setCurrentSlide(index)}
                           className={`w-1.5 h-1.5 rounded-full transition-colors
-                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"}`}
+                     ${
+                       currentSlide === index ? "bg-orange-500" : "bg-gray-300"
+                     }`}
                           aria-label={`Go to slide ${index + 1}`}
                         />
                       ))}
@@ -522,7 +547,8 @@ const ClinicProfile = () => {
                   ref={(el) => {
                     sectionRefs.current["achievements"] = el;
                   }}
-                  className="scroll-mt-36">
+                  className="scroll-mt-36"
+                >
                   <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
                     <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                       <i className="bi bi-trophy text-orange-600"></i>
@@ -711,12 +737,13 @@ const ClinicProfile = () => {
                       <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
                         <i className="bi bi-geo-alt-fill text-orange-500 mt-1"></i>
                         <span>
-                          Level 3, 123 George Street,<br />
-                          Sydney NSW 2000,<br />
+                          Level 3, 123 George Street,
+                          <br />
+                          Sydney NSW 2000,
+                          <br />
                           Australia
                         </span>
                       </div>
-
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
                         {/* Phone */}
@@ -773,31 +800,27 @@ const ClinicProfile = () => {
                     </h4>
 
                     <div className="space-y-2">
-                      {[
-                        { day: "Monday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Tuesday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Wednesday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Thursday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Friday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Saturday", time: "08:00 AM - 03:00 PM" },
-                        { day: "Sunday", time: "Closed" },
-                      ].map(({ day, time }) => (
-                        <div
-                          key={day}
-                          className={`flex justify-between items-center px-4 py-3 rounded-md
-            ${time === "Closed"
-                              ? "bg-red-50 text-red-500"
-                              : "bg-gray-100 text-gray-700"
-                            }`}
-                        >
-                          <span className="font-medium">{day}</span>
-                          <span
-                            className={time === "Closed" ? "font-semibold" : ""}
+                      {Object.entries(clinic.time).map(([day, time]) => {
+                        const isClosed = time === "Closed";
+
+                        return (
+                          <div
+                            key={day}
+                            className={`flex justify-between items-center px-4 py-3 rounded-md
+                              ${isClosed
+                                ? "bg-red-50 text-red-500"
+                                : "bg-gray-100 text-gray-700"}
+                              `}
                           >
-                            {time}
-                          </span>
-                        </div>
-                      ))}
+                            <span className="font-medium capitalize">
+                              {day}
+                            </span>
+                            <span className={isClosed ? "font-semibold" : ""}>
+                              {time}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -924,7 +947,13 @@ const ClinicProfile = () => {
   );
 };
 
-const TeamMemberCard = ({ dentist, clinic }: { dentist: Dentist; clinic: Clinic }) => {
+const TeamMemberCard = ({
+  dentist,
+  clinic,
+}: {
+  dentist: Dentist;
+  clinic: Clinic;
+}) => {
   const navigate = useNavigate();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
