@@ -43,49 +43,50 @@ const BookingStep1: React.FC = () => {
               Is this an emergency?
             </button>
           </nav>
+          <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
+            <div className="space-y-10 animate-in fade-in duration-500">
+              <section>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
+                  Who is this appointment for?
+                </h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button
+                    onClick={() => handleSelection("myself")}
+                    className="p-5 md:p-6 rounded-xl border-2 text-left flex items-center gap-4 transition-all duration-200 group border-gray-200 hover:border-orange-500 hover:bg-white/80"
+                  >
+                    <div>
+                      <span className="block font-semibold text-gray-900">
+                        For Myself
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        I am the patient
+                      </span>
+                    </div>
+                  </button>
 
-          <div className="space-y-10 animate-in fade-in duration-500">
-            <section>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
-                Who is this appointment for?
-              </h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                  onClick={() => handleSelection("myself")}
-                  className="p-5 md:p-6 rounded-xl border-2 text-left flex items-center gap-4 transition-all duration-200 group border-gray-200 hover:border-orange-500 hover:bg-white/80"
-                >
-                  <div>
-                    <span className="block font-semibold text-gray-900">
-                      For Myself
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      I am the patient
-                    </span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleSelection("someone-else")}
-                  className="p-5 md:p-6 rounded-xl border-2 text-left flex items-center gap-4 transition-all duration-200 group border-gray-200 hover:border-orange-500 hover:bg-white/80"
-                >
-                  <div>
-                    <span className="block font-semibold text-gray-900">
-                      Someone else
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Booking for family member or others
-                    </span>
-                  </div>
-                </button>
-              </div>
-            </section>
+                  <button
+                    onClick={() => handleSelection("someone-else")}
+                    className="p-5 md:p-6 rounded-xl border-2 text-left flex items-center gap-4 transition-all duration-200 group border-gray-200 hover:border-orange-500 hover:bg-white/80"
+                  >
+                    <div>
+                      <span className="block font-semibold text-gray-900">
+                        Someone else
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Booking for family member or others
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
-          </main>
-          <EmergencyModal
-  open={showEmergency}
-  onClose={() => setShowEmergency(false)}
-/>
+      </main>
+      <EmergencyModal
+        open={showEmergency}
+        onClose={() => setShowEmergency(false)}
+      />
 
     </div>
   );

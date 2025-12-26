@@ -75,140 +75,143 @@ const BookingStep4: React.FC = () => {
               </button>
             </nav>
 
-            <div className="max-w-3xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Personal Details
-              </h1>
-              <p className="text-gray-500 mb-8">
-                Please enter details for{" "}
-                {state.appointmentFor === "myself" ? "yourself" : "the patient"}
-                .
-              </p>
+            <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="max-w-3xl mx-auto">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Personal Details
+                </h1>
+                <p className="text-gray-500 mb-8">
+                  Please enter details for{" "}
+                  {state.appointmentFor === "myself" ? "yourself" : "the patient"}
+                  .
+                </p>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        First Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                        placeholder="Enter first name"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Last Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                        placeholder="Enter last name"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label
-                      htmlFor="firstName"
+                      htmlFor="email"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      First Name *
+                      Email Address *
                     </label>
                     <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                      placeholder="Enter first name"
+                      placeholder="Enter email address"
                     />
                   </div>
 
                   <div>
                     <label
-                      htmlFor="lastName"
+                      htmlFor="phone"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Last Name *
+                      Phone Number *
                     </label>
                     <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                      placeholder="Enter last name"
+                      placeholder="Enter phone number"
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="Enter email address"
-                  />
-                </div>
+                  <div>
+                    <label
+                      htmlFor="dateOfBirth"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Date of Birth *
+                    </label>
+                    <input
+                      type="date"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    placeholder="Enter phone number"
-                  />
-                </div>
+                  <div>
+                    <label
+                      htmlFor="reason"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      id="reason"
+                      name="reason"
+                      value={formData.reason}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                      placeholder="Any additional information or special requirements..."
+                    />
+                  </div>
 
-                <div>
-                  <label
-                    htmlFor="dateOfBirth"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Date of Birth *
-                  </label>
-                  <input
-                    type="date"
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="reason"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Additional Notes (Optional)
-                  </label>
-                  <textarea
-                    id="reason"
-                    name="reason"
-                    value={formData.reason}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors resize-none"
-                    placeholder="Any additional information or special requirements..."
-                  />
-                </div>
-
-                <div className="pt-6">
-                  <button
-                    type="submit"
-                    className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </form>
+                  <div className="pt-6">
+                    <button
+                      type="submit"
+                      className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>

@@ -81,13 +81,12 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1 }) => {
                   <div className="flex flex-col items-center">
                     {/* Circle */}
                     <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        isCompleted
-                          ? "bg-gray-700 border-gray-700"
-                          : isCurrent
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isCompleted
+                        ? "bg-gray-700 border-gray-700"
+                        : isCurrent
                           ? "bg-white border-gray-700"
                           : "bg-gray-300 border-gray-300"
-                      }`}
+                        }`}
                     />
 
                     {/* Vertical line (except last) */}
@@ -99,13 +98,12 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1 }) => {
                   {/* Right: Text */}
                   <div>
                     <p
-                      className={`text-sm font-semibold flex items-center gap-2 ${
-                        isCompleted
-                          ? "text-orange-600"
-                          : isCurrent
+                      className={`text-sm font-semibold flex items-center gap-2 ${isCompleted
+                        ? "text-orange-600"
+                        : isCurrent
                           ? "text-gray-900"
                           : "text-gray-400"
-                      }`}
+                        }`}
                     >
                       {step.title}
                       {isCompleted && (
