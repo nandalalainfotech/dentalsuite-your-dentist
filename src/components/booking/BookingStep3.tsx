@@ -37,30 +37,33 @@ const BookingStep3: React.FC = () => {
             </button>
           </nav>
 
-          <div className="space-y-10 animate-in slide-in-from-top-4 duration-300">
-            <section className="pb-10">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
-                What type of appointment does the patient need?
-              </h2>
+          <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
 
-              {appointmentTypes.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[4px]">
-                  {appointmentTypes.map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => handleServiceSelect(type)}
-                      className="p-4 rounded-xl border-2 text-left text-sm font-semibold text-gray-700 group border-gray-200 hover:border-orange-500 hover:bg-white/80 hover:text-gray-800 transition-colors focus:outline-none focus:bg-white/80 min-h-[60px]"
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  No appointment types available for this dentist.
-                </p>
-              )}
-            </section>
+            <div className="space-y-10 animate-in slide-in-from-top-4 duration-300">
+              <section className="pb-10">
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
+                  What type of appointment does the patient need?
+                </h2>
+
+                {appointmentTypes.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[4px]">
+                    {appointmentTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => handleServiceSelect(type)}
+                        className="p-4 rounded-xl border-2 text-left text-sm font-semibold text-gray-700 group border-gray-200 hover:border-orange-500 hover:bg-white/80 hover:text-gray-800 transition-colors focus:outline-none focus:bg-white/80 min-h-[60px]"
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No appointment types available for this dentist.
+                  </p>
+                )}
+              </section>
+            </div>
           </div>
         </div>
       </main>
