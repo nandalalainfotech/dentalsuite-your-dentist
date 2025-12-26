@@ -7,26 +7,36 @@ import ReviewCard from "../components/ReviewCard";
 import BrowseByState from "../components/BrowseByState";
 import BlogSection from "../components/BlogSection";
 import Footer from "../components/layout/Footer";
+import { useFilters } from "../contexts/FilterContext";
 
 
 
 const Home = () => {
-  const [serviceInput, setServiceInput] = useState("");
-  const [locationInput, setLocationInput] = useState("");
   const [serviceResults, setServiceResults] = useState<Clinic[]>([]);
   const [locationResults, setLocationResults] = useState<Clinic[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<"service" | "location" | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter states
-  const [selectedLanguage, setSelectedLanguage] = useState<string[]>([]);
-  const [selectedGender, setSelectedGender] = useState<string[]>([]);
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string[]>([]);
-  const [selectedInsurance, setSelectedInsurance] = useState<string[]>([]);
-  const [selectedAvailableDays, setSelectedAvailableDays] = useState<string[]>([]);
+  const {
+    state: {
+      serviceInput,
+      locationInput,
+      selectedLanguage,
+      selectedGender,
+      selectedSpecialty,
+      selectedInsurance,
+      selectedAvailableDays,
+    },
+    setServiceInput,
+    setLocationInput,
+    setSelectedLanguage,
+    setSelectedGender,
+    setSelectedSpecialty,
+    setSelectedInsurance,
+    setSelectedAvailableDays,
+    clearAllFilters,
+  } = useFilters();
 
-
-  // Filter options
   const [languages] = useState(ClinicService.getAllLanguages());
   const [specialties] = useState(ClinicService.getAllSpecialties());
   const genderOptions = ["male", "female", "other"];
@@ -35,9 +45,6 @@ const Home = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [showAllSlots, setShowAllSlots] = useState(false);
-
-  // 🔹 Close dropdown on outside click
   useEffect(() => {
     const closeDropdown = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -48,7 +55,6 @@ const Home = () => {
     return () => document.removeEventListener("mousedown", closeDropdown);
   }, []);
 
-  // 🔹 Filter clinics by service
   const handleServiceChange = (value: string) => {
     setServiceInput(value);
     setActiveDropdown("service");
@@ -57,41 +63,54 @@ const Home = () => {
     setServiceResults(results);
   };
 
-  // 🔹 Filter clinics by location
   const handleLocationChange = (value: string) => {
     setLocationInput(value);
     setActiveDropdown("location");
-
     const results = ClinicService.searchClinics(value);
     setLocationResults(results);
   };
 
-  // 🔹 Clear service input
   const handleClearService = () => {
     setServiceInput("");
     setActiveDropdown(null);
   };
 
-  // 🔹 Clear location input
   const handleClearLocation = () => {
     setLocationInput("");
     setActiveDropdown(null);
   };
 
 
-  // Update clearAllFilters to remove selectedServices reference:
-  const clearAllFilters = () => {
-    setServiceInput("");
-    setLocationInput("");
-    setSelectedLanguage([]);
-    setSelectedGender([]);
-    setSelectedSpecialty([]);
-    setSelectedInsurance([]);
-    setSelectedAvailableDays([]);
+  const handleClearAllFilters = () => {
+    clearAllFilters();
     setActiveDropdown(null);
   };
 
-  // 🔹 Filter change functions for filters
+  const getAllAvailableSlots = (clinic: Clinic) => {
+    if (!clinic.dentists) return [];
+    const allSlots: { time: string; dentistName: string; dentistId: string }[] = [];
+
+    clinic.dentists.forEach(dentist => {
+      if (dentist.slots) {
+        dentist.slots
+          .filter(slot => slot.available)
+          .forEach(slot => {
+            allSlots.push({
+              time: slot.time,
+              dentistName: dentist.name,
+              dentistId: dentist.id
+            });
+          });
+      }
+    });
+
+    return allSlots.sort((a, b) => {
+      const timeA = new Date(`2000-01-01 ${a.time}`);
+      const timeB = new Date(`2000-01-01 ${b.time}`);
+      return timeA.getTime() - timeB.getTime();
+    });
+  };
+
   const handleLanguageChange = (languages: string[]) => {
     setSelectedLanguage(languages);
   };
@@ -103,21 +122,21 @@ const Home = () => {
   const handleSpecialtyChange = (specialties: string[]) => {
     setSelectedSpecialty(specialties);
   };
+
   const handleInsuranceChange = (insurances: string[]) => {
     setSelectedInsurance(insurances);
   };
+
   const handleAvailableDaysChange = (days: string[]) => {
     setSelectedAvailableDays(days);
   };
 
-  // 🔹 Calculate search results and show state based on filters
   const { searchResults, showResults } = useMemo(() => {
     const hasAnyFilter = serviceInput || locationInput ||
       selectedLanguage.length > 0 || selectedGender.length > 0 ||
       selectedSpecialty.length > 0 || selectedInsurance.length > 0 || selectedAvailableDays.length > 0;
 
     if (hasAnyFilter) {
-      // Convert arrays to comma-separated strings for the service
       const filters = {
         service: serviceInput,
         location: locationInput,
@@ -223,7 +242,6 @@ const Home = () => {
                             spec.toLowerCase().includes(serviceInput.toLowerCase())
                           )
                         )
-                        // Remove duplicates
                         .filter((spec, index, array) => array.indexOf(spec) === index)
                         .map((matchedSpec, index) => (
                           <div
@@ -404,7 +422,7 @@ const Home = () => {
               onSpecialtyChange={handleSpecialtyChange}
               onInsuranceChange={handleInsuranceChange}
               onAvailableDaysChange={handleAvailableDaysChange}
-              onClearAll={clearAllFilters}
+              onClearAll={handleClearAllFilters}
               languages={languages}
               specialties={specialties}
               insuranceOptions={insuranceOptions}
@@ -494,47 +512,39 @@ const Home = () => {
 
                                 {/* Available Timing */}
                                 <div className="flex-1">
-                                  {clinic.dentists && clinic.dentists.length > 0 && clinic.dentists[0].slots ? (
-                                    <>
-                                      <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">
-                                        Next Available:
-                                      </h4>
-                                      <div className="flex flex-wrap gap-2">
-                                        {(showAllSlots
-                                          ? clinic.dentists[0].slots.filter(slot => slot.available)
-                                          : clinic.dentists[0].slots.filter(slot => slot.available).slice(0, 4)
-                                        ).map((slot, index) => (
-                                          <span
-                                            key={index}
-                                            className="px-3 py-1 text-xs sm:text-sm font-medium rounded-md border bg-green-50 text-green-700 border-green-200"
-                                          >
-                                            {slot.time}
-                                          </span>
-                                        ))}
-                                        {!showAllSlots &&
-                                          clinic.dentists[0].slots.filter(slot => slot.available).length > 4 && (
+                                  {(() => {
+                                    const allSlots = getAllAvailableSlots(clinic);
+                                    const displaySlots = allSlots.slice(0, 7);
+
+                                    return allSlots.length > 0 ? (
+                                      <>
+                                        <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">
+                                          Next Available:
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                          {displaySlots.map((slot, index) => (
+                                            <span
+                                              key={index}
+                                              className="px-3 py-1 text-xs sm:text-sm font-medium rounded-md border bg-green-50 text-green-700 border-green-200"
+                                            >
+                                              {slot.time}
+                                            </span>
+                                          ))}
+                                          {allSlots.length > 7 && (
                                             <button
                                               className="px-2 py-1 text-xs text-blue-600 underline self-center"
-                                              onClick={() => setShowAllSlots(true)}
+                                              onClick={() => {
+                                              }}
                                             >
-                                              +{clinic.dentists[0].slots.filter(slot => slot.available).length - 4} more
+                                              +{allSlots.length - 7} more
                                             </button>
                                           )}
-                                      </div>
-
-                                      {/* Optional: Show "Show Less" button */}
-                                      {showAllSlots && (
-                                        <button
-                                          className="text-xs text-blue-600 underline mt-2"
-                                          onClick={() => setShowAllSlots(false)}
-                                        >
-                                          Show Less
-                                        </button>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <span className="text-sm text-gray-500 italic">Call for availability</span>
-                                  )}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <span className="text-sm text-gray-500 italic">Call for availability</span>
+                                    );
+                                  })()}
                                 </div>
                               </div>
 
