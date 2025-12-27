@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 export default function Login() {
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white w-[420px] shadow-xl rounded-2xl p-8">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
+      <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8 m-10">
 
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Patient log in</h1>
@@ -21,7 +21,7 @@ export default function Login() {
             <input
               type="text"
               className="w-full mt-1 border-2 rounded-md px-3 py-2 
-              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none" 
+              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
             />
           </div>
 
@@ -30,7 +30,7 @@ export default function Login() {
             <input
               type="password"
               className="w-full mt-1 border-2 rounded-md px-3 py-2 
-              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none" 
+              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
             />
           </div>
 
@@ -59,7 +59,7 @@ export default function Login() {
           <button className="w-full bg-black font-bold  text-white py-2 rounded-lg 
             hover:bg-orange-600  hover:text-white transition-all">
             Create patient account
-        </button></Link>
+          </button></Link>
 
         <div className="text-center mt-5">
           <a href="#" className="text-blue-600 text-sm">Need help?</a>

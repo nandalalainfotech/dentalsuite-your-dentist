@@ -134,7 +134,15 @@ const DentistProfile = () => {
             The dentist you're looking for doesn't exist or has been removed.
           </p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              const bookingReferrer = sessionStorage.getItem('dentistFromClinic');
+              if (bookingReferrer) {
+                navigate(bookingReferrer);
+                sessionStorage.removeItem('dentistFromClinic');
+              } else {
+                navigate(-1);
+              }
+            }}
             className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-200 transform hover:-translate-y-0.5"
           >
             Go Back
@@ -170,7 +178,15 @@ const DentistProfile = () => {
 
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            const bookingReferrer = sessionStorage.getItem('dentistFromClinic');
+            if (bookingReferrer) {
+              navigate(bookingReferrer);
+              sessionStorage.removeItem('dentistFromClinic');
+            } else {
+              navigate(-1);
+            }
+          }}
           className="absolute top-4 left-4 z-20 bg-white/80 backdrop-blur-sm hover:bg-white text-gray-900 px-4 py-2 rounded-lg shadow-md transition-all flex items-center gap-2"
         >
           <i className="bi bi-arrow-left"></i>
@@ -598,6 +614,8 @@ const DentistProfile = () => {
                           <button
                             key={index}
                             onClick={() => {
+                              // Store referrer before navigating
+                              sessionStorage.setItem('bookingReferrer', `/clinicprofile/${clinic?.id}`);
                               navigate(`/booking/${dentistId}`, {
                                 state: {
                                   date: selectedDate,
@@ -619,7 +637,10 @@ const DentistProfile = () => {
                 )}
                 {/* See all appointments Button */}
                 <button
-                  onClick={() => setIsBookingModalOpen(true)}
+                  onClick={() => {
+                    sessionStorage.setItem('bookingReferrer', `/dentist/${dentistId}`);
+                    setIsBookingModalOpen(true);
+                  }}
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-full transition-all shadow-md"
                 >
                   See all appointments

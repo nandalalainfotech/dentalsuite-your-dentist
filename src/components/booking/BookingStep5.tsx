@@ -1,11 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
+import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
 
 const BookingStep6: React.FC = () => {
   const navigate = useNavigate();
   const { state, resetBooking } = useBooking();
+  const { loading, hasData } = useBookingDataLoader();
 
   const handleConfirm = () => {
     // Here you would typically make an API call to save the booking
@@ -25,10 +27,23 @@ const BookingStep6: React.FC = () => {
     navigate(`/booking/${state.dentistId}/step-${stepNumber}`);
   };
 
+  if (loading || !hasData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-100 border-t-orange-600 mx-auto"></div>
+          <p className="text-gray-500 font-medium animate-pulse">
+            Loading booking details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={4} />
+      <BookingSidebar currentStep={5} />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-50 p-4 md:p-10 lg:p-16 overflow-y-auto">

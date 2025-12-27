@@ -7,7 +7,7 @@ import BookingModal from "../components/booking/BookingModal";
 import Footer from "../components/layout/Footer";
 
 const ClinicProfile = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -289,11 +289,10 @@ const ClinicProfile = () => {
                         {[...Array(5)].map((_, i) => (
                           <svg
                             key={i}
-                            className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                              i < Math.floor(clinic.rating || 0)
+                            className={`w-4 h-4 sm:w-5 sm:h-5 ${i < Math.floor(clinic.rating || 0)
                                 ? "text-yellow-500"
                                 : "text-gray-400"
-                            }`}
+                              }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                             xmlns="http://www.w3.org/2000/svg"
@@ -311,7 +310,7 @@ const ClinicProfile = () => {
 
           {/* Back Button */}
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-4 bg-gray-100 backdrop-blur-sm hover:bg-white text-gray-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm sm:text-base font-medium"
           >
             <i className="bi bi-arrow-left"></i>
@@ -328,11 +327,10 @@ const ClinicProfile = () => {
                   <button
                     key={link.id}
                     onClick={() => scrollToSection(link.id)}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${
-                      activeSection === link.id
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
                         ? "bg-orange-500 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                    }`}
+                      }`}
                   >
                     <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
                     <span className="hidden sm:inline">{link.label}</span>
@@ -512,11 +510,10 @@ const ClinicProfile = () => {
                           className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
                               transition-all duration-200 
                               focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
-                              ${
-                                currentSlide === index
-                                  ? "bg-orange-500 scale-110"
-                                  : "bg-gray-300 hover:bg-gray-400"
-                              }`}
+                              ${currentSlide === index
+                              ? "bg-orange-500 scale-110"
+                              : "bg-gray-300 hover:bg-gray-400"
+                            }`}
                           aria-label={`Go to slide ${index + 1}`}
                         />
                       ))}
@@ -529,9 +526,8 @@ const ClinicProfile = () => {
                           key={index}
                           onClick={() => setCurrentSlide(index)}
                           className={`w-1.5 h-1.5 rounded-full transition-colors
-                     ${
-                       currentSlide === index ? "bg-orange-500" : "bg-gray-300"
-                     }`}
+                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"
+                            }`}
                           aria-label={`Go to slide ${index + 1}`}
                         />
                       ))}
@@ -927,7 +923,10 @@ const ClinicProfile = () => {
 
                   {/* See all appointments button */}
                   <button
-                    onClick={() => setIsBookingModalOpen(true)}
+                    onClick={() => {
+                      sessionStorage.setItem('bookingReferrer', `/clinicprofile/${id}`);
+                      setIsBookingModalOpen(true);
+                    }}
                     className="w-full mt-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
                   >
                     See all appointments
@@ -978,17 +977,20 @@ const TeamMemberCard = ({
       <div className="pb-6 pt-4 flex justify-center gap-4">
         <button
           onClick={() => {
-            navigate(`/dentist/${dentist.id}`);
+            sessionStorage.setItem('dentistFromClinic', `/clinicprofile/${clinic?.id}`);
+            navigate(`/dentist/${dentist.id}`, {
+              state: { clinicId: clinic.id }
+            }
+            );
             window.scrollTo(0, 0);
           }}
           className="px-6 py-2 rounded-full border border-gray-300 text-sm 
-  font-semibold hover:border-orange-500 hover:text-orange-600"
+          font-semibold hover:border-orange-500 hover:text-orange-600"
         >
           Profile
         </button>
 
         <button
-          onClick={() => setIsBookingModalOpen(true)}
           className="px-6 py-2 rounded-full bg-orange-600 text-white
           text-sm font-semibold hover:text-gray-900"
         >
