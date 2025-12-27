@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { Clinic, Dentist } from "../../types";
 
 interface BookingModalProps {
@@ -16,6 +16,7 @@ const BookingModal = ({
     selectedDentistId,
 }: BookingModalProps) => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     // --- State ---
     const [selectedService, setSelectedService] = useState("dentistry");
@@ -103,6 +104,31 @@ const BookingModal = ({
         // Convert selectedDateStr to ISO format for navigation
         const dateObj = new Date(selectedDateStr);
         const isoDate = dateObj.toISOString().split('T')[0];
+        const existingReferrer = sessionStorage.getItem('bookingReferrer');
+
+        if (!existingReferrer) {
+            const currentPath = location.pathname;
+            const documentReferrer = document.referrer;
+
+            let referrerPath;
+            if (currentPath.includes('/clinicprofile/')) {
+                referrerPath = currentPath;
+            }
+            else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) {
+                referrerPath = documentReferrer;
+            }
+            else if (currentPath.includes('/dentist/')) {
+                referrerPath = `/dentist/${selectedDentistId}`;
+            }
+            else {
+                referrerPath = '/';
+            }
+
+            console.log('BookingModal - Setting referrer:', referrerPath, 'Current path:', currentPath);
+            sessionStorage.setItem('bookingReferrer', referrerPath);
+        } else {
+            console.log('BookingModal - Using existing referrer:', existingReferrer);
+        }
 
         // Navigate to booking flow with date, time, and service
         navigate(`/booking/${selectedPractitioner}`, {

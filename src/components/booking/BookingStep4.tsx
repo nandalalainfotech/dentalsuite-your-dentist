@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
+import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
 
 interface PersonalDetails {
@@ -15,6 +16,7 @@ interface PersonalDetails {
 const BookingStep4: React.FC = () => {
   const navigate = useNavigate();
   const { state, setPersonalDetails } = useBooking();
+  const { loading, hasData } = useBookingDataLoader();
   const [formData, setFormData] = useState<PersonalDetails>({
     firstName: "",
     lastName: "",
@@ -45,12 +47,26 @@ const BookingStep4: React.FC = () => {
     navigate(`/booking/${state.dentistId}/step-3`);
   };
 
+  if (loading || !hasData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-100 border-t-orange-600 mx-auto"></div>
+          <p className="text-gray-500 font-medium animate-pulse">
+            Loading booking details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={3} />
+      <BookingSidebar currentStep={4} />
 
       {/* Main Content */}
+      {/* <main className="flex-1 p-4 md:p-10 lg:p-16 overflow-y-auto"> */}
       <main className="flex-1 p-4 md:p-10 lg:p-16 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
@@ -65,14 +81,6 @@ const BookingStep4: React.FC = () => {
                 Back
               </button>
 
-              {/* Emergency */}
-              <button
-                onClick={() => navigate("/emergency")} // optional
-                className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-              >
-                <i className="bi bi-exclamation-triangle-fill text-base"></i>
-                Is this an emergency?
-              </button>
             </nav>
 
             <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
