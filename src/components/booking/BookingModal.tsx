@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Clinic, Dentist } from "../services/ClinicService";
+import type { Clinic, Dentist } from "../../types";
 
 interface BookingModalProps {
     isOpen: boolean;

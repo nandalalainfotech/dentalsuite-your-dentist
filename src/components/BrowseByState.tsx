@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ClinicService } from "../services/ClinicService";
+import { clinicApi } from "../api";
 import { ArrowRight } from "lucide-react";
 interface StateGroup {
     code: string;
@@ -22,7 +22,7 @@ const BrowseByState = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const clinics = await ClinicService.getAllClinics();
+                const clinics = await clinicApi.getAllClinics();
                 const map: Record<string, StateGroup> = {};
                 clinics.forEach((clinic) => {
                     const address = clinic.address;

@@ -1,11 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import ClinicService, {
-  type Clinic,
-  type Dentist,
-} from "../services/ClinicService";
-import BookingModal from "../components/BookingModal";
+import { clinicApi } from "../api";
+import type { Clinic, Dentist } from "../types";
+import BookingModal from "../components/booking/BookingModal";
 import Footer from "../components/layout/Footer";
 
 const ClinicProfile = () => {
@@ -151,7 +149,7 @@ const ClinicProfile = () => {
   useEffect(() => {
     const fetchClinic = () => {
       if (id) {
-        const clinicData = ClinicService.getClinicById(id);
+        const clinicData = clinicApi.getClinicById(id);
         setClinic(clinicData || null);
 
         if (clinicData?.dentists && clinicData.dentists.length > 0) {

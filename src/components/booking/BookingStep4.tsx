@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useBooking } from "../../contexts/BookingContext";
+import { useBooking } from "../../hooks/booking/useBookingContext";
 import BookingSidebar from "./BookingSidebar";
 
 interface PersonalDetails {

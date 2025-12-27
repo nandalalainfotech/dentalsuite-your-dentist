@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import ClinicService, { type Clinic, type Dentist } from "../services/ClinicService";
-import { useBooking } from "../contexts/BookingContext";
+import { clinicApi } from "../api";
+import type { Clinic, Dentist } from "../types";
+import { useBooking } from "../hooks/booking/useBookingContext";
 
 const BookingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const BookingPage: React.FC = () => {
             }
 
             try {
-                const response = await ClinicService.getAllClinics();
+                const response = await clinicApi.getAllClinics();
                 const allClinics = response as Clinic[];
 
                 const foundClinic = allClinics.find((c) =>
