@@ -12,14 +12,10 @@ import BookingStep4 from '../components/booking/BookingStep4'
 import BookingStep5 from '../components/booking/BookingStep5'
 import BookingSuccess from '../components/booking/BookingSuccess'
 
-
-
-
-
-function App() {
+function AppRoutes() {
     return (
         <>
-<Routes>
+            <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
@@ -36,4 +32,4 @@ function App() {
         </>
     )
 }
-export default App
+export default AppRoutes

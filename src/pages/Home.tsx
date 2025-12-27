@@ -1,34 +1,29 @@
-import ClinicService, { type Clinic } from "../services/ClinicService";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
-import Filters from "../components/Filters";
-import ServicesSection from "../components/ServiceSection";
-import ReviewCard from "../components/ReviewCard";
+import Filters from "../components/filters/Filters";
+import ServicesSection from "../components/services/ServiceSection";
+import ReviewCard from "../components/reviews/ReviewCard";
 import BrowseByState from "../components/BrowseByState";
 import BlogSection from "../components/BlogSection";
 import Footer from "../components/layout/Footer";
-import { useFilters } from "../contexts/FilterContext";
+import { useHomeSearch, useClinicData } from "../hooks/useHomeSearch";
+import type { Clinic } from "../types";
+import { useFilters } from "../hooks/filters/useFilters";
 
 
 
 const Home = () => {
-  const [serviceResults, setServiceResults] = useState<Clinic[]>([]);
-  const [locationResults, setLocationResults] = useState<Clinic[]>([]);
-  const [activeDropdown, setActiveDropdown] = useState<"service" | "location" | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     state: {
-      serviceInput,
-      locationInput,
       selectedLanguage,
       selectedGender,
       selectedSpecialty,
       selectedInsurance,
       selectedAvailableDays,
     },
-    setServiceInput,
-    setLocationInput,
     setSelectedLanguage,
     setSelectedGender,
     setSelectedSpecialty,
@@ -37,13 +32,29 @@ const Home = () => {
     clearAllFilters,
   } = useFilters();
 
-  const [languages] = useState(ClinicService.getAllLanguages());
-  const [specialties] = useState(ClinicService.getAllSpecialties());
-  const genderOptions = ["male", "female", "other"];
-  const insuranceOptions = useState(ClinicService.getAllInsurances())[0];
-  const availableDaysOptions = useState(ClinicService.getAllAvailableDays())[0];
+  const {
+    serviceResults,
+    locationResults,
+    activeDropdown,
+    setActiveDropdown,
+    searchResults,
+    showResults,
+    serviceInput,
+    locationInput,
+    setServiceInput,
+    setLocationInput,
+    languages,
+    specialties,
+    insuranceOptions,
+    availableDaysOptions,
+    genderOptions,
+    handleServiceChange,
+    handleLocationChange,
+    handleClearService,
+    handleClearLocation,
+  } = useHomeSearch();
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { getAllAvailableSlots } = useClinicData();
 
   useEffect(() => {
     const closeDropdown = (e: MouseEvent) => {
@@ -53,62 +64,11 @@ const Home = () => {
     };
     document.addEventListener("mousedown", closeDropdown);
     return () => document.removeEventListener("mousedown", closeDropdown);
-  }, []);
-
-  const handleServiceChange = (value: string) => {
-    setServiceInput(value);
-    setActiveDropdown("service");
-
-    const results = ClinicService.searchClinics(value);
-    setServiceResults(results);
-  };
-
-  const handleLocationChange = (value: string) => {
-    setLocationInput(value);
-    setActiveDropdown("location");
-    const results = ClinicService.searchClinics(value);
-    setLocationResults(results);
-  };
-
-  const handleClearService = () => {
-    setServiceInput("");
-    setActiveDropdown(null);
-  };
-
-  const handleClearLocation = () => {
-    setLocationInput("");
-    setActiveDropdown(null);
-  };
-
+  }, [setActiveDropdown]);
 
   const handleClearAllFilters = () => {
     clearAllFilters();
     setActiveDropdown(null);
-  };
-
-  const getAllAvailableSlots = (clinic: Clinic) => {
-    if (!clinic.dentists) return [];
-    const allSlots: { time: string; dentistName: string; dentistId: string }[] = [];
-
-    clinic.dentists.forEach(dentist => {
-      if (dentist.slots) {
-        dentist.slots
-          .filter(slot => slot.available)
-          .forEach(slot => {
-            allSlots.push({
-              time: slot.time,
-              dentistName: dentist.name,
-              dentistId: dentist.id
-            });
-          });
-      }
-    });
-
-    return allSlots.sort((a, b) => {
-      const timeA = new Date(`2000-01-01 ${a.time}`);
-      const timeB = new Date(`2000-01-01 ${b.time}`);
-      return timeA.getTime() - timeB.getTime();
-    });
   };
 
   const handleLanguageChange = (languages: string[]) => {
@@ -131,45 +91,19 @@ const Home = () => {
     setSelectedAvailableDays(days);
   };
 
-  const { searchResults, showResults } = useMemo(() => {
-    const hasAnyFilter = serviceInput || locationInput ||
-      selectedLanguage.length > 0 || selectedGender.length > 0 ||
-      selectedSpecialty.length > 0 || selectedInsurance.length > 0 || selectedAvailableDays.length > 0;
-
-    if (hasAnyFilter) {
-      const filters = {
-        service: serviceInput,
-        location: locationInput,
-        language: selectedLanguage.length > 0 ? selectedLanguage.join(',') : undefined,
-        gender: selectedGender.length > 0 ? selectedGender.join(',') : undefined,
-        specialty: selectedSpecialty.length > 0 ? selectedSpecialty.join(',') : undefined,
-        insurance: selectedInsurance.length > 0 ? selectedInsurance.join(',') : undefined,
-        availableDays: selectedAvailableDays.length > 0 ? selectedAvailableDays.join(',') : undefined,
-      };
-
-      return {
-        searchResults: ClinicService.searchClinicsWithFilters(filters) ?? [],
-        showResults: true
-      };
-    }
-
-    return {
-      searchResults: [],
-      showResults: false
-    };
-  }, [serviceInput, locationInput, selectedLanguage, selectedGender, selectedSpecialty, selectedInsurance, selectedAvailableDays]);
-
 
   return (
+
     <div className="w-full bg-gray-100 py-0 px-0">
-      <div className="max-w mx-auto text-center">
-        {/* Heading */}
-        <div
-          className="w-full bg-cover bg-center bg-no-repeat py-12 sm:py-16 md:py-20 lg:py-24 px-4"
-          style={{
-            backgroundImage: `url('/hero2.webp')`,
-          }}
-        >
+      {/* Banner Image */}
+      <div
+        className="w-full bg-cover bg-center bg-no-repeat py-12 sm:py-16 md:py-20 lg:py-24 px-4"
+        style={{
+          backgroundImage: `url('/hero2.webp')`,
+        }}
+      >
+        <div className="max-w-7xl mx-auto text-center">
+          {/* Heading */}
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-100 leading-snug">
             Find <span className="text-black">Your Dentist</span> Nearby You.
           </h1>
@@ -238,7 +172,7 @@ const Home = () => {
                     {serviceInput.trim() && serviceResults.length > 0 ? (
                       serviceResults
                         .flatMap((clinic) =>
-                          clinic.specialities.filter((spec) =>
+                          clinic.specialities.filter((spec: string) =>
                             spec.toLowerCase().includes(serviceInput.toLowerCase())
                           )
                         )
@@ -456,7 +390,7 @@ const Home = () => {
 
                 {searchResults.length > 0 ? (
                   <div className="grid gap-4 sm:gap-6">
-                    {searchResults.map((clinic) => (
+                    {searchResults.map((clinic: Clinic) => (
                       <div
                         key={clinic.id}
                         className="bg-white border border-gray-200 hover:border-orange-300 hover:ring-orange-500 ring-2 ring-transparent hover:translate-x-1 transition-transform duration-200 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-full"

@@ -1,14 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
-
-interface FilterState {
-  serviceInput: string;
-  locationInput: string;
-  selectedLanguage: string[];
-  selectedGender: string[];
-  selectedSpecialty: string[];
-  selectedInsurance: string[];
-  selectedAvailableDays: string[];
-}
+import type { FilterState } from '../../types';
 
 type FilterAction =
   | { type: 'SET_SERVICE_INPUT'; payload: string }
@@ -77,7 +68,6 @@ interface FilterProviderProps {
 export function FilterProvider({ children }: FilterProviderProps) {
   const [state, dispatch] = useReducer(filterReducer, initialState);
 
-  // Load filters from localStorage on mount
   useEffect(() => {
     const savedFilters = localStorage.getItem('dentalFilters');
     if (savedFilters) {
@@ -90,9 +80,8 @@ export function FilterProvider({ children }: FilterProviderProps) {
     }
   }, []);
 
-  // Save filters to localStorage whenever they change
   useEffect(() => {
-    sessionStorage.setItem('dentalFilters', JSON.stringify(state));
+    localStorage.setItem('dentalFilters', JSON.stringify(state));
   }, [state]);
 
   const setServiceInput = (value: string) => {
@@ -127,20 +116,20 @@ export function FilterProvider({ children }: FilterProviderProps) {
     dispatch({ type: 'CLEAR_ALL_FILTERS' });
   };
 
+  const contextValue: FilterContextType = {
+    state,
+    setServiceInput,
+    setLocationInput,
+    setSelectedLanguage,
+    setSelectedGender,
+    setSelectedSpecialty,
+    setSelectedInsurance,
+    setSelectedAvailableDays,
+    clearAllFilters,
+  };
+
   return (
-    <FilterContext.Provider
-      value={{
-        state,
-        setServiceInput,
-        setLocationInput,
-        setSelectedLanguage,
-        setSelectedGender,
-        setSelectedSpecialty,
-        setSelectedInsurance,
-        setSelectedAvailableDays,
-        clearAllFilters,
-      }}
-    >
+    <FilterContext.Provider value={contextValue}>
       {children}
     </FilterContext.Provider>
   );

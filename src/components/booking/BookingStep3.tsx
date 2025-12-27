@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useBooking } from "../../contexts/BookingContext";
+import { useBooking } from "../../hooks/booking/useBookingContext";
 import BookingSidebar from "./BookingSidebar";
 
 const BookingStep3: React.FC = () => {
@@ -47,7 +47,7 @@ const BookingStep3: React.FC = () => {
 
                 {appointmentTypes.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[4px]">
-                    {appointmentTypes.map((type) => (
+                    {appointmentTypes.map((type: string) => (
                       <button
                         key={type}
                         onClick={() => handleServiceSelect(type)}

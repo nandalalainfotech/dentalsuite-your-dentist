@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import ClinicService, { type Clinic, type Dentist } from "../services/ClinicService";
+import { clinicApi } from "../api";
+
+import type { Clinic, Dentist } from "../types";
 import Footer from "../components/layout/Footer";
-import BookingModal from "../components/BookingModal";
+import BookingModal from "../components/booking/BookingModal";
 
 interface DentistData extends Dentist {
   clinicId?: string;
@@ -53,11 +55,11 @@ const DentistProfile = () => {
     const fetchDentist = async () => {
       if (dentistId) {
         // Get all clinics and find the dentist
-        const allClinics = ClinicService.getAllClinics();
+        const allClinics = clinicApi.getAllClinics();
         let foundDentist: DentistData | null = null;
         let foundClinic: Clinic | null = null;
         for (const clinicData of await allClinics) {
-          const dentistData = clinicData.dentists?.find((d) => d.id === dentistId);
+          const dentistData = clinicData.dentists?.find((d: Dentist) => d.id === dentistId);
           if (dentistData) {
             foundDentist = { ...dentistData, clinicId: clinicData.id };
             foundClinic = clinicData;

@@ -1,5 +1,5 @@
 import React from "react";
-import { useBooking } from "../../contexts/BookingContext";
+import { useBooking } from "../../hooks/booking/useBookingContext";
 
 interface BookingSidebarProps {
   currentStep?: number;
