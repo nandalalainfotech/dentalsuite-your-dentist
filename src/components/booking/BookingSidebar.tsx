@@ -3,20 +3,22 @@ import { useBooking } from "../../hooks/booking/useBookingContext";
 
 interface BookingSidebarProps {
   currentStep?: number;
+  onOpenBookingModal?: () => void;
 }
 
-const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1 }) => {
+const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1, onOpenBookingModal }) => {
   const { state } = useBooking();
 
   const steps = [
     { number: 1, title: "Date & Time", description: "Schedule appointment" },
-    { number: 2, title: "Appointment Type", description: "Who & what service" },
+    { number: 2, title: "Patient Type", description: "New & Exists" },
+    { number: 3, title: "Appointment Type", description: "Who & what service" },
     {
-      number: 3,
+      number: 4,
       title: "Patient Details",
       description: "Personal information",
     },
-    { number: 4, title: "Confirmation", description: "Review & confirm" },
+    { number: 5, title: "Confirmation", description: "Review & confirm" },
   ];
 
   return (
@@ -62,6 +64,18 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1 }) => {
                 className="w-25 h-24 rounded-full object-cover border-2 border-gray-100 shadow-lg"
               />
             </div>
+          </div>
+        )}
+
+        {/* Change Appointment Button */}
+        {currentStep >= 1 && state.clinic && (
+          <div className="border-t border-gray-200 mb-8 flex justify-center">
+            <button
+              onClick={onOpenBookingModal}
+              className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Change Appointment
+            </button>
           </div>
         )}
 

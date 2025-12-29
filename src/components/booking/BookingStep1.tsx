@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
+import BookingModal from "./BookingModal";
 import EmergencyModal from "../emergency/EmergencyModal";
 
 
@@ -18,6 +19,7 @@ const BookingStep1: React.FC = () => {
   };
 
   const [showEmergency, setShowEmergency] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   useEffect(() => {
     const storedReferrer = sessionStorage.getItem('bookingReferrer');
@@ -32,7 +34,6 @@ const BookingStep1: React.FC = () => {
   const handleBack = () => {
     const dentistId = state.dentistId;
 
-    console.log('BookingStep1 handleBack - referrer:', referrer);
     if (referrer) {
       if (referrer.includes('/clinicprofile/')) {
         navigate(referrer);
@@ -67,7 +68,7 @@ const BookingStep1: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={2} />
+      <BookingSidebar currentStep={2} onOpenBookingModal={() => setShowBookingModal(true)} />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-50 p-4 md:p-10 lg:p-16 overflow-y-auto">
@@ -136,6 +137,15 @@ const BookingStep1: React.FC = () => {
         onClose={() => setShowEmergency(false)}
       />
 
+      {/* Booking Modal */}
+      {state.clinic && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          clinic={state.clinic}
+          selectedDentistId={state.dentistId || undefined}
+        />
+      )}
     </div>
   );
 };

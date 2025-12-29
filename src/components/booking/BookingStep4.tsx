@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
+import BookingModal from "./BookingModal";
 
 interface PersonalDetails {
   firstName: string;
@@ -25,6 +26,7 @@ const BookingStep4: React.FC = () => {
     dateOfBirth: "",
     reason: "",
   });
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -63,7 +65,7 @@ const BookingStep4: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={4} />
+      <BookingSidebar currentStep={4} onOpenBookingModal={() => setShowBookingModal(true)} />
 
       {/* Main Content */}
       {/* <main className="flex-1 p-4 md:p-10 lg:p-16 overflow-y-auto"> */}
@@ -85,7 +87,7 @@ const BookingStep4: React.FC = () => {
 
             <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
 
-              <div className="max-w-3xl mx-auto">
+              <div className="max-w-4xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Personal Details
                 </h1>
@@ -224,6 +226,16 @@ const BookingStep4: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Booking Modal */}
+      {state.clinic && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          clinic={state.clinic}
+          selectedDentistId={state.dentistId || undefined}
+        />
+      )}
     </div>
   );
 };

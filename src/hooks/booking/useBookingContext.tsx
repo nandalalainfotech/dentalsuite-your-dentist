@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { PersonalDetails } from '../../types';
 import type { Clinic, Dentist } from '../../types';
 
@@ -12,6 +12,8 @@ interface BookingState {
   dentistId: string | null;
   dentist: Dentist | null;
   clinic: Clinic | null;
+  isAuthenticated: boolean;
+  user: PersonalDetails | null;
 }
 
 type BookingAction =
@@ -23,19 +25,40 @@ type BookingAction =
   | { type: 'SET_SELECTED_SERVICE'; payload: string }
   | { type: 'SET_PERSONAL_DETAILS'; payload: PersonalDetails }
   | { type: 'SET_DATE_TIME'; payload: { date: string; time: string } }
+  | { type: 'SET_AUTHENTICATION'; payload: { isAuthenticated: boolean; user: PersonalDetails | null } }
   | { type: 'RESET_BOOKING' };
 
-const initialState: BookingState = {
-  appointmentFor: null,
-  patientStatus: null,
-  selectedService: null,
-  personalDetails: null,
-  selectedDate: null,
-  selectedTime: null,
-  dentistId: null,
-  dentist: null,
-  clinic: null,
+const loadPersistedState = (): BookingState => {
+  try {
+    const savedState = localStorage.getItem('bookingState');
+    if (savedState) {
+      const parsedState = JSON.parse(savedState);
+      return {
+        ...parsedState,
+        personalDetails: null,
+        isAuthenticated: false,
+        user: null,
+      };
+    }
+  } catch (error) {
+    console.error('Error loading booking state from localStorage:', error);
+  }
+  return {
+    appointmentFor: null,
+    patientStatus: null,
+    selectedService: null,
+    personalDetails: null,
+    selectedDate: null,
+    selectedTime: null,
+    dentistId: null,
+    dentist: null,
+    clinic: null,
+    isAuthenticated: false,
+    user: null,
+  };
 };
+
+const initialState: BookingState = loadPersistedState();
 
 function bookingReducer(state: BookingState, action: BookingAction): BookingState {
   switch (action.type) {
@@ -59,6 +82,12 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
         selectedDate: action.payload.date,
         selectedTime: action.payload.time
       };
+    case 'SET_AUTHENTICATION':
+      return {
+        ...state,
+        isAuthenticated: action.payload.isAuthenticated,
+        user: action.payload.user
+      };
     case 'RESET_BOOKING':
       return initialState;
     default:
@@ -76,6 +105,7 @@ interface BookingContextType {
   setSelectedService: (service: string) => void;
   setPersonalDetails: (details: PersonalDetails) => void;
   setDateTime: (date: string, time: string) => void;
+  setAuthentication: (isAuthenticated: boolean, user: PersonalDetails | null) => void;
   resetBooking: () => void;
 }
 
@@ -87,6 +117,20 @@ interface BookingProviderProps {
 
 export function BookingProvider({ children }: BookingProviderProps) {
   const [state, dispatch] = useReducer(bookingReducer, initialState);
+
+  useEffect(() => {
+    try {
+      const stateToSave = {
+        ...state,
+        personalDetails: null,
+        isAuthenticated: false,
+        user: null,
+      };
+      localStorage.setItem('bookingState', JSON.stringify(stateToSave));
+    } catch (error) {
+      console.error('Error saving booking state to localStorage:', error);
+    }
+  }, [state]);
 
   const setDentistId = (id: string) => {
     dispatch({ type: 'SET_DENTIST_ID', payload: id });
@@ -120,7 +164,16 @@ export function BookingProvider({ children }: BookingProviderProps) {
     dispatch({ type: 'SET_DATE_TIME', payload: { date, time } });
   };
 
+  const setAuthentication = (isAuthenticated: boolean, user: PersonalDetails | null) => {
+    dispatch({ type: 'SET_AUTHENTICATION', payload: { isAuthenticated, user } });
+  };
+
   const resetBooking = () => {
+    try {
+      localStorage.removeItem('bookingState');
+    } catch (error) {
+      console.error('Error clearing booking state from localStorage:', error);
+    }
     dispatch({ type: 'RESET_BOOKING' });
   };
 
@@ -134,6 +187,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
     setSelectedService,
     setPersonalDetails,
     setDateTime,
+    setAuthentication,
     resetBooking,
   };
 
