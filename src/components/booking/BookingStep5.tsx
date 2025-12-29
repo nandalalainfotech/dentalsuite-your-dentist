@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
+import BookingModal from "./BookingModal";
 
 const BookingStep6: React.FC = () => {
   const navigate = useNavigate();
   const { state, resetBooking } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const handleConfirm = () => {
     // Here you would typically make an API call to save the booking
@@ -43,7 +45,7 @@ const BookingStep6: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={5} />
+      <BookingSidebar currentStep={5} onOpenBookingModal={() => setShowBookingModal(true)} />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-50 p-4 md:p-10 lg:p-16 overflow-y-auto">
@@ -215,12 +217,6 @@ const BookingStep6: React.FC = () => {
                     >
                       Edit Personal Details
                     </button>
-                    <button
-                      onClick={() => handleEditStep(5)}
-                      className="text-sm text-gray-600 hover:text-gray-700 font-medium underline"
-                    >
-                      Edit Date & Time
-                    </button>
                   </div>
                 </div>
 
@@ -253,6 +249,16 @@ const BookingStep6: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Booking Modal */}
+      {state.clinic && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          clinic={state.clinic}
+          selectedDentistId={state.dentistId || undefined}
+        />
+      )}
     </div>
   );
 };

@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
+import BookingModal from "./BookingModal";
 
 const BookingStep2: React.FC = () => {
   const navigate = useNavigate();
   const { state, setPatientStatus } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const handleStatusSelection = (status: "new" | "existing") => {
     setPatientStatus(status);
@@ -34,7 +36,7 @@ const BookingStep2: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Left Sidebar */}
-      <BookingSidebar currentStep={2} />
+      <BookingSidebar currentStep={2} onOpenBookingModal={() => setShowBookingModal(true)} />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-50 p-4 md:p-10 lg:p-16 overflow-y-auto">
@@ -54,7 +56,7 @@ const BookingStep2: React.FC = () => {
 
             <div className="space-y-10 animate-in slide-in-from-top-4 duration-300">
               <section>
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 lg:mb-6">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4 lg:mb-6">
                   {state.appointmentFor === "myself"
                     ? `Have you attended ${state.clinic?.name ?? "this clinic"
                     } before?`
@@ -90,6 +92,16 @@ const BookingStep2: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Booking Modal */}
+      {state.clinic && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          clinic={state.clinic}
+          selectedDentistId={state.dentistId || undefined}
+        />
+      )}
     </div>
   );
 };

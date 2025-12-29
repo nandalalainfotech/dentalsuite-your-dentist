@@ -211,13 +211,13 @@ const BookingModal = ({
     return (
         <>
             {/* Overlay */}
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] transition-opacity" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] transition-opacity" onClick={onClose}></div>
 
             {/* Modal Container - Full screen on Mobile, Centered on Desktop */}
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center sm:p-4 md:p-6">
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center sm:p-4 md:p-6">
 
                 {/* Main Box */}
-                <div className="bg-white w-half h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="bg-white w-5xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
                     <div className="w-full md:w-[350px] lg:w-[400px] bg-gray-50 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0">
 
                         {/* Mobile Header (Close Button logic shifted here for mobile) */}
