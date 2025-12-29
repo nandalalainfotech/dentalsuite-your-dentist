@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 
 export default function Login() {
+  const navigate = useNavigate()
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
       <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8 m-10">
@@ -39,8 +42,10 @@ export default function Login() {
             Keep me logged into this trusted device
           </label>
 
-          <button className="w-full bg-orange-600 font-bold  text-white py-2 rounded-lg 
-            hover:bg-orange-600  hover:text-black transition-all">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full bg-orange-600 font-bold text-white py-2 rounded-lg hover:bg-orange-600 hover:text-black transition-all"
+          >
             Log in
           </button>
 

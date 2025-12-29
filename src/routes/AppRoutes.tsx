@@ -5,6 +5,7 @@ import Signup from '../pages/Signup'
 import ClinicProfile from '../pages/ClinicProfile'
 import DentistProfile from '../pages/DentistProfile'
 import BookingPage from '../pages/BookingPage'
+import Dashboard from '../pages/Dashboard'
 import BookingStep1 from '../components/booking/BookingStep1'
 import BookingStep2 from '../components/booking/BookingStep2'
 import BookingStep3 from '../components/booking/BookingStep3'
@@ -20,6 +21,7 @@ function AppRoutes() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/clinicprofile/:id" element={<ClinicProfile />} />
                 <Route path="/dentist/:id" element={<DentistProfile />} />
                 <Route path="/booking/:id" element={<BookingPage />} />
