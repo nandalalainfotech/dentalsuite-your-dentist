@@ -290,8 +290,8 @@ const ClinicProfile = () => {
                           <svg
                             key={i}
                             className={`w-4 h-4 sm:w-5 sm:h-5 ${i < Math.floor(clinic.rating || 0)
-                                ? "text-yellow-500"
-                                : "text-gray-400"
+                              ? "text-yellow-500"
+                              : "text-gray-400"
                               }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
@@ -318,544 +318,46 @@ const ClinicProfile = () => {
           </button>
         </div>
 
-        {/* Quick Links - Top Horizontal Navigation with Modern Scroll */}
-        <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
-          <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
-            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
-              <nav className="flex flex-row gap-1.5 sm:gap-2 py-2 sm:py-3 min-w-max">
-                {sidebarLinks.map((link) => (
-                  <button
-                    key={link.id}
-                    onClick={() => scrollToSection(link.id)}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
+          {/* Quick Links - Top Horizontal Navigation with Modern Scroll */}
+          <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
+            <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
+                <nav className="flex flex-row gap-1.5 sm:gap-2 py-2 sm:py-3 min-w-max">
+                  {sidebarLinks.map((link) => (
+                    <button
+                      key={link.id}
+                      onClick={() => scrollToSection(link.id)}
+                      className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
                         ? "bg-orange-500 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                      }`}
-                  >
-                    <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
-                    <span className="hidden sm:inline">{link.label}</span>
-                  </button>
-                ))}
-              </nav>
+                        }`}
+                    >
+                      <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
+                      <span className="hidden sm:inline">{link.label}</span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7 py-4 sm:py-6 md:py-8 ">
           <div className="flex flex-col lg:flex-row gap-3 sm:gap-5">
-            {/* Main Content Area - All Sections */}
-            <div className="bg-white p-4 sm:p-6 md:p-10 rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
-                {/* ==================== BASIC INFO SECTION ==================== */}
-                <section>
-                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-info-circle text-orange-600"></i>
-                      Basic Info
-                    </h2>
-                  </div>
-
-                  <div className="bg-white p-2 sm:p-3 md:p-4">
-                    {/* Description Card */}
-                    <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
-                      {clinic.description}
-                    </p>
-                  </div>
-                </section>
-
-                {/* ==================== SERVICES SECTION ==================== */}
-                <section
-                  id="services"
-                  ref={(el) => {
-                    sectionRefs.current["services"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-briefcase text-orange-600"></i>
-                      Our Services
-                    </h2>
-                  </div>
-
-                  <div className="flex flex-wrap p-2 sm:p-3 md:p-4 gap-2 sm:gap-3 md:gap-4">
-                    {clinic.specialities.map((service, index) => (
-                      <div
-                        key={index}
-                        className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
-                      >
-                        <span>{service}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* ==================== TEAM SECTION ==================== */}
-                <section
-                  id="team"
-                  ref={(el) => {
-                    sectionRefs.current["team"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-people text-orange-600"></i>
-                      Our Team
-                    </h2>
-                    <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
-                      {clinic.dentists?.length || 0} Dentist
-                      {clinic.dentists?.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-
-                  {/* Added consistent padding: p-4 md:p-4 */}
-                  <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                    {clinic.dentists?.map((dentist) => (
-                      <TeamMemberCard
-                        key={dentist.id}
-                        dentist={dentist}
-                        clinic={clinic}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                {/* ==================== GALLERY SECTION ==================== */}
-                <section
-                  id="gallery"
-                  ref={(el: HTMLElement | null) => {
-                    sectionRefs.current["gallery"] = el;
-                  }}
-                  className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-images text-orange-600"></i>
-                      Gallery
-                    </h2>
-                  </div>
-
-                  <div className="bg-white p-3 sm:p-4 md:p-6 relative">
-                    <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
-                      <div
-                        className="flex transition-transform duration-500 ease-in-out"
-                        style={{
-                          transform: `translateX(-${currentSlide * 100}%)`,
-                        }}
-                      >
-                        {galleryImages.map((url, index) => (
-                          <div key={index} className="w-full flex-shrink-0">
-                            <div className="aspect-video sm:aspect-video md:aspect-[16/9]">
-                              <img
-                                src={url}
-                                alt={`Gallery ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg sm:rounded-xl"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Navigation Buttons - Smaller on mobile */}
-                      <button
-                        onClick={() =>
-                          setCurrentSlide(
-                            (prev) =>
-                              (prev - 1 + galleryImages.length) %
-                              galleryImages.length
-                          )
-                        }
-                        className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 
-                        bg-black/40 hover:bg-black/70 active:bg-black/80 
-                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
-                        transition-all duration-200 
-                        focus:outline-none focus:ring-2"
-                        aria-label="Previous image"
-                      >
-                        <i className="bi bi-chevron-left text-sm sm:text-lg md:text-xl"></i>
-                      </button>
-                      <button
-                        onClick={() =>
-                          setCurrentSlide(
-                            (prev) => (prev + 1) % galleryImages.length
-                          )
-                        }
-                        className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 
-                        bg-black/40 hover:bg-black/70 active:bg-black/80 
-                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
-                        transition-all duration-200 
-                        focus:outline-none focus:ring-2 "
-                        aria-label="Next image"
-                      >
-                        <i className="bi bi-chevron-right text-sm sm:text-lg md:text-xl"></i>
-                      </button>
-
-                      {/* Image Counter - Mobile only */}
-                      <div
-                        className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
-                      bg-black/50 text-white text-xs px-2 py-1 rounded-full"
-                      >
-                        {currentSlide + 1} / {galleryImages.length}
-                      </div>
-                    </div>
-
-                    {/* Dot Indicators - Hidden on very small screens, shown on sm+ */}
-                    <div className="hidden sm:flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-                      {galleryImages.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentSlide(index)}
-                          className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
-                              transition-all duration-200 
-                              focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
-                              ${currentSlide === index
-                              ? "bg-orange-500 scale-110"
-                              : "bg-gray-300 hover:bg-gray-400"
-                            }`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Mobile Dot Indicators - Simplified for small screens */}
-                    <div className="flex sm:hidden justify-center gap-1 mt-3">
-                      {galleryImages.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentSlide(index)}
-                          className={`w-1.5 h-1.5 rounded-full transition-colors
-                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"
-                            }`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </section>
-
-                {/* ==================== ACHIEVEMENTS SECTION ==================== */}
-                <section
-                  id="achievements"
-                  ref={(el) => {
-                    sectionRefs.current["achievements"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-trophy text-orange-600"></i>
-                      Achievements
-                    </h2>
-                  </div>
-
-                  <div className="bg-white grid grid-cols-1 p-2 sm:p-3 md:p-4  md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg sm:rounded-xl border border-yellow-100">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                        <i className="bi bi-award text-yellow-600 text-lg sm:text-xl md:text-2xl"></i>
-                      </div>
-                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
-                        Best Dental Clinic 2023
-                      </h4>
-                      <p className="text-gray-500 text-xs sm:text-sm">
-                        Healthcare Excellence Award
-                      </p>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl border border-blue-100">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                        <i className="bi bi-star text-blue-600 text-lg sm:text-xl md:text-2xl"></i>
-                      </div>
-                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
-                        5-Star Rating
-                      </h4>
-                      <p className="text-gray-500 text-xs sm:text-sm">
-                        10,000+ Patient Reviews
-                      </p>
-                    </div>
-                    <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl border border-green-100">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                        <i className="bi bi-patch-check text-green-600 text-lg sm:text-xl md:text-2xl"></i>
-                      </div>
-                      <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
-                        ISO Certified
-                      </h4>
-                      <p className="text-gray-500 text-xs sm:text-sm">
-                        International Standards
-                      </p>
-                    </div>
-                  </div>
-                </section>
-
-                {/* ==================== REVIEWS SECTION ====================*/}
-                <section
-                  id="reviews"
-                  ref={(el) => {
-                    sectionRefs.current["reviews"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-chat-quote text-orange-600"></i>
-                      Reviews
-                    </h2>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-3 md:space-y-4">
-                    {[1, 2, 3].map((item) => (
-                      <div
-                        key={item}
-                        className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i className="bi bi-person text-orange-600 text-xl"></i>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900">
-                                Patient {item}
-                              </h4>
-                              <div className="flex text-yellow-400">
-                                {[...Array(5)].map((_, i) => (
-                                  <i
-                                    key={i}
-                                    className="bi bi-star-fill text-sm"
-                                  ></i>
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-gray-500 text-sm">
-                              Excellent service and very professional staff. The
-                              clinic is modern and clean. Highly recommended for
-                              anyone looking for quality dental care.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* ==================== INSURANCES SECTION ==================== */}
-                <section
-                  id="insurances"
-                  ref={(el) => {
-                    sectionRefs.current["insurances"] = el;
-                  }}
-                  className="scroll-mt-28 md:scroll-mt-36 lg:scroll-mt-28"
-                >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-shield-check text-orange-600"></i>
-                      Insurances
-                    </h2>
-                  </div>
-
-                  {/* Insurance content goes here */}
-                  {clinic.insurance && clinic.insurance.length > 0 ? (
-                    <div className="flex flex-wrap p-4 md:p-4 gap-4">
-                      {clinic.insurance.map((insurance, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
-                        >
-                          <span>{insurance}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <i className="bi bi-info-circle text-xl mb-2 block"></i>
-                      <p>No insurance information available</p>
-                    </div>
-                  )}
-                </section>
-
-                {/* ==================== FACILITIES SECTION ==================== */}
-                <section
-                  id="facilities"
-                  ref={(el) => {
-                    sectionRefs.current["facilities"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-building text-orange-600"></i>
-                      Our Facilities
-                    </h2>
-                  </div>
-
-                  {/* Facilities content goes here */}
-                  {clinic.facilities && clinic.facilities.length > 0 && (
-                    <div className="flex flex-wrap p-4 md:p-4 gap-4">
-                      {clinic.facilities.map((facility, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
-                        >
-                          <span>{facility}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                {/* ==================== CONTACT US ==================== */}
-                <section
-                  id="contact"
-                  ref={(el) => {
-                    sectionRefs.current["contact"] = el;
-                  }}
-                  className="scroll-mt-36"
-                >
-                  {/* Header */}
-                  <div className="mb-6 border-b-4 border-orange-400">
-                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                      <i className="bi bi-person-lines-fill text-orange-500"></i>
-                      Contact Us
-                    </h2>
-                  </div>
-
-                  {/* ==================== LOCATION ==================== */}
-                  <div className="mb-10">
-                    <div className="mb-10">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <i className="bi bi-building-fill text-orange-500"></i>
-                        Address
-                      </h4>
-
-                      {/* Address */}
-                      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
-                        <i className="bi bi-geo-alt-fill text-orange-500 mt-1"></i>
-                        <span>
-                          Level 3, 123 George Street,
-                          <br />
-                          Sydney NSW 2000,
-                          <br />
-                          Australia
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-                        {/* Phone */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                          <i className="bi bi-telephone text-orange-500"></i>
-                          <span>+61 3 9003 2211</span>
-                        </div>
-
-                        {/* Email */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                          <i className="bi bi-envelope text-orange-500"></i>
-                          <span>info@melbournefamilydental.com.au</span>
-                        </div>
-
-                        {/* Website */}
-                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
-                          <i className="bi bi-globe text-orange-500"></i>
-                          <a
-                            href="https://melbournefamilydental.com.au"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-blue-600 hover:underline"
-                          >
-                            https://melbournefamilydental.com.au
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <i className="bi bi-geo-alt text-orange-500"></i>
-                      Location
-                    </h4>
-
-                    <div className="h-72 bg-gray-100 rounded-xl overflow-hidden">
-                      <iframe
-                        src="https://www.google.com/maps?q=Melbourne%20Family%20Dental&output=embed"
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        className="rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  {/* ==================== OPENING HOURS ==================== */}
-                  <div className="mb-10">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="bi bi-clock text-orange-500"></i>
-                      Opening Hours
-                    </h4>
-
-                    <div className="space-y-2">
-                      {Object.entries(clinic.time).map(([day, time]) => {
-                        const isClosed = time === "Closed";
-
-                        return (
-                          <div
-                            key={day}
-                            className={`flex justify-between items-center px-4 py-3 rounded-md
-                              ${isClosed
-                                ? "bg-red-50 text-red-500"
-                                : "bg-gray-100 text-gray-700"}
-                              `}
-                          >
-                            <span className="font-medium capitalize">
-                              {day}
-                            </span>
-                            <span className={isClosed ? "font-semibold" : ""}>
-                              {time}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* ==================== FOLLOW US ==================== */}
-                  <div className="pt-6 border-t border-gray-100">
-                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="bi bi-share text-orange-500"></i>
-                      Follow Us
-                    </h4>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="p-4 bg-blue-50 rounded-xl flex justify-center">
-                        <i className="bi bi-facebook text-blue-600 text-2xl" />
-                      </div>
-                      <div className="p-4 bg-pink-50 rounded-xl flex justify-center">
-                        <i className="bi bi-instagram text-pink-600 text-2xl" />
-                      </div>
-                      <div className="p-4 bg-sky-50 rounded-xl flex justify-center">
-                        <i className="bi bi-twitter text-sky-500 text-2xl" />
-                      </div>
-                      <div className="p-4 bg-red-50 rounded-xl flex justify-center">
-                        <i className="bi bi-youtube text-red-600 text-2xl" />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </main>
-            </div>
-
-            {/* Right Sidebar - Book Appointment Widget */}
-            <aside className="w-full lg:w-80 flex-shrink-0 hidden lg:block">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-35 h-fit">
+            
+            {/* ========== BOOK APPOINTMENT WIDGET (TOP ON MOBILE/TABLET) ========== */}
+            <aside className="w-full lg:w-80 flex-shrink-0 mx-auto lg:mx-0 order-first lg:order-last mb-6 lg:mb-0">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-fit lg:sticky lg:top-35">
+                
                 {/* Header */}
-                <div className="p-5 border-b border-gray-100">
-                  <h3 className="text-xl font-bold text-gray-900">
+                <div className="p-4 border-b border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-900">
                     Book appointment
                   </h3>
                 </div>
 
                 {/* Dropdowns */}
-                <div className="p-5 space-y-4">
+                <div className="p-4 sm:p-5 space-y-4">
                   {/* Service Type Dropdown */}
                   <div className="relative">
                     <select
@@ -907,7 +409,7 @@ const ClinicProfile = () => {
                         {dateData.slots.slice(0, 3).map((time, slotIndex) => (
                           <button
                             key={slotIndex}
-                            className="px-3 py-1.5 text-sm rounded-full border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-colors"
+                            className="px-4 py-2 text-sm rounded-full border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-colors"
                           >
                             {time}
                           </button>
@@ -934,6 +436,509 @@ const ClinicProfile = () => {
                 </div>
               </div>
             </aside>
+
+            {/* ========== MAIN CONTENT AREA (BELOW ON MOBILE/TABLET) ========== */}
+            <div className="flex-1 order-last lg:order-first">
+              <div className="bg-white p-4 sm:p-6 md:p-10 rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
+                  {/* ==================== BASIC INFO SECTION ==================== */}
+                  <section>
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-info-circle text-orange-600"></i>
+                        Basic Info
+                      </h2>
+                    </div>
+
+                    <div className="bg-white p-2 sm:p-3 md:p-4">
+                      {/* Description Card */}
+                      <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
+                        {clinic.description}
+                      </p>
+                    </div>
+                  </section>
+
+                  {/* ==================== SERVICES SECTION ==================== */}
+                  <section
+                    id="services"
+                    ref={(el) => {
+                      sectionRefs.current["services"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-briefcase text-orange-600"></i>
+                        Our Services
+                      </h2>
+                    </div>
+
+                    <div className="flex flex-wrap p-2 sm:p-3 md:p-4 gap-2 sm:gap-3 md:gap-4">
+                      {clinic.specialities.map((service, index) => (
+                        <div
+                          key={index}
+                          className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                        >
+                          <span>{service}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* ==================== TEAM SECTION ==================== */}
+                  <section
+                    id="team"
+                    ref={(el) => {
+                      sectionRefs.current["team"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-people text-orange-600"></i>
+                        Our Team
+                      </h2>
+                      <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
+                        {clinic.dentists?.length || 0} Dentist
+                        {clinic.dentists?.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    {/* Added consistent padding: p-4 md:p-4 */}
+                    <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                      {clinic.dentists?.map((dentist) => (
+                        <TeamMemberCard
+                          key={dentist.id}
+                          dentist={dentist}
+                          clinic={clinic}
+                        />
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* ==================== GALLERY SECTION ==================== */}
+                  <section
+                    id="gallery"
+                    ref={(el: HTMLElement | null) => {
+                      sectionRefs.current["gallery"] = el;
+                    }}
+                    className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-images text-orange-600"></i>
+                        Gallery
+                      </h2>
+                    </div>
+
+                    <div className="bg-white p-3 sm:p-4 md:p-6 relative">
+                      <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
+                        <div
+                          className="flex transition-transform duration-500 ease-in-out"
+                          style={{
+                            transform: `translateX(-${currentSlide * 100}%)`,
+                          }}
+                        >
+                          {galleryImages.map((url, index) => (
+                            <div key={index} className="w-full flex-shrink-0">
+                              <div className="aspect-video sm:aspect-video md:aspect-[16/9]">
+                                <img
+                                  src={url}
+                                  alt={`Gallery ${index + 1}`}
+                                  className="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Navigation Buttons - Smaller on mobile */}
+                        <button
+                          onClick={() =>
+                            setCurrentSlide(
+                              (prev) =>
+                                (prev - 1 + galleryImages.length) %
+                                galleryImages.length
+                            )
+                          }
+                          className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 
+                        bg-black/40 hover:bg-black/70 active:bg-black/80 
+                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
+                        transition-all duration-200 
+                        focus:outline-none focus:ring-2"
+                          aria-label="Previous image"
+                        >
+                          <i className="bi bi-chevron-left text-sm sm:text-lg md:text-xl"></i>
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentSlide(
+                              (prev) => (prev + 1) % galleryImages.length
+                            )
+                          }
+                          className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 
+                        bg-black/40 hover:bg-black/70 active:bg-black/80 
+                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
+                        transition-all duration-200 
+                        focus:outline-none focus:ring-2 "
+                          aria-label="Next image"
+                        >
+                          <i className="bi bi-chevron-right text-sm sm:text-lg md:text-xl"></i>
+                        </button>
+
+                        {/* Image Counter - Mobile only */}
+                        <div
+                          className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
+                      bg-black/50 text-white text-xs px-2 py-1 rounded-full"
+                        >
+                          {currentSlide + 1} / {galleryImages.length}
+                        </div>
+                      </div>
+
+                      {/* Dot Indicators - Hidden on very small screens, shown on sm+ */}
+                      <div className="hidden sm:flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                        {galleryImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentSlide(index)}
+                            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
+                              transition-all duration-200 
+                              focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
+                              ${currentSlide === index
+                                ? "bg-orange-500 scale-110"
+                                : "bg-gray-300 hover:bg-gray-400"
+                              }`}
+                            aria-label={`Go to slide ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Mobile Dot Indicators - Simplified for small screens */}
+                      <div className="flex sm:hidden justify-center gap-1 mt-3">
+                        {galleryImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentSlide(index)}
+                            className={`w-1.5 h-1.5 rounded-full transition-colors
+                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"
+                              }`}
+                            aria-label={`Go to slide ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* ==================== ACHIEVEMENTS SECTION ==================== */}
+                  <section
+                    id="achievements"
+                    ref={(el) => {
+                      sectionRefs.current["achievements"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-trophy text-orange-600"></i>
+                        Achievements
+                      </h2>
+                    </div>
+
+                    <div className="bg-white grid grid-cols-1 p-2 sm:p-3 md:p-4  md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                      <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg sm:rounded-xl border border-yellow-100">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                          <i className="bi bi-award text-yellow-600 text-lg sm:text-xl md:text-2xl"></i>
+                        </div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                          Best Dental Clinic 2023
+                        </h4>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                          Healthcare Excellence Award
+                        </p>
+                      </div>
+                      <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl border border-blue-100">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                          <i className="bi bi-star text-blue-600 text-lg sm:text-xl md:text-2xl"></i>
+                        </div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                          5-Star Rating
+                        </h4>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                          10,000+ Patient Reviews
+                        </p>
+                      </div>
+                      <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl border border-green-100">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
+                          <i className="bi bi-patch-check text-green-600 text-lg sm:text-xl md:text-2xl"></i>
+                        </div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                          ISO Certified
+                        </h4>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                          International Standards
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* ==================== REVIEWS SECTION ====================*/}
+                  <section
+                    id="reviews"
+                    ref={(el) => {
+                      sectionRefs.current["reviews"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-chat-quote text-orange-600"></i>
+                        Reviews
+                      </h2>
+                    </div>
+
+                    <div className="space-y-2 sm:space-y-3 md:space-y-4">
+                      {[1, 2, 3].map((item) => (
+                        <div
+                          key={item}
+                          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <i className="bi bi-person text-orange-600 text-xl"></i>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-gray-900">
+                                  Patient {item}
+                                </h4>
+                                <div className="flex text-yellow-400">
+                                  {[...Array(5)].map((_, i) => (
+                                    <i
+                                      key={i}
+                                      className="bi bi-star-fill text-sm"
+                                    ></i>
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-gray-500 text-sm">
+                                Excellent service and very professional staff. The
+                                clinic is modern and clean. Highly recommended for
+                                anyone looking for quality dental care.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* ==================== INSURANCES SECTION ==================== */}
+                  <section
+                    id="insurances"
+                    ref={(el) => {
+                      sectionRefs.current["insurances"] = el;
+                    }}
+                    className="scroll-mt-28 md:scroll-mt-36 lg:scroll-mt-28"
+                  >
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-shield-check text-orange-600"></i>
+                        Insurances
+                      </h2>
+                    </div>
+
+                    {/* Insurance content goes here */}
+                    {clinic.insurance && clinic.insurance.length > 0 ? (
+                      <div className="flex flex-wrap p-4 md:p-4 gap-4">
+                        {clinic.insurance.map((insurance, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                          >
+                            <span>{insurance}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <i className="bi bi-info-circle text-xl mb-2 block"></i>
+                        <p>No insurance information available</p>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* ==================== FACILITIES SECTION ==================== */}
+                  <section
+                    id="facilities"
+                    ref={(el) => {
+                      sectionRefs.current["facilities"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-building text-orange-600"></i>
+                        Our Facilities
+                      </h2>
+                    </div>
+
+                    {/* Facilities content goes here */}
+                    {clinic.facilities && clinic.facilities.length > 0 && (
+                      <div className="flex flex-wrap p-4 md:p-4 gap-4">
+                        {clinic.facilities.map((facility, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                          >
+                            <span>{facility}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* ==================== CONTACT US ==================== */}
+                  <section
+                    id="contact"
+                    ref={(el) => {
+                      sectionRefs.current["contact"] = el;
+                    }}
+                    className="scroll-mt-36"
+                  >
+                    {/* Header */}
+                    <div className="mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-person-lines-fill text-orange-500"></i>
+                        Contact Us
+                      </h2>
+                    </div>
+
+                    {/* ==================== LOCATION ==================== */}
+                    <div className="mb-10">
+                      <div className="mb-10">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <i className="bi bi-building-fill text-orange-500"></i>
+                          Address
+                        </h4>
+
+                        {/* Address */}
+                        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
+                          <i className="bi bi-geo-alt-fill text-orange-500 mt-1"></i>
+                          <span>
+                            Level 3, 123 George Street,
+                            <br />
+                            Sydney NSW 2000,
+                            <br />
+                            Australia
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                          {/* Phone */}
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                            <i className="bi bi-telephone text-orange-500"></i>
+                            <span>+61 3 9003 2211</span>
+                          </div>
+
+                          {/* Email */}
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                            <i className="bi bi-envelope text-orange-500"></i>
+                            <span>info@melbournefamilydental.com.au</span>
+                          </div>
+
+                          {/* Website */}
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
+                            <i className="bi bi-globe text-orange-500"></i>
+                            <a
+                              href="https://melbournefamilydental.com.au"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              https://melbournefamilydental.com.au
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i className="bi bi-geo-alt text-orange-500"></i>
+                        Location
+                      </h4>
+
+                      <div className="h-72 bg-gray-100 rounded-xl overflow-hidden">
+                        <iframe
+                          src="https://www.google.com/maps?q=Melbourne%20Family%20Dental&output=embed"
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          className="rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    {/* ==================== OPENING HOURS ==================== */}
+                    <div className="mb-10">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i className="bi bi-clock text-orange-500"></i>
+                        Opening Hours
+                      </h4>
+
+                      <div className="space-y-2">
+                        {Object.entries(clinic.time).map(([day, time]) => {
+                          const isClosed = time === "Closed";
+
+                          return (
+                            <div
+                              key={day}
+                              className={`flex justify-between items-center px-4 py-3 rounded-md
+                              ${isClosed
+                                  ? "bg-red-50 text-red-500"
+                                  : "bg-gray-100 text-gray-700"
+                                }
+                              `}
+                            >
+                              <span className="font-medium capitalize">
+                                {day}
+                              </span>
+                              <span className={isClosed ? "font-semibold" : ""}>
+                                {time}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* ==================== FOLLOW US ==================== */}
+                    <div className="pt-6 border-t border-gray-100">
+                      <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i className="bi bi-share text-orange-500"></i>
+                        Follow Us
+                      </h4>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="p-4 bg-blue-50 rounded-xl flex justify-center">
+                          <i className="bi bi-facebook text-blue-600 text-2xl" />
+                        </div>
+                        <div className="p-4 bg-pink-50 rounded-xl flex justify-center">
+                          <i className="bi bi-instagram text-pink-600 text-2xl" />
+                        </div>
+                        <div className="p-4 bg-sky-50 rounded-xl flex justify-center">
+                          <i className="bi bi-twitter text-sky-500 text-2xl" />
+                        </div>
+                        <div className="p-4 bg-red-50 rounded-xl flex justify-center">
+                          <i className="bi bi-youtube text-red-600 text-2xl" />
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </main>
+              </div>
+            </div>
           </div>
         </div>
       </div>

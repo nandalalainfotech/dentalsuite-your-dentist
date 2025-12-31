@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { clinicApi } from "../api";
-
 import type { Clinic, Dentist } from "../types";
 import Footer from "../components/layout/Footer";
 import BookingModal from "../components/booking/BookingModal";
@@ -266,302 +265,10 @@ const DentistProfile = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-7 py-7">
         <div className="flex flex-col lg:flex-row gap-5">
-          {/* Main Content Area */}
-          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1">
-            <main className="flex-1 min-w-0 space-y-10">
-              {/* Overview Section */}
-              <section>
-                <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                  <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                    <i className="bi bi-info-circle text-orange-600"></i>
-                    Overview
-                  </h2>
-                </div>
-
-                <div className="p-4 md:p-4">
-                  <p className="text-gray-600 leading-relaxed">
-                    {dentist.overview}
-                  </p>
-                </div>
-              </section>
-
-              {/*  Practitioner information */}
-              <section
-                id="practitioner-information"
-                ref={(el) => {
-                  sectionRefs.current["practitioner-information"] = el;
-                }}
-                className="scroll-mt-24"
-              >
-                <div className="mb-6 border-b-4 border-orange-400">
-                  <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                    <i className="bi bi-person-circle text-orange-600"></i>
-                    Practitioner information
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Languages spoken */}
-                  <div className="pl-3">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="bi bi-translate text-orange-600"></i>
-                      Languages spoken
-                    </h4>
-
-                    {/* Language List */}
-                    <ul className="space-y-2 pl-6">
-                      {dentist.languages?.map((lang: string, index: number) => (
-                        <li key={index} className="text-gray-700 text-base">
-                          {lang}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Specialities */}
-                  <div className="pl-3">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="bi bi-person-heart text-orange-600"></i>
-                      Specialities
-                    </h4>
-
-                    <ul className="space-y-2 pl-6">
-                      {dentist.specialities?.map(
-                        (item: string, index: number) => (
-                          <li key={index} className="text-gray-700 text-base">
-                            {item}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Available Slots */}
-                {/*  */}
-
-                {/* Reviews List */}
-                <div className="mt-8 pl-3">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <i className="bi bi-star text-orange-600"></i>
-                    Reviews
-                  </h4>
-                  <div className="space-y-3 pl-6">
-                    {dentist.reviews && dentist.reviews.length > 0 ? (
-                      dentist.reviews.map((review, index) => (
-                        <div
-                          key={index}
-                          className="bg-gray-50 border rounded-lg p-4"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <p className="font-medium text-gray-800">
-                                {review.patientName}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {review.date}
-                              </p>
-                            </div>
-
-                            <div className="flex gap-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <i
-                                  key={star}
-                                  className={`bi bi-star-fill text-sm 
-                                    ${star <= review.rating
-                                      ? "text-yellow-500"
-                                      : "text-gray-300"
-                                    }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            {review.comment}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500 italic">
-                        No patient reviews available.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </section>
-
-              {/* Practice-Information */}
-              <section
-                id="practice-information"
-                ref={(el: HTMLElement | null) => {
-                  sectionRefs.current["practice-information"] = el;
-                }}
-                className="scroll-mt-24"
-              >
-                <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                  <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                    <i className="bi bi-building-fill text-orange-600"></i>
-                    Practice-Information
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Clinic Address */}
-                  <div className="pl-3 space-y-4">
-                    {/* Address */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <i className="bi bi-geo-alt-fill text-orange-600"></i>
-                        Address
-                      </h4>
-
-                      <p className="pl-6 text-gray-700 leading-relaxed">
-                        Level 3, 123 George Street,
-                        <br />
-                        Sydney NSW 2000,
-                        <br />
-                        Australia
-                      </p>
-                    </div>
-
-                    {/* Website */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <i className="bi bi-globe text-orange-500"></i>
-                        Website
-                      </h4>
-
-                      <a
-                        href="https://melbournefamilydental.com.au"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="pl-6 text-blue-600 hover:underline break-all"
-                      >
-                        https://melbournefamilydental.com.au
-                      </a>
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <i className="bi bi-telephone-fill text-orange-500"></i>
-                        Phone
-                      </h4>
-                      <a
-                        href="tel:+61291234567"
-                        className="pl-6 text-gray-700 hover:text-orange-600 transition-colors"
-                      >
-                        +61 2 9123 4567
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Opening Hours */}
-                  <section className="pl-3">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <i className="bi bi-clock-fill text-orange-600"></i>
-                      Opening Hours
-                    </h4>
-
-                    <div className="space-y-2 pl-5">
-                      {[
-                        { day: "Monday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Tuesday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Wednesday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Thursday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Friday", time: "08:00 AM - 06:00 PM" },
-                        { day: "Saturday", time: "08:00 AM - 03:00 PM" },
-                        { day: "Sunday", time: "Closed" },
-                      ].map(({ day, time }) => (
-                        <div
-                          key={day}
-                          className={`flex justify-between items-center px-4 py-3 rounded-md
-                            ${time === "Closed"
-                              ? "bg-red-50 text-red-500"
-                              : "bg-gray-100 text-gray-700"
-                            }`}
-                        >
-                          <span className="font-medium">{day}</span>
-                          <span
-                            className={time === "Closed" ? "font-semibold" : ""}
-                          >
-                            {time}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-                {/* Practice-Gallery */}
-                <div className="mt-8 pl-3">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <i className="bi bi-images text-orange-600"></i>
-                    Practice-Gallery
-                  </h4>
-                  <div className="relative overflow-hidden rounded-xl">
-                    <div
-                      className="flex transition-transform duration-500 ease-in-out"
-                      style={{
-                        transform: `translateX(-${currentSlide * 100}%)`,
-                      }}
-                    >
-                      {galleryImages.map((url, index) => (
-                        <div key={index} className="w-full flex-shrink-0">
-                          <div className="aspect-video">
-                            <img
-                              src={url}
-                              alt={`Gallery ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() =>
-                        setCurrentSlide(
-                          (prev) =>
-                            (prev - 1 + galleryImages.length) %
-                            galleryImages.length
-                        )
-                      }
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
-                    >
-                      <i className="bi bi-chevron-left text-xl"></i>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentSlide(
-                          (prev) => (prev + 1) % galleryImages.length
-                        )
-                      }
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
-                    >
-                      <i className="bi bi-chevron-right text-xl"></i>
-                    </button>
-                  </div>
-                  <div className="flex justify-center gap-2 mt-4">
-                    {galleryImages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className={`w-3 h-3 rounded-full transition-colors
-                           ${currentSlide === index
-                            ? "bg-orange-500"
-                            : "bg-gray-300"
-                          }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </section>
-            </main>
-          </div>
-
-          {/* Right Sidebar - Book Appointment Widget */}
-          <aside className="w-full lg:w-80 flex-shrink-0 hidden lg:block">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-36 h-fit">
+          
+          {/* ========== BOOK APPOINTMENT WIDGET (TOP ON MOBILE/TABLET) ========== */}
+          <aside className="w-full lg:w-80 flex-shrink-0 order-first lg:order-last mb-6 lg:mb-0 lg:block">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-fit lg:sticky lg:top-36">
               {/* Header */}
               <div className="p-6 border-b border-gray-100">
                 <h3 className="text-2xl font-bold text-gray-900">
@@ -670,6 +377,301 @@ const DentistProfile = () => {
               </div>
             </div>
           </aside>
+
+          {/* ========== MAIN CONTENT AREA (BELOW ON MOBILE/TABLET) ========== */}
+          <div className="flex-1 order-last lg:order-first">
+            <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <main className="flex-1 min-w-0 space-y-10">
+                {/* Overview Section */}
+                <section>
+                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <i className="bi bi-info-circle text-orange-600"></i>
+                      Overview
+                    </h2>
+                  </div>
+
+                  <div className="p-4 md:p-4">
+                    <p className="text-gray-600 leading-relaxed">
+                      {dentist.overview}
+                    </p>
+                  </div>
+                </section>
+
+                {/*  Practitioner information */}
+                <section
+                  id="practitioner-information"
+                  ref={(el) => {
+                    sectionRefs.current["practitioner-information"] = el;
+                  }}
+                  className="scroll-mt-24"
+                >
+                  <div className="mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <i className="bi bi-person-circle text-orange-600"></i>
+                      Practitioner information
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Languages spoken */}
+                    <div className="pl-3">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i className="bi bi-translate text-orange-600"></i>
+                        Languages spoken
+                      </h4>
+
+                      {/* Language List */}
+                      <ul className="space-y-2 pl-6">
+                        {dentist.languages?.map((lang: string, index: number) => (
+                          <li key={index} className="text-gray-700 text-base">
+                            {lang}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Specialities */}
+                    <div className="pl-3">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i className="bi bi-person-heart text-orange-600"></i>
+                        Specialities
+                      </h4>
+
+                      <ul className="space-y-2 pl-6">
+                        {dentist.specialities?.map(
+                          (item: string, index: number) => (
+                            <li key={index} className="text-gray-700 text-base">
+                              {item}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Available Slots */}
+                  {/*  */}
+
+                  {/* Reviews List */}
+                  <div className="mt-8 pl-3">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <i className="bi bi-star text-orange-600"></i>
+                      Reviews
+                    </h4>
+                    <div className="space-y-3 pl-6">
+                      {dentist.reviews && dentist.reviews.length > 0 ? (
+                        dentist.reviews.map((review, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-50 border rounded-lg p-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="font-medium text-gray-800">
+                                  {review.patientName}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {review.date}
+                                </p>
+                              </div>
+
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <i
+                                    key={star}
+                                    className={`bi bi-star-fill text-sm 
+                                    ${star <= review.rating
+                                        ? "text-yellow-500"
+                                        : "text-gray-300"
+                                      }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {review.comment}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">
+                          No patient reviews available.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Practice-Information */}
+                <section
+                  id="practice-information"
+                  ref={(el: HTMLElement | null) => {
+                    sectionRefs.current["practice-information"] = el;
+                  }}
+                  className="scroll-mt-24"
+                >
+                  <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                    <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <i className="bi bi-building-fill text-orange-600"></i>
+                      Practice-Information
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Clinic Address */}
+                    <div className="pl-3 space-y-4">
+                      {/* Address */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                          <i className="bi bi-geo-alt-fill text-orange-600"></i>
+                          Address
+                        </h4>
+
+                        <p className="pl-6 text-gray-700 leading-relaxed">
+                          Level 3, 123 George Street,
+                          <br />
+                          Sydney NSW 2000,
+                          <br />
+                          Australia
+                        </p>
+                      </div>
+
+                      {/* Website */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                          <i className="bi bi-globe text-orange-500"></i>
+                          Website
+                        </h4>
+
+                        <a
+                          href="https://melbournefamilydental.com.au"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="pl-6 text-blue-600 hover:underline break-all"
+                        >
+                          https://melbournefamilydental.com.au
+                        </a>
+                      </div>
+
+                      {/* Phone */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                          <i className="bi bi-telephone-fill text-orange-500"></i>
+                          Phone
+                        </h4>
+                        <a
+                          href="tel:+61291234567"
+                          className="pl-6 text-gray-700 hover:text-orange-600 transition-colors"
+                        >
+                          +61 2 9123 4567
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Opening Hours */}
+                    <section className="pl-3">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i className="bi bi-clock-fill text-orange-600"></i>
+                        Opening Hours
+                      </h4>
+
+                      <div className="space-y-2 pl-5">
+                        {[
+                          { day: "Monday", time: "08:00 AM - 06:00 PM" },
+                          { day: "Tuesday", time: "08:00 AM - 06:00 PM" },
+                          { day: "Wednesday", time: "08:00 AM - 06:00 PM" },
+                          { day: "Thursday", time: "08:00 AM - 06:00 PM" },
+                          { day: "Friday", time: "08:00 AM - 06:00 PM" },
+                          { day: "Saturday", time: "08:00 AM - 03:00 PM" },
+                          { day: "Sunday", time: "Closed" },
+                        ].map(({ day, time }) => (
+                          <div
+                            key={day}
+                            className={`flex justify-between items-center px-4 py-3 rounded-md
+                            ${time === "Closed"
+                                ? "bg-red-50 text-red-500"
+                                : "bg-gray-100 text-gray-700"
+                              }`}
+                          >
+                            <span className="font-medium">{day}</span>
+                            <span
+                              className={time === "Closed" ? "font-semibold" : ""}
+                            >
+                              {time}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+                  {/* Practice-Gallery */}
+                  <div className="mt-8 pl-3">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                      <i className="bi bi-images text-orange-600"></i>
+                      Practice-Gallery
+                    </h4>
+                    <div className="relative overflow-hidden rounded-xl">
+                      <div
+                        className="flex transition-transform duration-500 ease-in-out"
+                        style={{
+                          transform: `translateX(-${currentSlide * 100}%)`,
+                        }}
+                      >
+                        {galleryImages.map((url, index) => (
+                          <div key={index} className="w-full flex-shrink-0">
+                            <div className="aspect-video">
+                              <img
+                                src={url}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() =>
+                          setCurrentSlide(
+                            (prev) =>
+                              (prev - 1 + galleryImages.length) %
+                              galleryImages.length
+                          )
+                        }
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                      >
+                        <i className="bi bi-chevron-left text-xl"></i>
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentSlide(
+                            (prev) => (prev + 1) % galleryImages.length
+                          )
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                      >
+                        <i className="bi bi-chevron-right text-xl"></i>
+                      </button>
+                    </div>
+                    <div className="flex justify-center gap-2 mt-4">
+                      {galleryImages.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentSlide(index)}
+                          className={`w-3 h-3 rounded-full transition-colors
+                           ${currentSlide === index
+                              ? "bg-orange-500"
+                              : "bg-gray-300"
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              </main>
+            </div>
+          </div>
         </div>
       </div>
       <Footer />

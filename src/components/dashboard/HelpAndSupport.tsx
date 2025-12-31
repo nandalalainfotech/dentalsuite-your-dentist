@@ -108,7 +108,7 @@ export const HelpAndSupport: React.FC<HelpAndSupportProps> = ({
       </div>
 
       {activeTab === 'faq' && (
-<div className="space-y-3">
+        <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">
               Frequently Asked Questions
             </h3>
@@ -215,7 +215,7 @@ export const HelpAndSupport: React.FC<HelpAndSupportProps> = ({
                 <textarea
                   rows={4}
                   placeholder="Tell us what's on your mind..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 />
               </div>
 

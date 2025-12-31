@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 
 export default function Signup() {
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 pt-20">
-      <div className="bg-white w-[430px] shadow-xl rounded-2xl p-8">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 pt-5 sm:pt-10">
+      <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8">
         
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Patient Sign Up</h1>
