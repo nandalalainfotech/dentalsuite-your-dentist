@@ -107,14 +107,14 @@ const BookingAuthStep: React.FC = () => {
                     Please log in or create an account to continue with your booking
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
                     <button
                       onClick={() => setAuthMode("login")}
                       className="p-5 md:p-6 rounded-xl border-2 text-left flex items-center gap-4 transition-all duration-200 group border-gray-200 hover:border-orange-500 hover:bg-white/80"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                          <i className="bi bi-person-fill text-orange-600 text-xl"></i>
+                        <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <i className="bi bi-person-fill text-gray-700 text-xl"></i>
                         </div>
                         <div>
                           <span className="block font-semibold text-gray-900">
@@ -149,24 +149,25 @@ const BookingAuthStep: React.FC = () => {
                 </section>
               ) : (
                 /* Show Form Based on Auth Mode - WITH CARD */
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-[400px] flex items-center justify-center mx-auto">
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full sm:max-w-md md:max-w-lg 
+                lg:max-w-xl mx-auto">
                   <section>
-                    <div className="mb-6">
+                    <div className=" items-left mb-6">
                       <button
                         onClick={() => setAuthMode(null)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-700 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-medium text-gray-600 hover:text-gray-700 transition-colors mb-4"
                       >
                         <i className="bi bi-arrow-left text-base"></i>
                         Back to options
                       </button>
 
                       <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                        {authMode === "login" ? "Patient Log In" : "Patient Sign Up"}
+                        {authMode === "login" ? "Log In" : "Sign Up"}
                       </h1>
                       <p className="text-gray-600 text-sm mb-8">
                         {authMode === "login"
-                          ? "Log in to book your appointments easily"
-                          : "Sign up to book your appointments easily"}
+                          ? "Log in to book your appointments"
+                          : "Sign up to book your appointments"}
                       </p>
                     </div>
 
@@ -182,7 +183,7 @@ const BookingAuthStep: React.FC = () => {
                               type="text"
                               value={loginData.email}
                               onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                               required
                               placeholder="Enter your email or mobile number"
                             />
@@ -196,7 +197,7 @@ const BookingAuthStep: React.FC = () => {
                               type="password"
                               value={loginData.password}
                               onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                               required
                               placeholder="Enter your password"
                             />
@@ -236,7 +237,7 @@ const BookingAuthStep: React.FC = () => {
                               type="email"
                               value={signupData.email}
                               onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                               required
                               placeholder="Enter your email"
                             />
@@ -251,7 +252,7 @@ const BookingAuthStep: React.FC = () => {
                                 type="password"
                                 value={signupData.password}
                                 onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                                 required
                                 placeholder="Create password"
                               />
@@ -265,7 +266,7 @@ const BookingAuthStep: React.FC = () => {
                                 type="password"
                                 value={signupData.confirmPassword}
                                 onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                                 required
                                 placeholder="Re-enter password"
                               />
@@ -281,7 +282,7 @@ const BookingAuthStep: React.FC = () => {
                                 type="text"
                                 value={signupData.firstName}
                                 onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                                 required
                                 placeholder="First name"
                               />
@@ -295,7 +296,7 @@ const BookingAuthStep: React.FC = () => {
                                 type="text"
                                 value={signupData.lastName}
                                 onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                                 required
                                 placeholder="Last name"
                               />
@@ -311,7 +312,7 @@ const BookingAuthStep: React.FC = () => {
                                 type="date"
                                 value={signupData.dateOfBirth}
                                 onChange={(e) => setSignupData({ ...signupData, dateOfBirth: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                                 required
                               />
                             </div>
@@ -323,7 +324,7 @@ const BookingAuthStep: React.FC = () => {
                               <select
                                 value={signupData.gender}
                                 onChange={(e) => setSignupData({ ...signupData, gender: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white"
+                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all bg-white"
                                 required
                               >
                                 <option value="">Select gender</option>
@@ -342,7 +343,7 @@ const BookingAuthStep: React.FC = () => {
                               type="tel"
                               value={signupData.mobileNumber}
                               onChange={(e) => setSignupData({ ...signupData, mobileNumber: e.target.value })}
-                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                              className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
                               required
                               placeholder="Mobile number"
                             />
@@ -370,7 +371,7 @@ const BookingAuthStep: React.FC = () => {
                         </form>
                       )}
 
-                      {/* <div className="mt-8 pt-6 border-t border-gray-200">
+                      <div className="mt-8 pt-6 border-t border-gray-200">
                         <div className="text-center">
                           <p className="text-sm text-gray-600 mb-4">
                             {authMode === "login"
@@ -394,7 +395,7 @@ const BookingAuthStep: React.FC = () => {
                             Need help?
                           </a>
                         </div>
-                      </div> */}
+                      </div>
                     </div>
                   </section>
                 </div>

@@ -6,7 +6,7 @@ export default function Login() {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
-      <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8 m-10">
+      <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8 mt-10">
 
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Patient log in</h1>
@@ -43,7 +43,7 @@ export default function Login() {
           </label>
 
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
             className="w-full bg-orange-600 font-bold text-white py-2 rounded-lg hover:bg-orange-600 hover:text-black transition-all"
           >
             Log in
