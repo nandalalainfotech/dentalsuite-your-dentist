@@ -56,11 +56,20 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     onDeleteMember(memberId);
     setShowDeleteConfirm(null);
   };
-
+const Icons = {
+  Family: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  ),
+};
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Family Members</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          <div className="p-2 bg-gray-900 rounded-xl text-white">
+            <Icons.Family />
+          </div>Family Members</h2>
         <button
           onClick={onAddMember}
           className="px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-1 self-start sm:self-auto"

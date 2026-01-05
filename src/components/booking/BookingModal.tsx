@@ -123,10 +123,8 @@ const BookingModal = ({
                 referrerPath = '/';
             }
 
-            console.log('BookingModal - Setting referrer:', referrerPath, 'Current path:', currentPath);
             sessionStorage.setItem('bookingReferrer', referrerPath);
         } else {
-            console.log('BookingModal - Using existing referrer:', existingReferrer);
         }
 
         navigate(`/booking/${selectedPractitioner}`, {
@@ -329,41 +327,71 @@ const BookingModal = ({
                         </div>
 
                         {/* Mobile Filter Bar - Calendar and Practitioner */}
-                        <div className="flex items-center justify-between px-4 pb-4 gap-3">
-                            {/* Calendar Button */}
-                            <div className="flex-1">
-                                <button
-                                    onClick={() => setShowCalendarMobile(!showCalendarMobile)}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span className="text-gray-700 font-medium">{getSelectedDateDetails()}</span>
-                                    </div>
-                                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${showCalendarMobile ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                            </div>
+                        <div className="px-4 pb-4 sm:px-6">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                {/* Calendar Button */}
+                                <div className="flex-1">
+                                    <button
+                                        onClick={() => setShowCalendarMobile(!showCalendarMobile)}
+                                        className="w-full group"
+                                    >
+                                        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <div className="text-left">
+                                                    <p className="text-xs font-medium text-gray-500 mb-0.5">Date</p>
+                                                    <p className="text-sm font-semibold text-gray-800 leading-tight truncate max-w-[120px] sm:max-w-[150px]">
+                                                        {getSelectedDateDetails()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <svg
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-200 ${showCalendarMobile ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M19 9l-7 7-7-7"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </div>
 
-                            {/* Practitioner Button */}
-                            <div className="flex-1">
-                                <button
-                                    onClick={() => setShowPractitionerDropdown(!showPractitionerDropdown)}
-                                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                        <span className="text-gray-700 font-medium text-sm truncate">{getSelectedDentistName()}</span>
-                                    </div>
-                                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${showPractitionerDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
+                                {/* Practitioner Button */}
+                                <div className="flex-1">
+                                    <button
+                                        onClick={() => setShowPractitionerDropdown(!showPractitionerDropdown)}
+                                        className="w-full group"
+                                    >
+                                        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <div className="text-left">
+                                                    <p className="text-xs font-medium text-gray-500 mb-0.5">Practitioner</p>
+                                                    <p className="text-sm font-semibold text-gray-800 leading-tight truncate max-w-[120px] sm:max-w-[150px]">
+                                                        {getSelectedDentistName()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <svg
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-200 ${showPractitionerDropdown ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M19 9l-7 7-7-7"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -412,8 +440,8 @@ const BookingModal = ({
                                                     setShowPractitionerDropdown(false);
                                                 }}
                                                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedPractitioner === dentist.id
-                                                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                                        : 'hover:bg-gray-50 text-gray-700 border border-gray-100'
+                                                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                                                    : 'hover:bg-gray-50 text-gray-700 border border-gray-100'
                                                     }`}
                                             >
                                                 <div className="font-medium">{dentist.name}</div>
@@ -510,7 +538,7 @@ const BookingModal = ({
                                     <span>No time selected</span>
                                 )}
                             </div>
-                            
+
                             <div className="flex w-full sm:w-auto gap-3">
                                 <button
                                     onClick={onClose}

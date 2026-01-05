@@ -25,10 +25,6 @@ const BookingStep6: React.FC = () => {
     navigate(`/booking/${state.dentistId}/step-4`);
   };
 
-  const handleEditStep = (stepNumber: number) => {
-    navigate(`/booking/${state.dentistId}/step-${stepNumber}`);
-  };
-
   if (loading || !hasData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -52,7 +48,7 @@ const BookingStep6: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             {/* Top Navigation */}
-            <nav className="flex items-center justify-between border-b border-gray-200 pb-3 mb-10">
+            <nav className="flex items-center justify-between border-b border-gray-200 pb-3 mb-8">
               {/* Back */}
               <button
                 onClick={handleBack}
@@ -190,33 +186,6 @@ const BookingStep6: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Edit Options */}
-                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <p className="text-sm text-gray-600 mb-3">
-                    Need to make changes?
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    <button
-                      onClick={() => handleEditStep(1)}
-                      className="text-sm text-gray-600 hover:text-gray-700 font-medium underline"
-                    >
-                      Edit Appointment Type
-                    </button>
-                    <button
-                      onClick={() => handleEditStep(3)}
-                      className="text-sm text-gray-600 hover:text-gray-700 font-medium underline"
-                    >
-                      Edit Service
-                    </button>
-                    <button
-                      onClick={() => handleEditStep(4)}
-                      className="text-sm text-gray-600 hover:text-gray-700 font-medium underline"
-                    >
-                      Edit Personal Details
-                    </button>
                   </div>
                 </div>
 

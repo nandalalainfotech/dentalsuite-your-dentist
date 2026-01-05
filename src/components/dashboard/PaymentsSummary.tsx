@@ -71,10 +71,21 @@ export const PaymentsSummary: React.FC<PaymentsSummaryProps> = ({
     .filter(p => p.status === 'pending')
     .reduce((sum, p) => sum + p.amount, 0);
 
+    const Icons = {
+  Card: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+  ),
+};
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Payments Summary</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          <div className="p-2 bg-gray-900 rounded-xl text-white">
+            <Icons.Card />
+          </div>Payments Summary</h2>
         <button className="text-orange-600 hover:text-orange-700 font-medium text-sm">
           View All
         </button>

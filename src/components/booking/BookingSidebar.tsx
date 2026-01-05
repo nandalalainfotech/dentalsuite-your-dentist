@@ -199,8 +199,6 @@ const BookingSidebar: React.FC<BookingSidebarProps> = ({ currentStep = 1, onOpen
               onClick={() => setIsMobileSidebarOpen(false)}
               className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
             >
-              <i className="bi bi-arrow-left text-lg"></i>
-              <span className="font-medium">Back</span>
             </button>
             <h3 className="text-lg font-semibold text-gray-900">Appointment Details</h3>
             <button
