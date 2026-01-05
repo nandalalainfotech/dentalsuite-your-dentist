@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
+import { useAuth } from "../../hooks/useAuth";
 import BookingSidebar from "./BookingSidebar";
 import BookingModal from "./BookingModal";
 
@@ -9,12 +10,18 @@ const BookingStep3: React.FC = () => {
   const navigate = useNavigate();
   const { state, setSelectedService } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
+  const { isAuthenticated } = useAuth();
   const [showBookingModal, setShowBookingModal] = useState(false);
   const appointmentTypes = state.dentist?.specialities ?? [];
 
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
-    navigate(`/booking/${state.dentistId}/auth`);
+    // Skip auth step if user is already logged in
+    if (isAuthenticated) {
+      navigate(`/booking/${state.dentistId}/step-4`);
+    } else {
+      navigate(`/booking/${state.dentistId}/auth`);
+    }
   };
 
   const handleBack = () => {

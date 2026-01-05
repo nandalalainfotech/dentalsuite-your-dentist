@@ -1,6 +1,8 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { PersonalDetails } from '../../types';
 import type { Clinic, Dentist } from '../../types';
+import { useAuth } from '../useAuth';
+import type { User } from '../../types/auth';
 
 interface BookingState {
   appointmentFor: "myself" | "someone-else" | null;
@@ -28,9 +30,21 @@ type BookingAction =
   | { type: 'SET_AUTHENTICATION'; payload: { isAuthenticated: boolean; user: PersonalDetails | null } }
   | { type: 'RESET_BOOKING' };
 
+const convertUserToPersonalDetails = (user: User | null): PersonalDetails | null => {
+  if (!user) return null;
+  return {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.mobileNumber,
+    dateOfBirth: user.dateOfBirth,
+    reason: '', // Default empty reason for booking
+  };
+};
+
 const loadPersistedState = (): BookingState => {
   try {
-    const savedState = localStorage.getItem('bookingState');
+    const savedState = sessionStorage.getItem('bookingState');
     if (savedState) {
       const parsedState = JSON.parse(savedState);
       return {
@@ -41,7 +55,7 @@ const loadPersistedState = (): BookingState => {
       };
     }
   } catch (error) {
-    console.error('Error loading booking state from localStorage:', error);
+    console.error('Error loading booking state from sessionStorage:', error);
   }
   return {
     appointmentFor: null,
@@ -117,6 +131,16 @@ interface BookingProviderProps {
 
 export function BookingProvider({ children }: BookingProviderProps) {
   const [state, dispatch] = useReducer(bookingReducer, initialState);
+  const { isAuthenticated, user } = useAuth();
+
+  // Sync booking context with auth context
+  useEffect(() => {
+    const userAsPersonalDetails = convertUserToPersonalDetails(user);
+    dispatch({ 
+      type: 'SET_AUTHENTICATION', 
+      payload: { isAuthenticated: isAuthenticated, user: userAsPersonalDetails } 
+    });
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     try {
@@ -126,9 +150,9 @@ export function BookingProvider({ children }: BookingProviderProps) {
         isAuthenticated: false,
         user: null,
       };
-      localStorage.setItem('bookingState', JSON.stringify(stateToSave));
+      sessionStorage.setItem('bookingState', JSON.stringify(stateToSave));
     } catch (error) {
-      console.error('Error saving booking state to localStorage:', error);
+      console.error('Error saving booking state to sessionStorage:', error);
     }
   }, [state]);
 
@@ -170,9 +194,9 @@ export function BookingProvider({ children }: BookingProviderProps) {
 
   const resetBooking = () => {
     try {
-      localStorage.removeItem('bookingState');
+      sessionStorage.removeItem('bookingState');
     } catch (error) {
-      console.error('Error clearing booking state from localStorage:', error);
+      console.error('Error clearing booking state from sessionStorage:', error);
     }
     dispatch({ type: 'RESET_BOOKING' });
   };

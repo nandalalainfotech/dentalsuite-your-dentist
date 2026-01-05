@@ -5,7 +5,7 @@ export const clinics: Clinic[] = [
   {
     id: "1",
     name: "Sydney Harbour Dental",
-    address: " Bagot House, Level 2 / 198 North Terrace, Adelaide, SA 5000",
+    address: "Adelaide, SA 5000",
     specialities: ["General Dentistry", "Root Canal", "Cosmetic Dentistry"],
     phone: "+61 2 9876 5432",
     email: "contact@sydneyharbourdental.com.au",

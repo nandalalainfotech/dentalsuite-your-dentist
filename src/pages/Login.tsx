@@ -1,8 +1,46 @@
 import { Link, useNavigate } from "react-router-dom";
-
+import { useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
+  const [formData, setFormData] = useState({
+    emailOrMobile: "",
+    password: ""
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!formData.emailOrMobile || !formData.password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    const result = await login(formData);
+    
+    if (result.success) {
+      setSuccess(result.message);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } else {
+      setError(result.message);
+    }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
@@ -18,13 +56,29 @@ export default function Login() {
           Log in to book your appointments easily
         </p>
 
-        <div className="flex flex-col gap-4">
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="text-sm font-medium">Email or Mobile</label>
             <input
               type="text"
+              name="emailOrMobile"
+              value={formData.emailOrMobile}
+              onChange={handleInputChange}
               className="w-full mt-1 border-2 rounded-md px-3 py-2 
               focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
+              placeholder="Enter email or mobile number"
             />
           </div>
 
@@ -32,8 +86,12 @@ export default function Login() {
             <label className="text-sm font-medium">Password</label>
             <input
               type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
               className="w-full mt-1 border-2 rounded-md px-3 py-2 
               focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
+              placeholder="Enter password"
             />
           </div>
 
@@ -43,10 +101,11 @@ export default function Login() {
           </label>
 
           <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full bg-orange-600 font-bold text-white py-2 rounded-lg hover:bg-orange-600 hover:text-black transition-all"
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-orange-600 font-bold text-white py-2 rounded-lg hover:bg-orange-600 hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Log in
+            {isLoading ? "Logging in..." : "Log in"}
           </button>
 
           <Link
@@ -55,7 +114,7 @@ export default function Login() {
           >
             Forgot your password?
           </Link>
-        </div>
+        </form>
 
         <hr className="my-6" />
 

@@ -66,23 +66,19 @@ interface FilterProviderProps {
 }
 
 export function FilterProvider({ children }: FilterProviderProps) {
-  const [state, dispatch] = useReducer(filterReducer, initialState);
-
-  useEffect(() => {
-    const savedFilters = localStorage.getItem('dentalFilters');
-    if (savedFilters) {
-      try {
-        const parsedFilters = JSON.parse(savedFilters);
-        dispatch({ type: 'LOAD_FILTERS', payload: parsedFilters });
-      } catch (error) {
-        console.error('Error loading filters from localStorage:', error);
-      }
+  const [state, dispatch] = useReducer(
+    filterReducer,
+    initialState,
+    () => {
+      const savedFilters = sessionStorage.getItem('dentalFilters');
+      return savedFilters ? JSON.parse(savedFilters) : initialState;
     }
-  }, []);
+  );
 
   useEffect(() => {
-    localStorage.setItem('dentalFilters', JSON.stringify(state));
+    sessionStorage.setItem('dentalFilters', JSON.stringify(state));
   }, [state]);
+
 
   const setServiceInput = (value: string) => {
     dispatch({ type: 'SET_SERVICE_INPUT', payload: value });
