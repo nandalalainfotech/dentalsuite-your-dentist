@@ -30,11 +30,20 @@ export const ProfileCompletionStatus: React.FC<ProfileCompletionStatusProps> = (
     { label: 'Insurance Details', completed: completionPercentage > 75 },
     { label: 'Emergency Contact', completed: completionPercentage > 90 },
   ];
-
+const Icons = {
+ User: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  ),
+};
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Profile Completion</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+          <div className="p-2 bg-gray-900 rounded-xl text-white">
+            <Icons.User />
+          </div>Profile Completion</h2>
         <div className="text-2xl sm:text-3xl font-bold text-orange-600">{completionPercentage}%</div>
       </div>
 
@@ -82,7 +91,7 @@ export const ProfileCompletionStatus: React.FC<ProfileCompletionStatusProps> = (
           <div className="space-y-2">
             {missingSections.map((section, index) => (
               <div key={index} className="flex items-center justify-between">
-                <span className={`text-sm ${section.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                <span className={`text-sm ${section.completed ? 'text-gray-400' : 'text-gray-700'}`}>
                   {section.label}
                 </span>
                 {section.completed ? (
@@ -101,12 +110,12 @@ export const ProfileCompletionStatus: React.FC<ProfileCompletionStatusProps> = (
 
         <button
           onClick={onCompleteProfile}
-          className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${completionPercentage >= 90
+          className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${completionPercentage >= 100
               ? 'bg-green-100 text-green-700 hover:bg-green-200'
               : 'bg-orange-600 text-white hover:bg-orange-700'
             }`}
         >
-          {completionPercentage >= 90 ? 'Profile Complete!' : 'Complete Profile'}
+          {completionPercentage >= 100 ? 'Profile Complete!' : 'Complete Profile'}
         </button>
 
         {completionPercentage < 100 && (

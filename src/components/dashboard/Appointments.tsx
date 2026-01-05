@@ -53,10 +53,19 @@ export const Appointments: React.FC<AppointmentsProps> = ({
             hour12: true
         });
     };
-
-return (
+const Icons = {
+  Calendar: () => (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  ),
+};
+    return (
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Appointments</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <div className="p-2 bg-gray-900 rounded-xl text-white">
+            <Icons.Calendar />
+          </div>Appointments</h2>
 
             {/* Tabs */}
             <div className="flex space-x-4 sm:space-x-8 mb-6 sm:mb-8 border-b border-gray-200">
@@ -80,7 +89,7 @@ return (
                 </button>
             </div>
 
-{/* Empty State */}
+            {/* Empty State */}
             {displayAppointments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 sm:py-12 lg:py-16">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gray-100 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
@@ -111,7 +120,7 @@ return (
                         </button>
                     )}
                 </div>
-) : (
+            ) : (
                 <div className="space-y-3 sm:space-y-4">
                     {displayAppointments.map((appointment) => (
                         <div
@@ -200,7 +209,7 @@ return (
                 </div>
             )}
 
-{/* Info Box */}
+            {/* Info Box */}
             <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-start space-x-3">
                 <svg className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
