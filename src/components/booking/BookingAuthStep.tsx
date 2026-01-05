@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
+import { useAuth } from "../../hooks/useAuth";
 import BookingSidebar from "./BookingSidebar";
 
 interface LoginFormData {
@@ -26,7 +27,17 @@ const BookingAuthStep: React.FC = () => {
   const navigate = useNavigate();
   const { state } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
+  const { isAuthenticated, login, signup } = useAuth();
   const [authMode, setAuthMode] = useState<"login" | "signup" | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Redirect to step 4 if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(`/booking/${state.dentistId}/step-4`);
+    }
+  }, [isAuthenticated, navigate, state.dentistId]);
 
   const [loginData, setLoginData] = useState<LoginFormData>({
     email: "",
@@ -46,16 +57,51 @@ const BookingAuthStep: React.FC = () => {
     agreeToTerms: false,
   });
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login submitted:", loginData);
-    navigate(`/booking/${state.dentistId}/step-4`);
+    setIsLoading(true);
+    setError(null);
+
+    const result = await login({
+      emailOrMobile: loginData.email,
+      password: loginData.password
+    });
+
+    if (result.success) {
+      navigate(`/booking/${state.dentistId}/step-4`);
+    } else {
+      setError(result.message);
+    }
+    setIsLoading(false);
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup submitted:", signupData);
-    navigate(`/booking/${state.dentistId}/step-4`);
+    setIsLoading(true);
+    setError(null);
+
+    if (signupData.password !== signupData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    const result = await signup({
+      email: signupData.email,
+      password: signupData.password,
+      firstName: signupData.firstName,
+      lastName: signupData.lastName,
+      dateOfBirth: signupData.dateOfBirth,
+      gender: signupData.gender as 'male' | 'female' | 'other',
+      mobileNumber: signupData.mobileNumber
+    });
+
+    if (result.success) {
+      navigate(`/booking/${state.dentistId}/step-4`);
+    } else {
+      setError(result.message);
+    }
+    setIsLoading(false);
   };
 
   const handleBack = () => {
@@ -213,12 +259,18 @@ const BookingAuthStep: React.FC = () => {
                             Keep me logged into this trusted device
                           </label>
 
+                          {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                              {error}
+                            </div>
+                          )}
                           <div className="space-y-4">
                             <button
                               type="submit"
-                              className="w-full bg-orange-600 font-semibold text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-all duration-200 shadow-sm hover:shadow"
+                              disabled={isLoading}
+                              className="w-full bg-orange-600 font-semibold text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Log in
+                              {isLoading ? "Logging in..." : "Log in"}
                             </button>
 
                             <a href="#" className="text-blue-600 text-sm hover:underline block text-center">
@@ -266,10 +318,17 @@ const BookingAuthStep: React.FC = () => {
                                 type="password"
                                 value={signupData.confirmPassword}
                                 onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 outline-none transition-all"
+                                className={`w-full px-4 py-3 rounded-lg border-2 ${
+                                  signupData.confirmPassword && signupData.password !== signupData.confirmPassword
+                                    ? 'border-red-300 focus:border-red-500'
+                                    : 'border-gray-200 focus:border-orange-500'
+                                } outline-none transition-all`}
                                 required
                                 placeholder="Re-enter password"
                               />
+                              {signupData.confirmPassword && signupData.password !== signupData.confirmPassword && (
+                                <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+                              )}
                             </div>
                           </div>
 
@@ -360,12 +419,18 @@ const BookingAuthStep: React.FC = () => {
                             <span>I agree to the Terms & Conditions and Privacy Policy</span>
                           </label>
 
+                          {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                              {error}
+                            </div>
+                          )}
                           <div className="space-y-4">
                             <button
                               type="submit"
-                              className="w-full bg-orange-600 font-semibold text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-all duration-200 shadow-sm hover:shadow"
+                              disabled={isLoading}
+                              className="w-full bg-orange-600 font-semibold text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Sign up
+                              {isLoading ? "Creating account..." : "Sign up"}
                             </button>
                           </div>
                         </form>

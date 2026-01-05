@@ -1,23 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
+import { useAuth } from "../../hooks/useAuth";
+import type { PersonalDetails } from "../../types";
 import BookingSidebar from "./BookingSidebar";
 import BookingModal from "./BookingModal";
-
-interface PersonalDetails {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  reason: string;
-}
 
 const BookingStep4: React.FC = () => {
   const navigate = useNavigate();
   const { state, setPersonalDetails } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
+  const { isAuthenticated, user } = useAuth();
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
   const [formData, setFormData] = useState<PersonalDetails>({
     firstName: "",
     lastName: "",
@@ -26,7 +22,21 @@ const BookingStep4: React.FC = () => {
     dateOfBirth: "",
     reason: "",
   });
-  const [showBookingModal, setShowBookingModal] = useState(false);
+
+  // Pre-fill form data if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user && state.appointmentFor === "myself") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phone: user.mobileNumber || "",
+        dateOfBirth: user.dateOfBirth || "",
+        reason: "",
+      });
+    }
+  }, [isAuthenticated, user, state.appointmentFor]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,6 +56,7 @@ const BookingStep4: React.FC = () => {
   };
 
   const handleBack = () => {
+    // Always go back to step 3 since auth step is skipped for authenticated users
     navigate(`/booking/${state.dentistId}/step-3`);
   };
 

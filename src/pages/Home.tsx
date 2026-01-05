@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import Filters from "../components/filters/Filters";
 import ServicesSection from "../components/services/ServiceSection";
@@ -15,6 +15,16 @@ import { useFilters } from "../hooks/filters/useFilters";
 const Home = () => {
   const [showFilters, setShowFilters] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const WEEK_ORDER = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   const {
     state: {
@@ -55,6 +65,15 @@ const Home = () => {
   } = useHomeSearch();
 
   const { getAllAvailableSlots } = useClinicData();
+
+  const sortedAvailableDaysOptions = useMemo(() => {
+    if (!availableDaysOptions) return [];
+
+    return [...availableDaysOptions].sort(
+      (a, b) => WEEK_ORDER.indexOf(a) - WEEK_ORDER.indexOf(b)
+    );
+  }, [availableDaysOptions]);
+
 
   useEffect(() => {
     const closeDropdown = (e: MouseEvent) => {
@@ -360,7 +379,7 @@ const Home = () => {
               languages={languages}
               specialties={specialties}
               insuranceOptions={insuranceOptions}
-              availableDaysOptions={availableDaysOptions}
+              availableDaysOptions={sortedAvailableDaysOptions}
               genderOptions={genderOptions.map(gender => gender.charAt(0).toUpperCase() + gender.slice(1))}
             />
           </div>
