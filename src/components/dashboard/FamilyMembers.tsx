@@ -9,6 +9,12 @@ interface FamilyMembersProps {
   onDeleteMember: (memberId: string) => void;
 }
 
+interface EditableMember {
+  id: string;
+  name: string;
+  relationship: FamilyMember['relationship'];
+}
+
 export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   members,
   onAddMember,
@@ -17,6 +23,9 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   onDeleteMember
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [editingMember, setEditingMember] = useState<EditableMember | null>(null);
+  const [tempName, setTempName] = useState('');
+  const [tempRelationship, setTempRelationship] = useState<FamilyMember['relationship']>('self');
 
   const getRelationshipIcon = (relationship: FamilyMember['relationship']) => {
     switch (relationship) {
@@ -56,13 +65,47 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     onDeleteMember(memberId);
     setShowDeleteConfirm(null);
   };
-const Icons = {
-  Family: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  ),
-};
+
+  const handleStartEdit = (member: FamilyMember) => {
+    setEditingMember({
+      id: member.id,
+      name: member.name,
+      relationship: member.relationship
+    });
+    setTempName(member.name);
+    setTempRelationship(member.relationship);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingMember && tempName.trim()) {
+      onEditMember(editingMember.id);
+      setEditingMember(null);
+      setTempName('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMember(null);
+    setTempName('');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
+
+  const Icons = {
+    Family: () => (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
@@ -91,87 +134,142 @@ const Icons = {
               }`}
             onClick={() => !member.isActive && onSwitchActive(member.id)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${member.isActive ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                  {getRelationshipIcon(member.relationship)}
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-medium text-gray-900 text-sm sm:text-base">{member.name}</h3>
-                    {member.isActive && (
-                      <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
-                        Active
-                      </span>
-                    )}
+            {editingMember?.id === member.id ? (
+              <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${member.isActive ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    {getRelationshipIcon(tempRelationship)}
                   </div>
-                  <p className="text-sm text-gray-500">{getRelationshipLabel(member.relationship)}</p>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={tempName}
+                      onChange={(e) => setTempName(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Enter name"
+                      autoFocus
+                    />
+                    <select
+                      value={tempRelationship}
+                      onChange={(e) => setTempRelationship(e.target.value as FamilyMember['relationship'])}
+                      className="mt-2 w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="father">Father</option>
+                      <option value="mother">Mother</option>
+                      <option value="child">Child</option>
+                      <option value="spouse">Spouse</option>
+                      <option value="sibling">Sibling</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditMember(member.id);
-                  }}
-                  className="p-1.5 text-gray-400 hover:text-orange-600 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-
-                {member.relationship !== 'self' && (
+                <div className="flex items-center justify-end space-x-2">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteConfirm(showDeleteConfirm === member.id ? null : member.id);
-                    }}
-                    className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                    onClick={handleSaveEdit}
+                    disabled={!tempName.trim()}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${tempName.trim()
+                      ? 'bg-orange-600 text-white hover:bg-orange-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {showDeleteConfirm === member.id && (
-              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700 mb-2">
-                  Are you sure you want to remove {member.name}?
-                </p>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteMember(member.id);
-                    }}
-                    className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                  >
-                    Delete
+                    Save
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteConfirm(null);
-                    }}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors"
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
+            ) : (
+              // View Mode
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${member.isActive ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                      {getRelationshipIcon(member.relationship)}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-medium text-gray-900 text-sm sm:text-base">{member.name}</h3>
+                        {member.isActive && (
+                          <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">{getRelationshipLabel(member.relationship)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartEdit(member);
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-orange-600 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+
+                    {member.relationship !== 'self' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteConfirm(showDeleteConfirm === member.id ? null : member.id);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {showDeleteConfirm === member.id && (
+                  <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 mb-2">
+                      Are you sure you want to remove {member.name}?
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteMember(member.id);
+                        }}
+                        className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteConfirm(null);
+                        }}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         ))}
       </div>
-
       <div className="mt-4 text-sm text-gray-500">
         <p>Click on a family member to switch the active patient context.</p>
+        <p className="mt-1">Click the edit icon to temporarily modify member details.</p>
       </div>
     </div>
   );
