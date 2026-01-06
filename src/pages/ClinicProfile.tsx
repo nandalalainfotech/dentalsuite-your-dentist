@@ -176,7 +176,7 @@ const ClinicProfile = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-100 border-t-orange-600 mx-auto"></div>
-          <p className="text-gray-500 font-medium animate-pulse">
+          <p className="text-gray-500 font-medium animate-pulse text-base sm:text-lg">
             Loading clinic details...
           </p>
         </div>
@@ -191,15 +191,15 @@ const ClinicProfile = () => {
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <i className="bi bi-exclamation-lg text-3xl text-red-500"></i>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Clinic Not Found
           </h2>
-          <p className="text-gray-500 mb-6 leading-relaxed">
+          <p className="text-gray-500 mb-6 leading-relaxed text-sm sm:text-base">
             The clinic you're looking for doesn't exist or has been removed.
           </p>
           <button
             onClick={() => navigate("/search")}
-            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-200 transform hover:-translate-y-0.5"
+            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-200 transform hover:-translate-y-0.5 text-sm sm:text-base"
           >
             Back to Search
           </button>
@@ -241,7 +241,7 @@ const ClinicProfile = () => {
                   {/* Clinic Information Wrapper */}
                   <div className="w-full flex flex-col items-start text-left">
                     {/* Clinic Name & Logo */}
-                    <h1 className="flex flex-row items-center justify-start gap-3 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-orange-600 mb-2">
+                    <h1 className="flex flex-row items-center justify-start gap-3 text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-orange-600 mb-2">
                       <img
                         src={clinic.logo}
                         alt={clinic.name}
@@ -253,7 +253,7 @@ const ClinicProfile = () => {
                     </h1>
 
                     {/* Address */}
-                    <div className="text-gray-300 text-sm sm:text-base lg:text-lg mb-2">
+                    <div className="text-gray-300 text-sm sm:text-base mb-2">
                       <p className="font-medium line-clamp-1 sm:line-clamp-none text-left">
                         {clinic.address}
                       </p>
@@ -265,14 +265,14 @@ const ClinicProfile = () => {
                         {clinic.emergency ? (
                           <>
                             <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
-                            <span className="text-green-400 font-semibold text-sm sm:text-base">
+                            <span className="text-green-400 font-semibold text-xs sm:text-sm">
                               Emergency available
                             </span>
                           </>
                         ) : (
                           <>
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0"></div>
-                            <span className="text-red-400 font-semibold text-sm sm:text-base">
+                            <span className="text-red-400 font-semibold text-xs sm:text-sm">
                               No emergency service
                             </span>
                           </>
@@ -311,47 +311,45 @@ const ClinicProfile = () => {
           {/* Back Button */}
           <button
             onClick={() => navigate("/")}
-            className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-4 bg-gray-100 backdrop-blur-sm hover:bg-white text-gray-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md transition-all flex items-center gap-2 text-sm sm:text-base font-medium"
+            className="absolute top-2 sm:top-3 md:top-4 left-2 sm:left-4 bg-gray-100 backdrop-blur-sm hover:bg-white text-gray-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-md transition-all flex items-center gap-2 text-xs sm:text-sm font-medium"
           >
             <i className="bi bi-arrow-left"></i>
             <span className="font-medium">Back</span>
           </button>
         </div>
 
-          {/* Quick Links - Top Horizontal Navigation with Modern Scroll */}
-          <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
-            <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
-              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
-                <nav className="flex flex-row gap-1.5 sm:gap-2 py-2 sm:py-3 min-w-max">
-                  {sidebarLinks.map((link) => (
-                    <button
-                      key={link.id}
-                      onClick={() => scrollToSection(link.id)}
-                      className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
-                        ? "bg-orange-500 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
-                        }`}
-                    >
-                      <i className={`bi ${link.icon} text-base sm:text-lg`}></i>
-                      <span className="hidden sm:inline">{link.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              </div>
+        {/* Quick Links - Top Horizontal Navigation with Modern Scroll */}
+        <div className="bg-white justify-center items-center sticky top-12 md:top-16 z-40 shadow-md border-b-1 border-gray-100">
+          <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-orange-400 scrollbar-track-orange-100 hover:scrollbar-thumb-orange-500 scroll-smooth">
+              <nav className="flex flex-row gap-1.5 sm:gap-2 py-2 sm:py-3 min-w-max">
+                {sidebarLinks.map((link) => (
+                  <button
+                    key={link.id}
+                    onClick={() => scrollToSection(link.id)}
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm whitespace-nowrap transition-all duration-200 font-medium ${activeSection === link.id
+                      ? "bg-orange-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-orange-100 hover:text-orange-600 hover:shadow-md"
+                      }`}
+                  >
+                    <i className={`bi ${link.icon} text-sm sm:text-base`}></i>
+                    <span className="hidden sm:inline">{link.label}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
           </div>
+        </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7 py-4 sm:py-6 md:py-8 ">
+        <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-5 lg:px-7 py-4 sm:py-6 md:py-8">
           <div className="flex flex-col lg:flex-row gap-3 sm:gap-5">
-            
-            {/* ========== BOOK APPOINTMENT WIDGET (TOP ON MOBILE/TABLET) ========== */}
+            {/* ========== BOOK APPOINTMENT WIDGET ========== */}
             <aside className="w-full lg:w-80 flex-shrink-0 mx-auto lg:mx-0 order-first lg:order-last mb-6 lg:mb-0">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-fit lg:sticky lg:top-35">
-                
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
                     Book appointment
                   </h3>
                 </div>
@@ -362,7 +360,7 @@ const ClinicProfile = () => {
                   <div className="relative">
                     <select
                       defaultValue="dentistry"
-                      className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-orange-600 transition-colors appearance-none cursor-pointer hover:border-gray-300 text-gray-700"
+                      className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-orange-600 transition-colors appearance-none cursor-pointer hover:border-gray-300 text-gray-700 text-sm sm:text-base"
                     >
                       <option value="dentistry">Dentistry</option>
                       {clinic?.specialities.map((service, index) => (
@@ -381,7 +379,7 @@ const ClinicProfile = () => {
                     <select
                       value={selectedDentist}
                       onChange={(e) => setSelectedDentist(e.target.value)}
-                      className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-orange-600 transition-colors appearance-none cursor-pointer hover:border-gray-300 text-gray-700"
+                      className="w-full px-4 py-3 pr-10 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-orange-600 transition-colors appearance-none cursor-pointer hover:border-gray-300 text-gray-700 text-sm sm:text-base"
                     >
                       <option value="">All practitioners</option>
                       {clinic?.dentists?.map((dentist) => (
@@ -409,13 +407,13 @@ const ClinicProfile = () => {
                         {dateData.slots.slice(0, 3).map((time, slotIndex) => (
                           <button
                             key={slotIndex}
-                            className="px-4 py-2 text-sm rounded-full border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-colors"
+                            className="px-4 py-2 text-xs sm:text-sm rounded-full border border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white transition-colors"
                           >
                             {time}
                           </button>
                         ))}
                         {dateData.slots.length > 3 && (
-                          <button className="px-3 py-1.5 text-sm text-orange-600 hover:underline transition-colors">
+                          <button className="px-3 py-1.5 text-xs sm:text-sm text-orange-600 hover:underline transition-colors">
                             Show all
                           </button>
                         )}
@@ -429,7 +427,7 @@ const ClinicProfile = () => {
                       sessionStorage.setItem('bookingReferrer', `/clinicprofile/${id}`);
                       setIsBookingModalOpen(true);
                     }}
-                    className="w-full mt-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
+                    className="w-full mt-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
                   >
                     See all appointments
                   </button>
@@ -437,22 +435,22 @@ const ClinicProfile = () => {
               </div>
             </aside>
 
-            {/* ========== MAIN CONTENT AREA (BELOW ON MOBILE/TABLET) ========== */}
+            {/* ========== MAIN CONTENT AREA ========== */}
             <div className="flex-1 order-last lg:order-first">
               <div className="bg-white p-4 sm:p-6 md:p-10 rounded-lg sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
                   {/* ==================== BASIC INFO SECTION ==================== */}
                   <section>
                     <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-info-circle text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-info-circle text-orange-600 text-sm sm:text-base"></i>
                         Basic Info
                       </h2>
                     </div>
 
                     <div className="bg-white p-2 sm:p-3 md:p-4">
                       {/* Description Card */}
-                      <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
+                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                         {clinic.description}
                       </p>
                     </div>
@@ -467,8 +465,8 @@ const ClinicProfile = () => {
                     className="scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-briefcase text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-briefcase text-orange-600 text-sm sm:text-base"></i>
                         Our Services
                       </h2>
                     </div>
@@ -477,7 +475,7 @@ const ClinicProfile = () => {
                       {clinic.specialities.map((service, index) => (
                         <div
                           key={index}
-                          className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                          className="px-3 py-2 font-medium text-sm text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
                         >
                           <span>{service}</span>
                         </div>
@@ -494,17 +492,16 @@ const ClinicProfile = () => {
                     className="scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-people text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-people text-orange-600 text-sm sm:text-base"></i>
                         Our Team
                       </h2>
-                      <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
+                      <span className="bg-orange-100 text-orange-600 text-xs sm:text-sm font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full mb-1">
                         {clinic.dentists?.length || 0} Dentist
                         {clinic.dentists?.length !== 1 ? "s" : ""}
                       </span>
                     </div>
 
-                    {/* Added consistent padding: p-4 md:p-4 */}
                     <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                       {clinic.dentists?.map((dentist) => (
                         <TeamMemberCard
@@ -525,8 +522,8 @@ const ClinicProfile = () => {
                     className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-images text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-images text-orange-600 text-sm sm:text-base"></i>
                         Gallery
                       </h2>
                     </div>
@@ -552,7 +549,7 @@ const ClinicProfile = () => {
                           ))}
                         </div>
 
-                        {/* Navigation Buttons - Smaller on mobile */}
+                        {/* Navigation Buttons */}
                         <button
                           onClick={() =>
                             setCurrentSlide(
@@ -568,7 +565,7 @@ const ClinicProfile = () => {
                         focus:outline-none focus:ring-2"
                           aria-label="Previous image"
                         >
-                          <i className="bi bi-chevron-left text-sm sm:text-lg md:text-xl"></i>
+                          <i className="bi bi-chevron-left text-sm sm:text-base"></i>
                         </button>
                         <button
                           onClick={() =>
@@ -583,10 +580,10 @@ const ClinicProfile = () => {
                         focus:outline-none focus:ring-2 "
                           aria-label="Next image"
                         >
-                          <i className="bi bi-chevron-right text-sm sm:text-lg md:text-xl"></i>
+                          <i className="bi bi-chevron-right text-sm sm:text-base"></i>
                         </button>
 
-                        {/* Image Counter - Mobile only */}
+                        {/* Image Counter */}
                         <div
                           className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
                       bg-black/50 text-white text-xs px-2 py-1 rounded-full"
@@ -595,7 +592,7 @@ const ClinicProfile = () => {
                         </div>
                       </div>
 
-                      {/* Dot Indicators - Hidden on very small screens, shown on sm+ */}
+                      {/* Dot Indicators */}
                       <div className="hidden sm:flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
                         {galleryImages.map((_, index) => (
                           <button
@@ -613,7 +610,7 @@ const ClinicProfile = () => {
                         ))}
                       </div>
 
-                      {/* Mobile Dot Indicators - Simplified for small screens */}
+                      {/* Mobile Dot Indicators */}
                       <div className="flex sm:hidden justify-center gap-1 mt-3">
                         {galleryImages.map((_, index) => (
                           <button
@@ -638,18 +635,18 @@ const ClinicProfile = () => {
                     className="scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-trophy text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-trophy text-orange-600 text-sm sm:text-base"></i>
                         Achievements
                       </h2>
                     </div>
 
-                    <div className="bg-white grid grid-cols-1 p-2 sm:p-3 md:p-4  md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                    <div className="bg-white grid grid-cols-1 p-2 sm:p-3 md:p-4 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                       <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg sm:rounded-xl border border-yellow-100">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                          <i className="bi bi-award text-yellow-600 text-lg sm:text-xl md:text-2xl"></i>
+                          <i className="bi bi-award text-yellow-600 text-base sm:text-lg md:text-xl"></i>
                         </div>
-                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                        <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">
                           Best Dental Clinic 2023
                         </h4>
                         <p className="text-gray-500 text-xs sm:text-sm">
@@ -658,9 +655,9 @@ const ClinicProfile = () => {
                       </div>
                       <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl border border-blue-100">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                          <i className="bi bi-star text-blue-600 text-lg sm:text-xl md:text-2xl"></i>
+                          <i className="bi bi-star text-blue-600 text-base sm:text-lg md:text-xl"></i>
                         </div>
-                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                        <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">
                           5-Star Rating
                         </h4>
                         <p className="text-gray-500 text-xs sm:text-sm">
@@ -669,9 +666,9 @@ const ClinicProfile = () => {
                       </div>
                       <div className="text-center p-3 sm:p-4 md:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl border border-green-100">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 md:mb-4">
-                          <i className="bi bi-patch-check text-green-600 text-lg sm:text-xl md:text-2xl"></i>
+                          <i className="bi bi-patch-check text-green-600 text-base sm:text-lg md:text-xl"></i>
                         </div>
-                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm md:text-base">
+                        <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">
                           ISO Certified
                         </h4>
                         <p className="text-gray-500 text-xs sm:text-sm">
@@ -690,8 +687,8 @@ const ClinicProfile = () => {
                     className="scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-chat-quote text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-chat-quote text-orange-600 text-sm sm:text-base"></i>
                         Reviews
                       </h2>
                     </div>
@@ -700,27 +697,27 @@ const ClinicProfile = () => {
                       {[1, 2, 3].map((item) => (
                         <div
                           key={item}
-                          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                          className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100"
                         >
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <i className="bi bi-person text-orange-600 text-xl"></i>
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <i className="bi bi-person text-orange-600 text-base sm:text-xl"></i>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-gray-900">
+                            <div className="flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
                                   Patient {item}
                                 </h4>
                                 <div className="flex text-yellow-400">
                                   {[...Array(5)].map((_, i) => (
                                     <i
                                       key={i}
-                                      className="bi bi-star-fill text-sm"
+                                      className="bi bi-star-fill text-xs sm:text-sm"
                                     ></i>
                                   ))}
                                 </div>
                               </div>
-                              <p className="text-gray-500 text-sm">
+                              <p className="text-gray-500 text-xs sm:text-sm">
                                 Excellent service and very professional staff. The
                                 clinic is modern and clean. Highly recommended for
                                 anyone looking for quality dental care.
@@ -741,27 +738,27 @@ const ClinicProfile = () => {
                     className="scroll-mt-28 md:scroll-mt-36 lg:scroll-mt-28"
                   >
                     <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-shield-check text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-shield-check text-orange-600 text-sm sm:text-base"></i>
                         Insurances
                       </h2>
                     </div>
 
                     {/* Insurance content goes here */}
                     {clinic.insurance && clinic.insurance.length > 0 ? (
-                      <div className="flex flex-wrap p-4 md:p-4 gap-4">
+                      <div className="flex flex-wrap p-4 gap-3 sm:gap-4">
                         {clinic.insurance.map((insurance, index) => (
                           <div
                             key={index}
-                            className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                            className="px-3 py-2 font-medium text-sm text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
                           >
                             <span>{insurance}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <i className="bi bi-info-circle text-xl mb-2 block"></i>
+                      <div className="text-center py-8 text-gray-500 text-sm sm:text-base">
+                        <i className="bi bi-info-circle text-base sm:text-xl mb-2 block"></i>
                         <p>No insurance information available</p>
                       </div>
                     )}
@@ -776,19 +773,19 @@ const ClinicProfile = () => {
                     className="scroll-mt-36"
                   >
                     <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-building text-orange-600"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-building text-orange-600 text-sm sm:text-base"></i>
                         Our Facilities
                       </h2>
                     </div>
 
                     {/* Facilities content goes here */}
                     {clinic.facilities && clinic.facilities.length > 0 && (
-                      <div className="flex flex-wrap p-4 md:p-4 gap-4">
+                      <div className="flex flex-wrap p-4 gap-3 sm:gap-4">
                         {clinic.facilities.map((facility, index) => (
                           <div
                             key={index}
-                            className="px-3 py-3 font-medium text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
+                            className="px-3 py-2 font-medium text-sm text-gray-800 hover:bg-orange-100 hover:text-orange-600 hover:border-orange-200 rounded-full border-2 transition-all"
                           >
                             <span>{facility}</span>
                           </div>
@@ -807,8 +804,8 @@ const ClinicProfile = () => {
                   >
                     {/* Header */}
                     <div className="mb-6 border-b-4 border-orange-400">
-                      <h2 className="text-md font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-person-lines-fill text-orange-500"></i>
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-person-lines-fill text-orange-500 text-sm sm:text-base"></i>
                         Contact Us
                       </h2>
                     </div>
@@ -816,14 +813,14 @@ const ClinicProfile = () => {
                     {/* ==================== LOCATION ==================== */}
                     <div className="mb-10">
                       <div className="mb-10">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <i className="bi bi-building-fill text-orange-500"></i>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <i className="bi bi-building-fill text-orange-500 text-sm sm:text-base"></i>
                           Address
                         </h4>
 
                         {/* Address */}
-                        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
-                          <i className="bi bi-geo-alt-fill text-orange-500 mt-1"></i>
+                        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg text-sm sm:text-base">
+                          <i className="bi bi-geo-alt-fill text-orange-500 mt-1 text-sm sm:text-base"></i>
                           <span>
                             Level 3, 123 George Street,
                             <br />
@@ -833,21 +830,21 @@ const ClinicProfile = () => {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-5">
                           {/* Phone */}
-                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg text-sm sm:text-base">
                             <i className="bi bi-telephone text-orange-500"></i>
                             <span>+61 3 9003 2211</span>
                           </div>
 
                           {/* Email */}
-                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg text-sm sm:text-base">
                             <i className="bi bi-envelope text-orange-500"></i>
                             <span>info@melbournefamilydental.com.au</span>
                           </div>
 
                           {/* Website */}
-                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2">
+                          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2 text-sm sm:text-base">
                             <i className="bi bi-globe text-orange-500"></i>
                             <a
                               href="https://melbournefamilydental.com.au"
@@ -861,8 +858,8 @@ const ClinicProfile = () => {
                         </div>
                       </div>
 
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <i className="bi bi-geo-alt text-orange-500"></i>
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i className="bi bi-geo-alt text-orange-500 text-sm sm:text-base"></i>
                         Location
                       </h4>
 
@@ -882,8 +879,8 @@ const ClinicProfile = () => {
 
                     {/* ==================== OPENING HOURS ==================== */}
                     <div className="mb-10">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <i className="bi bi-clock text-orange-500"></i>
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <i className="bi bi-clock text-orange-500 text-sm sm:text-base"></i>
                         Opening Hours
                       </h4>
 
@@ -894,7 +891,7 @@ const ClinicProfile = () => {
                           return (
                             <div
                               key={day}
-                              className={`flex justify-between items-center px-4 py-3 rounded-md
+                              className={`flex justify-between items-center px-4 py-3 rounded-md text-sm sm:text-base
                               ${isClosed
                                   ? "bg-red-50 text-red-500"
                                   : "bg-gray-100 text-gray-700"
@@ -915,23 +912,23 @@ const ClinicProfile = () => {
 
                     {/* ==================== FOLLOW US ==================== */}
                     <div className="pt-6 border-t border-gray-100">
-                      <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <i className="bi bi-share text-orange-500"></i>
+                      <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-sm sm:text-base">
+                        <i className="bi bi-share text-orange-500 text-sm sm:text-base"></i>
                         Follow Us
                       </h4>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                         <div className="p-4 bg-blue-50 rounded-xl flex justify-center">
-                          <i className="bi bi-facebook text-blue-600 text-2xl" />
+                          <i className="bi bi-facebook text-blue-600 text-xl sm:text-2xl" />
                         </div>
                         <div className="p-4 bg-pink-50 rounded-xl flex justify-center">
-                          <i className="bi bi-instagram text-pink-600 text-2xl" />
+                          <i className="bi bi-instagram text-pink-600 text-xl sm:text-2xl" />
                         </div>
                         <div className="p-4 bg-sky-50 rounded-xl flex justify-center">
-                          <i className="bi bi-twitter text-sky-500 text-2xl" />
+                          <i className="bi bi-twitter text-sky-500 text-xl sm:text-2xl" />
                         </div>
                         <div className="p-4 bg-red-50 rounded-xl flex justify-center">
-                          <i className="bi bi-youtube text-red-600 text-2xl" />
+                          <i className="bi bi-youtube text-red-600 text-xl sm:text-2xl" />
                         </div>
                       </div>
                     </div>
@@ -966,19 +963,19 @@ const TeamMemberCard = ({
         <img
           src={dentist.image}
           alt={dentist.name}
-          className="w-28 h-28 rounded-full object-cover shadow"
+          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow"
         />
       </div>
 
       {/* Info */}
-      <div className="flex-1 px-6 pt-6 text-center">
-        <h4 className="font-bold text-lg text-gray-900">{dentist.name}</h4>
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+      <div className="flex-1 px-4 sm:px-6 pt-6 text-center">
+        <h4 className="font-bold text-base sm:text-lg text-gray-900">{dentist.name}</h4>
+        <p className="mt-2 text-xs sm:text-sm text-gray-500 leading-relaxed">
           {dentist.qualification}
         </p>
       </div>
 
-      {/* Profile& Book Button */}
+      {/* Profile & Book Button */}
       <div className="pb-6 pt-4 flex justify-center gap-4">
         <button
           onClick={() => {
@@ -989,15 +986,15 @@ const TeamMemberCard = ({
             );
             window.scrollTo(0, 0);
           }}
-          className="px-6 py-2 rounded-full border border-gray-300 text-sm 
+          className="px-4 sm:px-6 py-2 rounded-full border border-gray-300 text-xs sm:text-sm 
           font-semibold hover:border-orange-500 hover:text-orange-600"
         >
           Profile
         </button>
 
         <button
-          className="px-6 py-2 rounded-full bg-orange-600 text-white
-          text-sm font-semibold hover:text-gray-900"
+          className="px-4 sm:px-6 py-2 rounded-full bg-orange-600 text-white
+          text-xs sm:text-sm font-semibold hover:text-gray-900"
         >
           Book
         </button>

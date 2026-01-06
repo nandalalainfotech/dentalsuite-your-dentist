@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { Clinic, Dentist } from "../../types";
 
@@ -17,6 +17,7 @@ const BookingModal = ({
 }: BookingModalProps) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // --- State ---
     const [selectedService, setSelectedService] = useState("dentistry");
@@ -25,7 +26,10 @@ const BookingModal = ({
     );
     const [selectedDateStr, setSelectedDateStr] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
+    
+    // viewDate controls the visible month in the calendar
     const [viewDate, setViewDate] = useState(new Date());
+    
     const [showCalendarMobile, setShowCalendarMobile] = useState(false);
     const [showPractitionerDropdown, setShowPractitionerDropdown] = useState(false);
 
@@ -33,6 +37,68 @@ const BookingModal = ({
         { date: Date; dateStr: string; slots: string[] }[]
     >([]);
 
+    // --- Helpers ---
+
+    // Memoize current dentist to prevent unnecessary recalcs
+    const currentDentist = useMemo(() => {
+        return clinic?.dentists?.find((d: Dentist) => d.id === selectedPractitioner);
+    }, [clinic, selectedPractitioner]);
+
+    // Logic to calculate available dates/slots
+    const getAvailableDates = (startDate: Date, dentist: Dentist | undefined) => {
+        if (!dentist) return [];
+
+        const dates: { date: Date; dateStr: string; slots: string[] }[] = [];
+        let daysChecked = 0;
+        let validDaysFound = 0;
+
+        // Safety break: check max 45 days ahead or until we find 5 valid days
+        while (validDaysFound < 5 && daysChecked < 45) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + daysChecked);
+            
+            // Normalize time to compare dates accurately
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const checkDate = new Date(currentDate);
+            checkDate.setHours(0, 0, 0, 0);
+
+            // Skip past dates
+            if (checkDate < today) {
+                daysChecked++;
+                continue;
+            }
+
+            const dayName = currentDate.toLocaleDateString("en-US", { weekday: "long" });
+
+            if (dentist.availabledays?.includes(dayName)) {
+                const availableSlots =
+                    dentist.slots
+                        ?.filter((slot) => slot.available)
+                        .map((slot) => slot.time) || [];
+
+                if (availableSlots.length > 0) {
+                    dates.push({
+                        date: currentDate,
+                        dateStr: currentDate.toLocaleDateString("en-US", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                        }),
+                        slots: availableSlots,
+                    });
+                    validDaysFound++;
+                }
+            }
+            daysChecked++;
+        }
+        return dates;
+    };
+
+    // --- Effects ---
+
+    // 1. Reset state on open
     useEffect(() => {
         if (isOpen && clinic?.dentists && clinic.dentists.length > 0) {
             if (selectedDentistId) {
@@ -46,90 +112,65 @@ const BookingModal = ({
             setShowCalendarMobile(false);
             setShowPractitionerDropdown(false);
         }
-    }, [isOpen, clinic, selectedDentistId, selectedPractitioner]);
+    }, [isOpen, clinic, selectedDentistId]); // removed dependency loop
 
+    // 2. Calculate Slots
     useEffect(() => {
-        if (selectedPractitioner) {
-            const dentist = clinic?.dentists?.find(
-                (d: Dentist) => d.id === selectedPractitioner
-            );
-            if (!dentist) return;
+        if (!currentDentist) return;
 
-            const dates: { date: Date; dateStr: string; slots: string[] }[] = [];
+        let startCalculationDate: Date;
 
-            const startCalculationDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+        // If user selected a specific date in calendar, start list from there
+        if (selectedDateStr) {
+            startCalculationDate = new Date(selectedDateStr);
+        } else {
+            // Otherwise start from the beginning of the viewed month
+            startCalculationDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
             const today = new Date();
+            // If viewing current month, start from Today, not the 1st
             if (startCalculationDate.getMonth() === today.getMonth() && startCalculationDate.getFullYear() === today.getFullYear()) {
-                startCalculationDate.setDate(today.getDate());
+                startCalculationDate = today;
             }
-
-            let daysChecked = 0;
-            let validDaysFound = 0;
-
-            while (validDaysFound < 5 && daysChecked < 45) {
-                const currentDate = new Date(startCalculationDate);
-                currentDate.setDate(startCalculationDate.getDate() + daysChecked);
-                const dayName = currentDate.toLocaleDateString("en-US", { weekday: "long" });
-
-                if (dentist.availabledays?.includes(dayName)) {
-                    const availableSlots =
-                        dentist.slots
-                            ?.filter((slot) => slot.available)
-                            .map((slot) => slot.time) || [];
-
-                    if (availableSlots.length > 0) {
-                        dates.push({
-                            date: currentDate,
-                            dateStr: currentDate.toLocaleDateString("en-US", {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                            }),
-                            slots: availableSlots,
-                        });
-                        validDaysFound++;
-                    }
-                }
-                daysChecked++;
-            }
-            setUpcomingDates(dates);
         }
-    }, [selectedPractitioner, clinic?.dentists, viewDate]);
+
+        const dates = getAvailableDates(startCalculationDate, currentDentist);
+        setUpcomingDates(dates);
+
+        // Auto-scroll list to top when data changes
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
+        }
+
+    }, [selectedPractitioner, viewDate, selectedDateStr, currentDentist]);
 
     // --- Handlers ---
     const handleBookAppointment = () => {
         if (!selectedDateStr || !selectedTime) return;
 
+        // Create date in local time to avoid timezone shifts
         const dateObj = new Date(selectedDateStr);
-        const isoDate = dateObj.toISOString().split('T')[0];
-        const existingReferrer = sessionStorage.getItem('bookingReferrer');
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
 
+        // Referrer Logic
+        const existingReferrer = sessionStorage.getItem('bookingReferrer');
         if (!existingReferrer) {
             const currentPath = location.pathname;
             const documentReferrer = document.referrer;
+            let referrerPath = '/';
 
-            let referrerPath;
-            if (currentPath.includes('/clinicprofile/')) {
-                referrerPath = currentPath;
-            }
-            else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) {
-                referrerPath = documentReferrer;
-            }
-            else if (currentPath.includes('/dentist/')) {
-                referrerPath = `/dentist/${selectedDentistId}`;
-            }
-            else {
-                referrerPath = '/';
-            }
-
+            if (currentPath.includes('/clinicprofile/')) referrerPath = currentPath;
+            else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) referrerPath = documentReferrer;
+            else if (currentPath.includes('/dentist/')) referrerPath = `/dentist/${selectedDentistId}`;
+            
             sessionStorage.setItem('bookingReferrer', referrerPath);
-        } else {
         }
 
         navigate(`/booking/${selectedPractitioner}`, {
             state: {
-                date: isoDate,
+                date: formattedDate,
                 time: selectedTime,
                 service: selectedService,
             }
@@ -141,6 +182,15 @@ const BookingModal = ({
         const newDate = new Date(viewDate);
         newDate.setMonth(newDate.getMonth() + offset);
         setViewDate(newDate);
+        // Clear specific selection when changing month so list defaults to "Available from start of month"
+        setSelectedDateStr("");
+        setSelectedTime("");
+    };
+
+    const handleDateSelect = (dateString: string) => {
+        setSelectedDateStr(dateString);
+        setSelectedTime("");
+        setShowCalendarMobile(false);
     };
 
     // --- Render Calendar ---
@@ -155,8 +205,6 @@ const BookingModal = ({
             days.push(<div key={`empty-${i}`} className="h-8 w-8"></div>);
         }
 
-        const currentDentist = clinic?.dentists?.find(d => d.id === selectedPractitioner);
-
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(year, month, day);
             const dayName = date.toLocaleDateString("en-US", { weekday: "long" });
@@ -169,8 +217,15 @@ const BookingModal = ({
 
             const isAvailableDay = currentDentist?.availabledays?.includes(dayName);
             const isSelected = selectedDateStr === dateString;
-            const isToday = new Date().toDateString() === date.toDateString();
-            const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+            
+            // Strict comparison for Past/Today
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const checkDate = new Date(date);
+            checkDate.setHours(0,0,0,0);
+            
+            const isToday = checkDate.getTime() === today.getTime();
+            const isPast = checkDate < today;
 
             let buttonClass = "h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ";
 
@@ -189,11 +244,7 @@ const BookingModal = ({
                 <button
                     key={day}
                     disabled={!isAvailableDay || isPast}
-                    onClick={() => {
-                        setSelectedDateStr(dateString);
-                        setSelectedTime("");
-                        setShowCalendarMobile(false); // Close calendar on mobile after selection
-                    }}
+                    onClick={() => handleDateSelect(dateString)}
                     className={buttonClass}
                 >
                     {day}
@@ -203,44 +254,35 @@ const BookingModal = ({
         return days;
     };
 
-    // Get selected date details for mobile header
     const getSelectedDateDetails = () => {
         if (!selectedDateStr) return "Select date";
         const date = new Date(selectedDateStr);
         return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
     };
 
-    // Get selected dentist name
-    const getSelectedDentistName = () => {
-        const dentist = clinic?.dentists?.find(d => d.id === selectedPractitioner);
-        return dentist?.name || "Select practitioner";
-    };
-
     if (!isOpen) return null;
 
     return (
         <>
-            {/* Overlay */}
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999] transition-opacity" onClick={onClose}></div>
 
-            {/* Modal Container */}
             <div className="fixed inset-0 z-[99999] flex items-center justify-center sm:p-4 md:p-6">
 
-                {/* Main Box - Mobile vs Desktop layouts */}
+                {/* Main Box - Responsive Height & Radius */}
                 <div className="bg-white w-5xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
                     
-                    {/* DESKTOP SIDEBAR (hidden on mobile) */}
-                    <div className="hidden md:flex md:w-[350px] lg:w-[400px] bg-gray-50 flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0">
-                        <div className="p-6 overflow-y-auto max-h-full h-full">
-                            {/* Desktop Title */}
+                    {/* DESKTOP/TABLET SIDEBAR */}
+                    {/* Tablet Optimization: Width is tighter on md (260px) and wider on lg (380px) */}
+                    <div className="hidden md:flex md:w-[260px] lg:w-[380px] bg-gray-50 flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0 transition-all duration-300">
+                        <div className="p-4 lg:p-6 overflow-y-auto max-h-full h-full">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 leading-tight">
                                 {clinic?.name || "Dental Clinic"}
                             </h2>
 
                             {/* Calendar Widget */}
-                            <div className="mb-8">
+                            <div className="mb-6 lg:mb-8">
                                 <div className="flex items-center justify-between mb-4">
-                                    <span className="text-gray-700 font-semibold text-lg">
+                                    <span className="text-gray-700 font-semibold text-base lg:text-lg">
                                         {viewDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                                     </span>
                                     <div className="flex gap-1">
@@ -274,7 +316,7 @@ const BookingModal = ({
                                         <select
                                             value={selectedService}
                                             onChange={(e) => setSelectedService(e.target.value)}
-                                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-600 appearance-none cursor-pointer"
+                                            className="w-full px-3 py-2 lg:px-4 lg:py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-600 appearance-none cursor-pointer"
                                         >
                                             <option value="dentistry">Dentistry</option>
                                             {clinic?.specialities?.map((service: string, index: number) => (
@@ -296,8 +338,13 @@ const BookingModal = ({
                                     <div className="relative">
                                         <select
                                             value={selectedPractitioner}
-                                            onChange={(e) => setSelectedPractitioner(e.target.value)}
-                                            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-600 appearance-none cursor-pointer"
+                                            onChange={(e) => {
+                                                setSelectedPractitioner(e.target.value);
+                                                // Reset specific selections when changing dentist
+                                                setSelectedDateStr("");
+                                                setSelectedTime("");
+                                            }}
+                                            className="w-full px-3 py-2 lg:px-4 lg:py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-600 appearance-none cursor-pointer"
                                         >
                                             {clinic?.dentists?.map((dentist: Dentist) => (
                                                 <option key={dentist.id} value={dentist.id}>
@@ -314,9 +361,9 @@ const BookingModal = ({
                         </div>
                     </div>
 
-                    {/* MOBILE HEADER SECTION (visible only on mobile/tablet) */}
+                    {/* MOBILE HEADER (Visible only on < md) */}
                     <div className="md:hidden bg-white border-b border-gray-200">
-                        {/* Top Bar with Close and Title */}
+                        {/* Top Bar */}
                         <div className="flex justify-between items-center p-4">
                             <h2 className="text-lg font-bold text-gray-900 line-clamp-1">
                                 {clinic?.name}
@@ -326,37 +373,23 @@ const BookingModal = ({
                             </button>
                         </div>
 
-                        {/* Mobile Filter Bar - Calendar and Practitioner */}
+                        {/* Mobile Filters */}
                         <div className="px-4 pb-4 sm:px-6">
-                            <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="flex items-center gap-3">
                                 {/* Calendar Button */}
                                 <div className="flex-1">
                                     <button
                                         onClick={() => setShowCalendarMobile(!showCalendarMobile)}
                                         className="w-full group"
                                     >
-                                        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow">
-                                            <div className="flex items-center gap-2 sm:gap-3">
-                                                <div className="text-left">
-                                                    <p className="text-xs font-medium text-gray-500 mb-0.5">Date</p>
-                                                    <p className="text-sm font-semibold text-gray-800 leading-tight truncate max-w-[120px] sm:max-w-[150px]">
-                                                        {getSelectedDateDetails()}
-                                                    </p>
-                                                </div>
+                                        <div className="flex items-center justify-between px-3 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm">
+                                            <div className="text-left">
+                                                <p className="text-xs font-medium text-gray-500 mb-0.5">Date</p>
+                                                <p className="text-sm font-semibold text-gray-800 truncate">
+                                                    {getSelectedDateDetails()}
+                                                </p>
                                             </div>
-                                            <svg
-                                                className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-200 ${showCalendarMobile ? 'rotate-180' : ''}`}
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M19 9l-7 7-7-7"
-                                                />
-                                            </svg>
+                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCalendarMobile ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                                         </div>
                                     </button>
                                 </div>
@@ -367,35 +400,21 @@ const BookingModal = ({
                                         onClick={() => setShowPractitionerDropdown(!showPractitionerDropdown)}
                                         className="w-full group"
                                     >
-                                        <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100 transition-all duration-200 shadow-sm hover:shadow">
-                                            <div className="flex items-center gap-2 sm:gap-3">
-                                                <div className="text-left">
-                                                    <p className="text-xs font-medium text-gray-500 mb-0.5">Practitioner</p>
-                                                    <p className="text-sm font-semibold text-gray-800 leading-tight truncate max-w-[120px] sm:max-w-[150px]">
-                                                        {getSelectedDentistName()}
-                                                    </p>
-                                                </div>
+                                        <div className="flex items-center justify-between px-3 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm">
+                                            <div className="text-left">
+                                                <p className="text-xs font-medium text-gray-500 mb-0.5">Practitioner</p>
+                                                <p className="text-sm font-semibold text-gray-800 truncate">
+                                                    {currentDentist?.name || "Select"}
+                                                </p>
                                             </div>
-                                            <svg
-                                                className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-200 ${showPractitionerDropdown ? 'rotate-180' : ''}`}
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M19 9l-7 7-7-7"
-                                                />
-                                            </svg>
+                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPractitionerDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                                         </div>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Mobile Calendar Dropdown (animated) */}
+                        {/* Mobile Calendar Dropdown */}
                         {showCalendarMobile && (
                             <div className="px-4 pb-4 animate-in slide-in-from-top duration-200">
                                 <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
@@ -404,21 +423,13 @@ const BookingModal = ({
                                             {viewDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                                         </span>
                                         <div className="flex gap-1">
-                                            <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-100 rounded text-gray-600">
-                                                <i className="bi bi-chevron-left"></i>
-                                            </button>
-                                            <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-100 rounded text-gray-600">
-                                                <i className="bi bi-chevron-right"></i>
-                                            </button>
+                                            <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-100 rounded text-gray-600"><i className="bi bi-chevron-left"></i></button>
+                                            <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-100 rounded text-gray-600"><i className="bi bi-chevron-right"></i></button>
                                         </div>
                                     </div>
-
                                     <div className="grid grid-cols-7 mb-2 text-center">
-                                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-                                            <span key={i} className="text-xs text-gray-400 font-medium">{d}</span>
-                                        ))}
+                                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <span key={i} className="text-xs text-gray-400 font-medium">{d}</span>)}
                                     </div>
-
                                     <div className="grid grid-cols-7 gap-y-2 place-items-center">
                                         {renderCalendar()}
                                     </div>
@@ -429,8 +440,7 @@ const BookingModal = ({
                         {/* Mobile Practitioner Dropdown */}
                         {showPractitionerDropdown && (
                             <div className="px-4 pb-4 animate-in slide-in-from-top duration-200">
-                                <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
-                                    <h3 className="text-gray-700 font-semibold mb-3">Select Practitioner</h3>
+                                <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto">
                                     <div className="space-y-2">
                                         {clinic?.dentists?.map((dentist: Dentist) => (
                                             <button
@@ -439,10 +449,7 @@ const BookingModal = ({
                                                     setSelectedPractitioner(dentist.id);
                                                     setShowPractitionerDropdown(false);
                                                 }}
-                                                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedPractitioner === dentist.id
-                                                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                                                    : 'hover:bg-gray-50 text-gray-700 border border-gray-100'
-                                                    }`}
+                                                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${selectedPractitioner === dentist.id ? 'bg-orange-50 text-orange-700 border border-orange-200' : 'hover:bg-gray-50 text-gray-700 border border-gray-100'}`}
                                             >
                                                 <div className="font-medium">{dentist.name}</div>
                                                 <div className="text-sm text-gray-500 mt-1">{dentist.specialities}</div>
@@ -457,7 +464,7 @@ const BookingModal = ({
                     {/* --- RIGHT CONTENT (Slots) --- */}
                     <div className="flex-1 flex flex-col bg-white overflow-hidden relative min-h-0">
 
-                        {/* Desktop Close Button */}
+                        {/* Close Button (Desktop/Tablet) */}
                         <button
                             onClick={onClose}
                             className="hidden md:block absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
@@ -466,43 +473,46 @@ const BookingModal = ({
                         </button>
 
                         {/* Content Header */}
-                        <div className="p-4 md:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
-                            <h2 className="text-sm md:text-2xl font-bold text-gray-800">
+                        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
+                            <h2 className="text-base md:text-xl lg:text-2xl font-bold text-gray-800">
                                 Select a time
                             </h2>
                             <p className="text-gray-500 text-xs mt-1">
-                                Available slots for next 5 days
+                                {selectedDateStr 
+                                    ? `Available slots for ${selectedDateStr}` 
+                                    : "Showing available slots for upcoming days"}
                             </p>
                         </div>
 
                         {/* Scrollable Slots Area */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6">
+                        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6">
                             {upcomingDates.length > 0 ? (
                                 upcomingDates.map((item, index) => {
                                     const isSelectedDate = selectedDateStr === item.dateStr;
                                     return (
-                                        <div key={index} className={`p-3 md:p-4 ${isSelectedDate ? 'bg-orange-50 rounded-xl' : ''}`}>
+                                        <div key={index} className={`p-3 md:p-4 ${isSelectedDate ? 'bg-orange-50 rounded-xl border border-orange-100' : ''}`}>
                                             <div className="flex items-center gap-3 mb-3">
-                                                <h3 className="font-semibold text-gray-800 text-sm md:text-lg">
+                                                <h3 className="font-semibold text-gray-800 text-sm md:text-base lg:text-lg">
                                                     {item.dateStr}
                                                 </h3>
                                                 {isSelectedDate && <span className="bg-orange-100 text-orange-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold">Selected</span>}
                                             </div>
 
-                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-3">
+                                            {/* Tablet Optimization: Grid instead of Flex for cleaner alignment on medium screens */}
+                                            <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:flex xl:flex-wrap gap-2 md:gap-3">
                                                 {item.slots.map((time, tIndex) => {
                                                     const isSelectedTime = selectedDateStr === item.dateStr && selectedTime === time;
                                                     return (
                                                         <button
                                                             key={tIndex}
                                                             onClick={() => {
-                                                                setSelectedDateStr(item.dateStr);
+                                                                if (selectedDateStr !== item.dateStr) setSelectedDateStr(item.dateStr);
                                                                 setSelectedTime(time);
                                                             }}
-                                                            className={`px-2 md:px-4 py-2 rounded-lg md:rounded-full text-xs md:text-sm font-medium transition-all duration-200 
+                                                            className={`px-2 py-2 md:px-3 md:py-2 rounded-lg md:rounded-full text-xs md:text-sm font-medium transition-all duration-200 
                                                                 ${isSelectedTime
-                                                                    ? "bg-orange-600 text-white"
-                                                                    : "border border-orange-600 text-gray-800 hover:text-white hover:bg-orange-600 hover:scale-105 hover:shadow-md"
+                                                                    ? "bg-orange-600 text-white shadow-md transform scale-105"
+                                                                    : "border border-orange-600 text-gray-800 hover:text-white hover:bg-orange-600 hover:shadow-md"
                                                                 }`}
                                                         >
                                                             {time}
@@ -525,33 +535,37 @@ const BookingModal = ({
                         </div>
 
                         {/* Sticky Footer */}
-                        <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
-                            {/* Selected Info - Always visible on mobile */}
-                            <div className="w-full sm:w-auto text-sm text-gray-500 mb-3 sm:mb-0 sm:mr-auto">
+                        <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
+                            
+                            {/* Selected Info */}
+                            <div className="w-full md:w-auto text-sm text-gray-500 mb-2 md:mb-0 md:mr-auto text-center md:text-left">
                                 {selectedDateStr && selectedTime ? (
-                                    <div className="flex flex-col sm:flex-col items-center sm:gap-2">
-                                        <span className="text-gray-600 font-medium">Selected:</span>
-                                        <span className="text-gray-900 font-semibold">{selectedDateStr}</span>
-                                        <span className="text-gray-900 font-semibold">at {selectedTime}</span>
+                                    <div className="flex flex-row md:flex-col items-center md:items-start justify-center gap-2 md:gap-0">
+                                        <span className="text-gray-500 font-medium hidden md:inline">Selected:</span>
+                                        <span className="text-gray-900 font-bold">
+                                            {selectedDateStr} <span className="md:hidden text-gray-400 font-normal mx-1">at</span> 
+                                            <span className="hidden md:inline font-normal text-gray-400 mx-1">at</span> 
+                                            {selectedTime}
+                                        </span>
                                     </div>
                                 ) : (
-                                    <span>No time selected</span>
+                                    <span className="hidden md:inline">No time selected</span>
                                 )}
                             </div>
 
-                            <div className="flex w-full sm:w-auto gap-3">
+                            <div className="flex w-full md:w-auto gap-3">
                                 <button
                                     onClick={onClose}
-                                    className="flex-1 sm:flex-none px-4 md:px-6 py-3 md:py-2.5 rounded-lg border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition text-sm md:text-base"
+                                    className="flex-1 md:flex-none px-4 md:px-6 py-3 md:py-2.5 rounded-lg border border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition text-sm md:text-base"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleBookAppointment}
                                     disabled={!selectedDateStr || !selectedTime}
-                                    className="flex-1 sm:flex-none px-4 md:px-8 py-3 md:py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20 transition-all text-sm md:text-base whitespace-nowrap"
+                                    className="flex-1 md:flex-none px-4 md:px-8 py-3 md:py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20 transition-all text-sm md:text-base whitespace-nowrap"
                                 >
-                                    Confirm Booking
+                                    Confirm
                                 </button>
                             </div>
                         </div>
