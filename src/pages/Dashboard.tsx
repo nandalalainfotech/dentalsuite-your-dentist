@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Appointments } from '../components/dashboard/Appointments';
 import { NotificationsPanel } from '../components/dashboard/NotificationsPanel';
-import { PaymentsSummary } from '../components/dashboard/PaymentsSummary';
 import { FamilyMembers } from '../components/dashboard/FamilyMembers';
 import { ProfileCompletionStatus } from '../components/dashboard/ProfileCompletionStatus';
 import { HelpAndSupport } from '../components/dashboard/HelpAndSupport';
@@ -9,7 +8,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useNavigate } from 'react-router-dom';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
 
-// --- ICONS (Unchanged) ---
+// --- ICONS ---
 const Icons = {
   Calendar: () => (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,11 +18,6 @@ const Icons = {
   Bell: () => (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  ),
-  Card: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
     </svg>
   ),
   User: () => (
@@ -56,11 +50,6 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   ),
-  ArrowLeft: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-    </svg>
-  ),
   Menu: () => (
     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
@@ -71,24 +60,9 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
-  Lock: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    </svg>
-  ),
-  Key: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-    </svg>
-  ),
   CheckCircle: () => (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Sparkles: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg>
   ),
 };
@@ -111,7 +85,7 @@ const NavLink: React.FC<NavLinkProps> = ({ icon, label, active = false, badge, o
       w-full flex items-center justify-between px-5 py-4 mb-2 rounded-2xl
       transition-all duration-300 group
       ${active
-        ? 'bg-gray-800 text-white shadow-lg shadow-gray-900/20 trangray-x-1'
+        ? 'bg-gray-800 text-white shadow-lg shadow-gray-900/20 transform translate-y-[-1px]'
         : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
       }
       ${className || ''}
@@ -145,13 +119,14 @@ const NavLink: React.FC<NavLinkProps> = ({ icon, label, active = false, badge, o
           {badge}
         </span>
       )}
-      <div className={`transition-transform duration-300 text-gray-400 ${active ? 'trangray-x-0 opacity-100 text-white/50' : '-trangray-x-2 opacity-0 group-hover:trangray-x-0 group-hover:opacity-100'}`}>
+      <div className={`transition-transform duration-300 text-gray-400 ${active ? 'translate-x-0 opacity-100 text-white/50' : '-translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'}`}>
         <Icons.ChevronRight />
       </div>
     </div>
   </button>
 );
 
+// Mobile Navigation Drawer - Now works on Mobile AND Tablet (< 1024px)
 const MobileNav: React.FC<{
   activeView: string;
   onNavClick: (view: string) => void;
@@ -173,7 +148,6 @@ const MobileNav: React.FC<{
   const navItems = [
     { id: 'appointments', label: 'Appointments', icon: <Icons.Calendar /> },
     { id: 'notifications', label: 'Notifications', icon: <Icons.Bell />, badge: unreadCount },
-    { id: 'payments', label: 'Payments', icon: <Icons.Card /> },
     { id: 'profile', label: 'Profile', icon: <Icons.User /> },
     { id: 'security', label: 'Security', icon: <Icons.Shield />, badge: 'New' },
     { id: 'family', label: 'Family Members', icon: <Icons.Family /> },
@@ -183,15 +157,18 @@ const MobileNav: React.FC<{
 
   return (
     <>
+      {/* Overlay - Changed from md:hidden to lg:hidden for tablet support */}
       <div
-        className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 md:hidden animate-in fade-in duration-300"
+        className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-300"
         onClick={onClose}
       />
 
-      <div className="fixed right-0 top-0 bottom-0 w-80 bg-white z-50 md:hidden animate-in slide-in-from-right duration-300 shadow-2xl flex flex-col">
-        <div className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 text-gray-800">
+      {/* Drawer - Changed from md:hidden to lg:hidden for tablet support */}
+      <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white z-50 lg:hidden animate-in slide-in-from-right duration-300 shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="p-6 sm:p-8 bg-gradient-to-br from-gray-900 to-gray-800 text-gray-800">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold tracking-tight">Menu</h2>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Menu</h2>
             <button
               onClick={onClose}
               className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-md"
@@ -201,23 +178,24 @@ const MobileNav: React.FC<{
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-400 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/20 ring-4 ring-white/10">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-orange-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg shadow-orange-500/20 ring-4 ring-white/10">
               {user?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg truncate">{user?.name || 'User'}</h3>
+              <h3 className="font-bold text-lg sm:text-xl truncate text-gray-800">{user?.name || 'User'}</h3>
               <p className="text-sm text-gray-400 truncate">{user?.email || ''}</p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
+        {/* Navigation Items */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 sm:px-4">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`
-                w-full flex items-center gap-4 px-4 py-3.5 mb-1 rounded-xl
+                w-full flex items-center gap-4 px-4 py-4 sm:py-5 mb-1 rounded-xl
                 transition-all duration-200
                 ${activeView === item.id
                   ? 'bg-orange-50 text-orange-700 font-semibold'
@@ -225,13 +203,13 @@ const MobileNav: React.FC<{
                 }
               `}
             >
-              <span className={activeView === item.id ? 'text-orange-500' : 'text-gray-400'}>
+              <span className={`${activeView === item.id ? 'text-orange-500' : 'text-gray-400'}`}>
                 {item.icon}
               </span>
-              <span className="flex-1 text-left">{item.label}</span>
+              <span className="flex-1 text-left text-base sm:text-lg">{item.label}</span>
               {item.badge && (
                 <span className={`
-                  text-xs font-bold px-2 py-1 rounded-full
+                  text-xs font-bold px-2.5 py-1 rounded-full
                   ${activeView === item.id
                     ? 'bg-orange-500 text-white'
                     : 'bg-gray-100 text-gray-600'
@@ -243,12 +221,19 @@ const MobileNav: React.FC<{
             </button>
           ))}
         </nav>
+
+        {/* Footer */}
+        <div className="p-4 sm:p-6 border-t border-gray-100">
+          <p className="text-xs text-gray-400 text-center">
+            © 2026 Dental Care. All rights reserved.
+          </p>
+        </div>
       </div>
     </>
   );
 };
 
-type ActiveViewType = 'appointments' | 'notifications' | 'payments' | 'profile' | 'family' | 'help' | 'security';
+type ActiveViewType = 'appointments' | 'notifications' | 'profile' | 'family' | 'help' | 'security';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -256,7 +241,6 @@ const Dashboard: React.FC = () => {
   const {
     dashboardUser,
     appointments,
-    payments,
     notifications,
     familyMembers,
     updateAppointments,
@@ -290,7 +274,6 @@ const Dashboard: React.FC = () => {
     );
     updateNotifications(updatedNotifications);
   };
-  const handleDownloadInvoice = (paymentId: string) => console.log('Download invoice:', paymentId);
   const handleAddFamilyMember = () => {
     const newFamilyMembers = [
       ...familyMembers,
@@ -325,7 +308,6 @@ const Dashboard: React.FC = () => {
   const navItems = [
     { id: 'appointments' as ActiveViewType, label: 'Appointments', icon: <Icons.Calendar />, badge: appointments.filter(a => a.status === 'pending').length || undefined },
     { id: 'notifications' as ActiveViewType, label: 'Notifications', icon: <Icons.Bell />, badge: unreadNotifications || undefined },
-    { id: 'payments' as ActiveViewType, label: 'Payments', icon: <Icons.Card /> },
     { id: 'profile' as ActiveViewType, label: 'Profile', icon: <Icons.User /> },
     { id: 'security' as ActiveViewType, label: 'Security', icon: <Icons.Shield />, badge: 'New' },
     { id: 'family' as ActiveViewType, label: 'Family Members', icon: <Icons.Family /> },
@@ -346,9 +328,6 @@ const Dashboard: React.FC = () => {
       ),
       notifications: (
         <NotificationsPanel notifications={notifications} onMarkAsRead={handleMarkAsRead} />
-      ),
-      payments: (
-        <PaymentsSummary payments={payments} onDownloadInvoice={handleDownloadInvoice} />
       ),
       profile: dashboardUser ? (
         <ProfileCompletionStatus
@@ -379,11 +358,11 @@ const Dashboard: React.FC = () => {
         </>
       ),
       security: (
-      <SecuritySettings
-        onChangePassword={handleChangePassword}
-        onEnable2FA={handleEnable2FA}
-      />
-    ),
+        <SecuritySettings
+          onChangePassword={handleChangePassword}
+          onEnable2FA={handleEnable2FA}
+        />
+      ),
     };
 
     return contentMap[activeView];
@@ -395,34 +374,29 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-gray-900 selection:bg-orange-200 selection:text-orange-900">
-      {/* Decorative Background Elements */}
-      <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-white to-transparent pointer-events-none z-0" />
-      <div className="fixed top-[-10%] right-[-5%] w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none z-0" />
-      <div className="fixed top-[20%] left-[-10%] w-72 h-72 bg-blue-100/40 rounded-full blur-3xl pointer-events-none z-0" />
-
+    <div className="min-h-screen bg-gray-100 text-gray-900">
       <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6 py-6 lg:py-10">
         <div className="flex flex-col lg:flex-row gap-8 xl:gap-12">
-          
-          {/* --- LEFT SIDEBAR (Desktop) --- */}
+
+          {/* --- LEFT SIDEBAR (Desktop Only - 1024px+) --- */}
           <aside className="hidden lg:block lg:w-72 xl:w-80 flex-shrink-0">
-            <div className="sticky top-8 space-y-8">
-              
+            <div className="sticky top-20 space-y-8">
+
               {/* Profile Card */}
               <div className="group relative bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-4">
-                    <div className="w-20 h-20 bg-orange-400  rounded-2xl flex items-center justify-center text-white font-bold text-2xl">
+                    <div className="w-20 h-20 bg-orange-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">
                       {getUserInitials()}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
                   </div>
-                  
+
                   <h2 className="font-bold text-gray-900 text-lg">
                     {dashboardUser?.name || 'Loading...'}
                   </h2>
                   <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
-                    Patient Account
+                    User profile
                   </p>
                 </div>
 
@@ -454,15 +428,15 @@ const Dashboard: React.FC = () => {
                     onClick={() => handleNavClick(item.id)}
                   />
                 ))}
-                
+
                 <div className="mt-8 pt-6 border-t border-gray-200/60">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
-                    >
-                        <Icons.Logout />
-                        <span className="font-medium text-sm">Sign Out</span>
-                    </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
+                  >
+                    <Icons.Logout />
+                    <span className="font-medium text-sm">Sign Out</span>
+                  </button>
                 </div>
               </nav>
             </div>
@@ -470,12 +444,14 @@ const Dashboard: React.FC = () => {
 
           {/* --- MAIN CONTENT AREA --- */}
           <main className="flex-1 min-w-0 pb-24 lg:pb-10">
-            
-            {/* Header */}
+
+            {/* Desktop Header (1024px+) */}
             <header className="hidden lg:flex items-center justify-between mb-10">
               <div>
                 <h1 className="text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
-                  Welcome back, {dashboardUser?.name?.split(' ')[0] || 'User'}!
+                  Welcome back,
+                  <span className='text-orange-500 mx-1'>{dashboardUser?.name?.split(' ')[0] || 'User'}!
+                  </span>
                 </h1>
                 <p className="text-gray-600">
                   Here's what's happening with your dental care today
@@ -493,36 +469,28 @@ const Dashboard: React.FC = () => {
                 </button>
                 <button
                   onClick={handleBookAppointment}
-                  className="px-8 py-3.5 bg-gray-900  hover:bg-gray-800 text-white font-semibold rounded-2xl shadow-lg shadow-gray-900/20 hover:shadow-xl hover:shadow-gray-900/30 transition-all duration-300 transform hover:-trangray-y-0.5"
+                  className="px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-2xl shadow-lg shadow-gray-900/20 hover:shadow-xl hover:shadow-gray-900/30 transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   + New Appointment
                 </button>
               </div>
             </header>
 
-            {/* Desktop Stats Grid */}
-            <div className="hidden lg:grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {/* Desktop Stats Grid (1024px+) */}
+            <div className="hidden lg:grid grid-cols-1 xl:grid-cols-2 gap-6 mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
               {[
-                { 
-                  title: 'Next Appointment', 
-                  value: appointments.length > 0 ? 'Upcoming' : 'None', 
+                {
+                  title: 'Next Appointment',
+                  value: appointments.length > 0 ? 'Upcoming' : 'None',
                   sub: appointments.length > 0 ? appointments[0]?.dentistName : 'Book now',
                   icon: <Icons.Calendar />,
                   color: 'text-orange-500',
                   bg: 'bg-orange-50'
                 },
-                { 
-                  title: 'Pending Payments', 
-                  value: `$${payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0)}`,
-                  sub: `${payments.filter(p => p.status === 'pending').length} invoice(s)`,
-                  icon: <Icons.Card />,
-                  color: 'text-blue-500',
-                  bg: 'bg-blue-50'
-                },
-                { 
-                  title: 'Active Members', 
-                  value: familyMembers.length.toString(), 
-                  sub: 'Family Plan',
+                {
+                  title: 'Active Members',
+                  value: familyMembers.length.toString(),
+                  sub: 'Family Members',
                   icon: <Icons.Family />,
                   color: 'text-emerald-500',
                   bg: 'bg-emerald-50'
@@ -534,7 +502,7 @@ const Dashboard: React.FC = () => {
                       {stat.icon}
                     </div>
                     <div className="text-right">
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{stat.title}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{stat.title}</p>
                     </div>
                   </div>
                   <div>
@@ -547,66 +515,74 @@ const Dashboard: React.FC = () => {
 
             {/* Content Container */}
             <div className="relative">
-                {/* Mobile Header (Inline) */}
-                <div className="lg:hidden mb-6 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            {navItems.find(item => item.id === activeView)?.label}
-                        </h2>
-                        <p className="text-sm text-gray-500">Overview</p>
+              {/* Mobile/Tablet Header (< 1024px) */}
+              <div className="lg:hidden mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      {navItems.find(item => item.id === activeView)?.label}
+                    </h2>
+                    <p className="text-sm sm:text-base text-gray-500">Overview</p>
+                  </div>
+                  <button
+                    onClick={() => setShowMobileNav(true)}
+                    className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="relative">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-orange-500 flex items-center justify-center text-white text-sm sm:text-base font-bold">
+                        {getUserInitials()}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
                     </div>
-                    <button 
-                        onClick={() => setShowMobileNav(true)}
-                        className="w-10 h-10 flex items-center justify-center  shadow-sm border border-gray-200"
-                    >
-                        <div className="relative">
-                            <div className="w-8 h-8  overflow-hidden">
-                                {getUserInitials() !== 'U' && (
-                                    <div className="w-full h-full bg-orange-500 flex items-center justify-center text-white text-xs">
-                                        {getUserInitials()}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            </div>
-                        </div>
-                    </button>
+                  </button>
                 </div>
 
-                {/* Main View Area */}
-                    <div className="p-2 md:p-0">
-                      {renderContent()}
-                    </div>
+                {/* Quick Action Button for Mobile/Tablet */}
+                <button
+                  onClick={handleBookAppointment}
+                  className="mt-4 w-full sm:w-auto px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-300"
+                >
+                  + New Appointment
+                </button>
+              </div>
+
+              {/* Main View Area */}
+              <div className="p-2 md:p-0">
+                {renderContent()}
+              </div>
             </div>
           </main>
 
-          {/* Mobile Bottom Navigation (Glass) */}
+          {/* Mobile/Tablet Bottom Navigation (< 1024px) */}
           <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-gray-900/90 backdrop-blur-md text-white rounded-2xl z-40 shadow-2xl shadow-gray-900/30">
-            <div className="flex justify-around items-center h-16 px-2">
+            <div className="flex justify-around items-center h-16 sm:h-18 px-2">
               <button
                 onClick={() => handleNavClick('appointments')}
-                className={`p-3 rounded-xl transition-all duration-300 ${activeView === 'appointments' ? 'bg-white/20 text-orange-400 trangray-y-[-4px]' : 'text-gray-400 hover:text-white'}`}
+                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'appointments' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
               >
                 <Icons.Calendar />
               </button>
-              <button
-                onClick={() => handleNavClick('payments')}
-                className={`p-3 rounded-xl transition-all duration-300 ${activeView === 'payments' ? 'bg-white/20 text-orange-400 trangray-y-[-4px]' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icons.Card />
-              </button>
-              
+
               <button
                 onClick={() => handleNavClick('notifications')}
-                className={`relative p-3 rounded-xl transition-all duration-300 ${activeView === 'notifications' ? 'bg-white/20 text-orange-400 trangray-y-[-4px]' : 'text-gray-400 hover:text-white'}`}
+                className={`relative p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'notifications' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
               >
                 <Icons.Bell />
-                {unreadNotifications > 0 && <span className="absolute top-3 right-3 w-1.5 h-1.5 bg-red-500 rounded-full"></span>}
+                {unreadNotifications > 0 && <span className="absolute top-2 right-2 sm:top-3 sm:right-3 w-2 h-2 bg-red-500 rounded-full"></span>}
               </button>
+
+              <button
+                onClick={() => handleNavClick('profile')}
+                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'profile' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
+              >
+                <Icons.User />
+              </button>
+
               <button
                 onClick={() => setShowMobileNav(true)}
-                className={`p-3 rounded-xl transition-all duration-300 ${showMobileNav ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${showMobileNav ? 'text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 <Icons.Menu />
               </button>
@@ -616,12 +592,12 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile/Tablet Drawer Navigation */}
       {showMobileNav && (
         <MobileNav
           activeView={activeView}
           onNavClick={(view) => {
-            if (['appointments', 'notifications', 'payments', 'profile', 'family', 'help', 'security'].includes(view)) {
+            if (['appointments', 'notifications', 'profile', 'family', 'help', 'security'].includes(view)) {
               handleNavClick(view as ActiveViewType);
             }
           }}
