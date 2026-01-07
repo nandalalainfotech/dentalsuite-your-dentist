@@ -192,15 +192,6 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
     return <Icons.Shield />;
   };
 
-  // Format date for display
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   // Password strength checker
   const getPasswordStrength = (password: string) => {
     if (!password) return { score: 0, text: '', color: '' };

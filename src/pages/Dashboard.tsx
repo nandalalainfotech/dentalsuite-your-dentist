@@ -96,7 +96,7 @@ const MobileNav: React.FC<{
     { id: 'appointments', label: 'Appointments', icon: <Icons.Calendar /> },
     { id: 'notifications', label: 'Notifications', icon: <Icons.Bell />, badge: unreadCount },
     { id: 'profile', label: 'Profile', icon: <Icons.User /> },
-    { id: 'security', label: 'Security', icon: <Icons.Shield />, badge: 'New' },
+    { id: 'security', label: 'Security', icon: <Icons.Shield />, },
     { id: 'family', label: 'Family Members', icon: <Icons.Family /> },
     { id: 'help', label: 'Help Centre', icon: <Icons.Help /> },
     { id: 'logout', label: 'Log Out', icon: <Icons.Logout /> },
@@ -301,7 +301,7 @@ const Dashboard: React.FC = () => {
     { id: 'appointments' as ActiveViewType, label: 'Appointments', icon: <Icons.Calendar />, badge: appointments.filter(a => a.status === 'pending').length || undefined },
     { id: 'notifications' as ActiveViewType, label: 'Notifications', icon: <Icons.Bell />, badge: unreadNotifications || undefined },
     { id: 'profile' as ActiveViewType, label: 'Profile', icon: <Icons.User /> },
-    { id: 'security' as ActiveViewType, label: 'Security', icon: <Icons.Shield />, badge: 'New' },
+    { id: 'security' as ActiveViewType, label: 'Security', icon: <Icons.Shield />, },
     { id: 'family' as ActiveViewType, label: 'Family Members', icon: <Icons.Family /> },
     { id: 'help' as ActiveViewType, label: 'Help Centre', icon: <Icons.Help /> },
   ];
@@ -377,6 +377,112 @@ const Dashboard: React.FC = () => {
     return dashboardUser.name.split(' ').map(n => n[0]).join('');
   };
 
+
+  // Add these states to your component
+  const [showUploadOptions, setShowUploadOptions] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Add these handler functions
+  const handleTakePhoto = async () => {
+    try {
+      // This would use the device camera API
+      // For web, you might use:
+      // const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // For React Native, you would use a camera library
+
+      console.log('Opening camera...');
+      setShowUploadOptions(false);
+
+      // In a real app, you would implement camera capture here
+      // For now, we'll simulate with a file upload
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment'; // Use rear camera on mobile
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) handleImageUpload(file);
+      };
+      input.click();
+    } catch (error) {
+      console.error('Camera error:', error);
+      alert('Unable to access camera. Please check permissions.');
+    }
+  };
+
+  const handleUploadFromGallery = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = false;
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) handleImageUpload(file);
+    };
+    input.click();
+    setShowUploadOptions(false);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploading(true);
+
+      // Create preview URL
+      const imageUrl = URL.createObjectURL(file);
+
+      // In a real app, you would upload to your server here
+      console.log('Uploading image:', file.name);
+
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update user profile image
+      // You would call an API endpoint to update the user's profile image
+      // For now, we'll update the local state
+      if (dashboardUser) {
+        // Update dashboardUser with new image URL
+        // This should be replaced with your actual state update logic
+        console.log('Profile image updated:', imageUrl);
+      }
+
+      alert('Profile picture updated successfully!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!confirm('Are you sure you want to remove your profile picture?')) return;
+
+    try {
+      setUploading(true);
+
+      // In a real app, you would call an API to remove the profile image
+      console.log('Removing profile picture...');
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Update user to remove profile image
+      if (dashboardUser) {
+        // Update dashboardUser to remove profileImage
+        // This should be replaced with your actual state update logic
+        console.log('Profile picture removed');
+      }
+
+      setShowUploadOptions(false);
+      alert('Profile picture removed successfully!');
+    } catch (error) {
+      console.error('Remove error:', error);
+      alert('Failed to remove profile picture. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-6 py-6 lg:py-10">
@@ -387,25 +493,147 @@ const Dashboard: React.FC = () => {
             <div className="sticky top-20 space-y-8">
 
               {/* Profile Card */}
-              <div className="group relative bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative mb-4">
-                    <div className="w-20 h-20 bg-orange-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">
-                      {getUserInitials()}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
-                  </div>
+<div className="group relative bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+  <div className="flex flex-col items-center text-center">
+    <div className="relative mb-4">
+      {/* Profile Image with Upload Overlay */}
+      <div className="relative group">
+        <div className="w-20 h-20 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-2xl flex items-center justify-center overflow-hidden">
+          {dashboardUser?.profileImage ? (
+            <img
+              src={dashboardUser.profileImage}
+              alt={dashboardUser?.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600">
+              <svg className="w-8 h-8 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          )}
+        </div>
 
-                  <h2 className="font-bold text-gray-900 text-lg">
-                    {dashboardUser?.name || 'Loading...'}
-                  </h2>
-                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
-                    User profile
-                  </p>
-                </div>
+        {/* Upload Overlay */}
+        <div className="absolute inset-0 bg-black bg-opacity-40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <button
+            onClick={() => setShowUploadOptions(!showUploadOptions)}
+            className="bg-white p-2 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label="Change profile picture"
+          >
+            <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
 
+      {/* Online Status Indicator */}
+      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
+    </div>
 
+    <h2 className="font-bold text-gray-900 text-lg">
+      {dashboardUser?.name || 'Loading...'}
+    </h2>
+    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
+      User profile
+    </p>
+  </div>
+
+  {/* Upload Options Modal - Bottom Positioned */}
+  {showUploadOptions && (
+    <div className="absolute left-0 right-0 -bottom-2 transform translate-y-full z-10 mt-2">
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+        {/* Modal Header */}
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-gray-900 text-sm">Change Profile Photo</h3>
+            <button
+              onClick={() => setShowUploadOptions(false)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Choose an option to update your profile picture</p>
+        </div>
+
+        {/* Options List */}
+        <div className="p-2">
+          {/* Take Photo Option */}
+          <button
+            onClick={handleTakePhoto}
+            className="w-full p-3 rounded-xl hover:bg-orange-50 transition-all duration-200 flex items-center gap-3 group"
+          >
+            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+              <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <h4 className="font-semibold text-gray-900 text-sm">Take a Photo</h4>
+              <p className="text-xs text-gray-500">Use your camera</p>
+            </div>
+          </button>
+
+          {/* Upload from Gallery Option */}
+          <button
+            onClick={handleUploadFromGallery}
+            className="w-full p-3 rounded-xl hover:bg-blue-50 transition-all duration-200 flex items-center gap-3 group"
+          >
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <h4 className="font-semibold text-gray-900 text-sm">Choose from Gallery</h4>
+              <p className="text-xs text-gray-500">Select from your device</p>
+            </div>
+          </button>
+
+          {/* Remove Photo Option (if user has a profile image) */}
+          {dashboardUser?.profileImage && (
+            <button
+              onClick={handleRemovePhoto}
+              className="w-full p-3 rounded-xl hover:bg-red-50 transition-all duration-200 flex items-center gap-3 group"
+            >
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </div>
+              <div className="text-left">
+                <h4 className="font-semibold text-gray-900 text-sm">Remove Photo</h4>
+                <p className="text-xs text-gray-500">Delete current picture</p>
+              </div>
+            </button>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+          <button
+            onClick={() => setShowUploadOptions(false)}
+            className="w-full text-center text-sm text-gray-600 font-medium hover:text-gray-900 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+      
+      {/* Arrow pointing to profile image */}
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+        <div className="w-4 h-4 bg-white border-l border-t border-gray-100 transform rotate-45"></div>
+      </div>
+    </div>
+  )}
+</div>
 
               {/* Navigation */}
               <nav className="">
