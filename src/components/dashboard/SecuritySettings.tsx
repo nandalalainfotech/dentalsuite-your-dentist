@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Icons
 const Icons = {
@@ -48,6 +48,21 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
     </svg>
   ),
+  Calendar: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  ),
+  Clock: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Fresh: () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
 };
 
 interface SecuritySettingsProps {
@@ -71,6 +86,15 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
     new: false,
     confirm: false
   });
+  const [lastPasswordChange, setLastPasswordChange] = useState<Date | null>(null);
+
+  // Initialize with a default date (30 days ago)
+  useEffect(() => {
+    // In a real app, you would fetch this from your backend/API
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    setLastPasswordChange(thirtyDaysAgo);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -97,6 +121,9 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
     // Here you would typically make an API call to change the password
     console.log('Password change requested:', formData);
 
+    // Update the last password change timestamp
+    setLastPasswordChange(new Date());
+
     // Call the parent handler
     onChangePassword();
 
@@ -116,6 +143,62 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
       confirmPassword: ''
     });
     setShowPasswordForm(false);
+  };
+
+  // Calculate how many days ago the password was changed
+  const getDaysSinceLastChange = () => {
+    if (!lastPasswordChange) return 30; // Default fallback
+    
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - lastPasswordChange.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Get status badge color based on days since last change
+  const getStatusBadgeColor = (days: number) => {
+    if (days === 0) return 'bg-green-100 text-green-800 border-green-200';
+    if (days < 7) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    if (days < 30) return 'bg-blue-100 text-blue-800 border-blue-200';
+    if (days < 90) return 'bg-amber-100 text-amber-800 border-amber-200';
+    return 'bg-red-100 text-red-800 border-red-200';
+  };
+
+  // Get status text based on days since last change
+  const getStatusText = (days: number) => {
+    if (days === 0) return 'Updated just now';
+    if (days === 1) return 'Updated yesterday';
+    if (days < 7) return `Updated ${days} days ago`;
+    if (days === 7) return 'Updated 1 week ago';
+    if (days < 30) {
+      const weeks = Math.floor(days / 7);
+      return `Updated ${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    }
+    if (days === 30) return 'Updated 1 month ago';
+    if (days < 365) {
+      const months = Math.floor(days / 30);
+      return `Updated ${months} month${months > 1 ? 's' : ''} ago`;
+    }
+    const years = Math.floor(days / 365);
+    return `Updated ${years} year${years > 1 ? 's' : ''} ago`;
+  };
+
+  // Get status icon based on days since last change
+  const getStatusIcon = (days: number) => {
+    if (days === 0) return <Icons.Fresh />;
+    if (days < 7) return <Icons.CheckCircle />;
+    if (days < 30) return <Icons.Clock />;
+    if (days < 90) return <Icons.Calendar />;
+    return <Icons.Shield />;
+  };
+
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   // Password strength checker
@@ -141,6 +224,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
   };
 
   const newPasswordStrength = getPasswordStrength(formData.newPassword);
+  const daysSinceLastChange = getDaysSinceLastChange();
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -180,10 +264,18 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                   </div>
                 </div>
                 {/* Status Badge */}
-                <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  Updated 30 days ago
-                </div>
+                {lastPasswordChange && (
+                  <div className={`hidden sm:flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border ${getStatusBadgeColor(daysSinceLastChange)}`}>
+                    <div className="flex items-center gap-1.5">
+                      {getStatusIcon(daysSinceLastChange)}
+                      <span>{getStatusText(daysSinceLastChange)}</span>
+                    </div>
+                    {daysSinceLastChange === 0 && (
+                      <span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Mobile Description */}
@@ -192,10 +284,18 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
               </p>
 
               {/* Mobile Status */}
-              <div className="flex sm:hidden items-center gap-2 text-xs font-medium text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                Last changed: 30 days ago
-              </div>
+              {lastPasswordChange && (
+                <div className="flex sm:hidden items-center gap-2 text-xs font-medium">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${getStatusBadgeColor(daysSinceLastChange)}`}>
+                    {getStatusIcon(daysSinceLastChange)}
+                    <span>{getStatusText(daysSinceLastChange)}</span>
+                  </div>
+                  {lastPasswordChange && (
+                    <span>
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Action Button */}
               <button
@@ -447,7 +547,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
             {/* Tips List */}
             <ul className="space-y-3 sm:space-y-4">
               {[
-                "Use a unique password with at least 12 characters (mix letters, numbers & symbols).",
+                `Consider changing your password every ${daysSinceLastChange > 90 ? '90' : '30'} days for optimal security.`,
                 "Enable notifications for suspicious login attempts from new devices.",
                 "Review your active sessions and family member permissions periodically."
               ].map((tip, index) => (
