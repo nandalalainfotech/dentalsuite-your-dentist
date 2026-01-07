@@ -197,7 +197,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                       <div className="flex items-center space-x-2">
                         <h3 className="font-medium text-gray-900 text-sm sm:text-base">{member.name}</h3>
                         {member.isActive && (
-                          <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
                             Active
                           </span>
                         )}
@@ -266,10 +266,6 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
             )}
           </div>
         ))}
-      </div>
-      <div className="mt-4 text-sm text-gray-500">
-        <p>Click on a family member to switch the active patient context.</p>
-        <p className="mt-1">Click the edit icon to temporarily modify member details.</p>
       </div>
     </div>
   );

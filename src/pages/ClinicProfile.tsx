@@ -521,107 +521,97 @@ const ClinicProfile = () => {
                     }}
                     className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
                   >
-                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-2 sm:border-b-4 border-orange-400">
-                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                        <i className="bi bi-images text-orange-600 text-sm sm:text-base"></i>
-                        Gallery
+                    <div className="flex items-center justify-between mb-4 sm:mb-5 md:mb-6 border-b-2 sm:border-b-3 md:border-b-4 border-orange-400">
+                      <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2 sm:gap-3">
+                        <i className="bi bi-images text-orange-600 text-lg sm:text-xl md:text-2xl"></i>
+                        <span className="whitespace-nowrap">Gallery</span>
                       </h2>
                     </div>
 
-                    <div className="bg-white p-3 sm:p-4 md:p-6 relative">
-                      <div className="relative overflow-hidden rounded-lg sm:rounded-xl">
-                        <div
-                          className="flex transition-transform duration-500 ease-in-out"
-                          style={{
-                            transform: `translateX(-${currentSlide * 100}%)`,
-                          }}
-                        >
-                          {galleryImages.map((url, index) => (
-                            <div key={index} className="w-full flex-shrink-0">
-                              <div className="aspect-video sm:aspect-video md:aspect-[16/9]">
-                                <img
-                                  src={url}
-                                  alt={`Gallery ${index + 1}`}
-                                  className="w-full h-full object-cover rounded-lg sm:rounded-xl"
-                                />
+                    <div className="bg-gray-700 p-2 sm:p-3 md:p-4 lg:p-6 rounded-lg sm:rounded-xl md:rounded-2xl">
+                      {/* Gallery Container */}
+                      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl shadow-lg">
+                        {/* Images Slider */}
+                        <div className="relative">
+                          <div
+                            className="flex transition-transform duration-300 ease-out"
+                            style={{
+                              transform: `translateX(-${currentSlide * 100}%)`,
+                            }}
+                          >
+                            {galleryImages.map((url, index) => (
+                              <div
+                                key={index}
+                                className="w-full flex-shrink-0 px-1 sm:px-2"
+                              >
+                                <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl">
+                                  {/* Image with optimal aspect ratio */}
+                                  <div className="aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[16/9]">
+                                    <img
+                                      src={url}
+                                      alt={`Clinic gallery image ${index + 1}`}
+                                      className="w-full h-full object-cover transition-transform duration-500"
+                                      loading={index < 3 ? "eager" : "lazy"}
+                                    />
+                                  </div>
+                                </div>
                               </div>
+                            ))}
+                          </div>
+
+                          {/* Navigation Buttons - Optimized for touch */}
+                          <button
+                            onClick={() =>
+                              setCurrentSlide(
+                                (prev) =>
+                                  (prev - 1 + galleryImages.length) %
+                                  galleryImages.length
+                              )
+                            }
+                            className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 
+                    bg-black/50 hover:bg-black/70 active:bg-black/80 
+                    text-white p-2 sm:p-2.5 md:p-3 rounded-full 
+                    transition-all duration-200 shadow-lg
+                    focus:outline-none
+                    active:scale-95 touch-manipulation"
+                            aria-label="Previous image"
+                          >
+                            <i className="bi bi-chevron-left text-base sm:text-lg md:text-xl"></i>
+                          </button>
+                          <button
+                            onClick={() =>
+                              setCurrentSlide(
+                                (prev) => (prev + 1) % galleryImages.length
+                              )
+                            }
+                            className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 
+                    bg-black/50 hover:bg-black/70 active:bg-black/80 
+                    text-white p-2 sm:p-2.5 md:p-3 rounded-full 
+                    transition-all duration-200 shadow-lg
+                    focus:outline-none
+                    active:scale-95 touch-manipulation"
+                            aria-label="Next image"
+                          >
+                            <i className="bi bi-chevron-right text-base sm:text-lg md:text-xl"></i>
+                          </button>
+                        </div>
+
+                        {/* Mobile Progress Indicator */}
+                        <div className="sm:hidden mt-3 px-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="h-full bg-orange-500 transition-all duration-300"
+                                style={{
+                                  width: `${((currentSlide + 1) / galleryImages.length) * 100}%`
+                                }}
+                              ></div>
                             </div>
-                          ))}
+                            <div className="ml-3 text-xs text-gray-200 font-medium">
+                              {currentSlide + 1} of {galleryImages.length}
+                            </div>
+                          </div>
                         </div>
-
-                        {/* Navigation Buttons */}
-                        <button
-                          onClick={() =>
-                            setCurrentSlide(
-                              (prev) =>
-                                (prev - 1 + galleryImages.length) %
-                                galleryImages.length
-                            )
-                          }
-                          className="absolute left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 
-                        bg-black/40 hover:bg-black/70 active:bg-black/80 
-                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
-                        transition-all duration-200 
-                        focus:outline-none focus:ring-2"
-                          aria-label="Previous image"
-                        >
-                          <i className="bi bi-chevron-left text-sm sm:text-base"></i>
-                        </button>
-                        <button
-                          onClick={() =>
-                            setCurrentSlide(
-                              (prev) => (prev + 1) % galleryImages.length
-                            )
-                          }
-                          className="absolute right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 
-                        bg-black/40 hover:bg-black/70 active:bg-black/80 
-                        text-white p-1.5 sm:p-2 md:p-3 rounded-full 
-                        transition-all duration-200 
-                        focus:outline-none focus:ring-2 "
-                          aria-label="Next image"
-                        >
-                          <i className="bi bi-chevron-right text-sm sm:text-base"></i>
-                        </button>
-
-                        {/* Image Counter */}
-                        <div
-                          className="absolute bottom-2 left-1/2 -translate-x-1/2 sm:hidden 
-                      bg-black/50 text-white text-xs px-2 py-1 rounded-full"
-                        >
-                          {currentSlide + 1} / {galleryImages.length}
-                        </div>
-                      </div>
-
-                      {/* Dot Indicators */}
-                      <div className="hidden sm:flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-                        {galleryImages.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentSlide(index)}
-                            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full 
-                              transition-all duration-200 
-                              focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2
-                              ${currentSlide === index
-                                ? "bg-orange-500 scale-110"
-                                : "bg-gray-300 hover:bg-gray-400"
-                              }`}
-                            aria-label={`Go to slide ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Mobile Dot Indicators */}
-                      <div className="flex sm:hidden justify-center gap-1 mt-3">
-                        {galleryImages.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentSlide(index)}
-                            className={`w-1.5 h-1.5 rounded-full transition-colors
-                     ${currentSlide === index ? "bg-orange-500" : "bg-gray-300"
-                              }`}
-                            aria-label={`Go to slide ${index + 1}`}
-                          />
-                        ))}
                       </div>
                     </div>
                   </section>

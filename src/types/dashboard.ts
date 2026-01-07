@@ -26,16 +26,6 @@ export interface FamilyMember {
   isActive: boolean;
 }
 
-export interface Payment {
-  id: string;
-  appointmentId: string;
-  amount: number;
-  date: Date;
-  type: 'deposit' | 'full_payment' | 'refund';
-  status: 'paid' | 'pending' | 'failed';
-  invoiceUrl?: string;
-}
-
 export interface Notification {
   id: string;
   type: 'appointment_reminder' | 'cancellation' | 'payment_update' | 'feedback_request' | 'general';
