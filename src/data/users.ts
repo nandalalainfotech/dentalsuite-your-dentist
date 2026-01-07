@@ -1,5 +1,5 @@
 import type { User } from '../types/auth';
-import type { Appointment, Payment, Notification, FamilyMember } from '../types/dashboard';
+import type { Appointment, Notification, FamilyMember } from '../types/dashboard';
 
 const sampleAppointments: Appointment[] = [
   { id: '1', dentistName: 'Dr. Sarah Johnson', clinicName: 'Smile Dental Care', dateTime: new Date('2024-01-15T10:00:00'), status: 'confirmed', treatment: 'Regular Checkup', price: 150 },
@@ -7,11 +7,7 @@ const sampleAppointments: Appointment[] = [
   { id: '3', dentistName: 'Dr. Emily Wilson', clinicName: 'Family Dental', dateTime: new Date('2024-01-25T11:00:00'), status: 'confirmed', treatment: 'Dental Filling', price: 200 }
 ];
 
-const samplePayments: Payment[] = [
-  { id: '1', appointmentId: '1', amount: 150, date: new Date('2024-01-10T10:00:00'), type: 'deposit', status: 'paid', invoiceUrl: '/invoices/inv_001.pdf' },
-  { id: '2', appointmentId: '2', amount: 120, date: new Date('2024-01-18T14:30:00'), type: 'full_payment', status: 'pending' },
-  { id: '3', appointmentId: '3', amount: 50, date: new Date('2024-01-20T09:00:00'), type: 'deposit', status: 'paid', invoiceUrl: '/invoices/inv_003.pdf' }
-];
+
 
 const sampleNotifications: Notification[] = [
   { id: '1', type: 'appointment_reminder', title: 'Appointment Reminder', message: 'Your appointment with Dr. Sarah Johnson is tomorrow at 10:00 AM', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20), isRead: false },
@@ -31,7 +27,6 @@ const sampleFamilyMembers: FamilyMember[] = [
 export interface UserWithDashboard extends User {
   profileCompletion: number;
   appointments: Appointment[];
-  payments: Payment[];
   notifications: Notification[];
   familyMembers: FamilyMember[];
 }
@@ -49,7 +44,6 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-01-15T10:00:00Z',
     profileCompletion: 85,
     appointments: sampleAppointments,
-    payments: samplePayments,
     notifications: sampleNotifications,
     familyMembers: sampleFamilyMembers
   },
@@ -65,7 +59,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-02-20T14:30:00Z',
     profileCompletion: 60,
     appointments: [sampleAppointments[0], sampleAppointments[1]],
-    payments: [samplePayments[0]],
+
     notifications: [sampleNotifications[0], sampleNotifications[2]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
   },
@@ -81,7 +75,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-03-10T09:15:00Z',
     profileCompletion: 90,
     appointments: [sampleAppointments[1], sampleAppointments[2]],
-    payments: [samplePayments[1], samplePayments[2]],
+
     notifications: [sampleNotifications[1], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1]]
   },
@@ -97,7 +91,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-01-25T16:45:00Z',
     profileCompletion: 85,
     appointments: [sampleAppointments[2]],
-    payments: [samplePayments[2]],
+
     notifications: [sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[3]]
   },
@@ -113,7 +107,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-02-14T11:20:00Z',
     profileCompletion: 70,
     appointments: [sampleAppointments[0]],
-    payments: [samplePayments[0]],
+
     notifications: [sampleNotifications[0], sampleNotifications[1]],
     familyMembers: [sampleFamilyMembers[0]]
   },
@@ -129,7 +123,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-01-01T09:00:00Z',
     profileCompletion: 75,
     appointments: sampleAppointments,
-    payments: samplePayments,
+
     notifications: sampleNotifications,
     familyMembers: sampleFamilyMembers
   },
@@ -145,7 +139,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-03-15T11:30:00Z',
     profileCompletion: 95,
     appointments: [sampleAppointments[0], sampleAppointments[2]],
-    payments: [samplePayments[0], samplePayments[2]],
+
     notifications: [sampleNotifications[0], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
   },
@@ -161,7 +155,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-02-28T14:45:00Z',
     profileCompletion: 80,
     appointments: [sampleAppointments[1]],
-    payments: [samplePayments[1]],
+
     notifications: [sampleNotifications[1], sampleNotifications[2]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[3]]
   },
@@ -177,7 +171,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-04-10T16:20:00Z',
     profileCompletion: 65,
     appointments: [sampleAppointments[0]],
-    payments: [samplePayments[0]],
+
     notifications: [sampleNotifications[0]],
     familyMembers: [sampleFamilyMembers[0]]
   },
@@ -193,7 +187,7 @@ export const staticUsers: UserWithDashboard[] = [
     createdAt: '2024-01-20T10:15:00Z',
     profileCompletion: 88,
     appointments: [sampleAppointments[1], sampleAppointments[2]],
-    payments: [samplePayments[1], samplePayments[2]],
+
     notifications: [sampleNotifications[1], sampleNotifications[2], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[2]]
   }
@@ -223,10 +217,76 @@ export const addUser = (userData: Omit<User, 'id' | 'createdAt'>): UserWithDashb
     createdAt: new Date().toISOString(),
     profileCompletion: 0,
     appointments: [],
-    payments: [],
     notifications: [],
     familyMembers: []
   };
   staticUsers.push(newUser);
   return newUser;
+};
+
+export const updateUser = (userId: string, updateData: Partial<User>): UserWithDashboard | null => {
+  const userIndex = staticUsers.findIndex(user => user.id === userId);
+
+  if (userIndex === -1) {
+    return null;
+  }
+
+  const updatedUser = {
+    ...staticUsers[userIndex],
+    ...updateData,
+  };
+
+  staticUsers[userIndex] = updatedUser;
+  return updatedUser;
+};
+
+export const updateUserProfile = (userId: string, profileData: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other';
+  mobileNumber?: string;
+}): UserWithDashboard | null => {
+  const userIndex = staticUsers.findIndex(user => user.id === userId);
+
+  if (userIndex === -1) {
+    return null;
+  }
+
+  const updatedUser = {
+    ...staticUsers[userIndex],
+    ...profileData,
+  };
+
+  staticUsers[userIndex] = updatedUser;
+  return updatedUser;
+};
+
+export const calculateProfileCompletion = (user: User): number => {
+  let completion = 0;
+  const fields = [
+    user.firstName,
+    user.lastName,
+    user.email,
+    user.dateOfBirth,
+    user.gender,
+    user.mobileNumber
+  ];
+
+  const completedFields = fields.filter(field => field && field.trim() !== '').length;
+  completion = (completedFields / fields.length) * 100;
+
+  return Math.round(completion);
+};
+
+export const updateUserProfileCompletion = (userId: string): UserWithDashboard | null => {
+  const user = staticUsers.find(u => u.id === userId);
+  if (!user) {
+    return null;
+  }
+
+  const profileCompletion = calculateProfileCompletion(user);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return updateUser(userId, { profileCompletion } as any);
 };

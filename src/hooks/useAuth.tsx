@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthState, AuthContextType, LoginCredentials, SignupCredentials } from '../types/auth';
-import { validateUserCredentials, findUserByEmail, addUser } from '../data/users';
+import type { AuthState, AuthContextType, LoginCredentials, SignupCredentials, User } from '../types/auth';
+import { validateUserCredentials, findUserByEmail, addUser, updateUser } from '../data/users';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -113,11 +113,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const updateProfile = (userData: Partial<User>): void => {
+    setState(prev => {
+      if (!prev.user) return prev;
+
+      const updatedUser = updateUser(prev.user.id, userData);
+      if (updatedUser) {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return { ...prev, user: updatedUser };
+      }
+      return prev;
+    });
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
     signup,
-    logout
+    logout,
+    updateProfile
   };
 
   return (

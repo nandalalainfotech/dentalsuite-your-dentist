@@ -16,6 +16,7 @@ interface BookingState {
   clinic: Clinic | null;
   isAuthenticated: boolean;
   user: PersonalDetails | null;
+  rescheduleAppointmentId?: string | null;
 }
 
 type BookingAction =
@@ -28,6 +29,7 @@ type BookingAction =
   | { type: 'SET_PERSONAL_DETAILS'; payload: PersonalDetails }
   | { type: 'SET_DATE_TIME'; payload: { date: string; time: string } }
   | { type: 'SET_AUTHENTICATION'; payload: { isAuthenticated: boolean; user: PersonalDetails | null } }
+  | { type: 'SET_RESCHEDULE_APPOINTMENT_ID'; payload: string | null }
   | { type: 'RESET_BOOKING' };
 
 const convertUserToPersonalDetails = (user: User | null): PersonalDetails | null => {
@@ -69,6 +71,7 @@ const loadPersistedState = (): BookingState => {
     clinic: null,
     isAuthenticated: false,
     user: null,
+    rescheduleAppointmentId: null,
   };
 };
 
@@ -102,6 +105,8 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
         isAuthenticated: action.payload.isAuthenticated,
         user: action.payload.user
       };
+    case 'SET_RESCHEDULE_APPOINTMENT_ID':
+      return { ...state, rescheduleAppointmentId: action.payload };
     case 'RESET_BOOKING':
       return initialState;
     default:
@@ -120,6 +125,7 @@ interface BookingContextType {
   setPersonalDetails: (details: PersonalDetails) => void;
   setDateTime: (date: string, time: string) => void;
   setAuthentication: (isAuthenticated: boolean, user: PersonalDetails | null) => void;
+  setRescheduleAppointmentId: (appointmentId: string | null) => void;
   resetBooking: () => void;
 }
 
@@ -192,6 +198,10 @@ export function BookingProvider({ children }: BookingProviderProps) {
     dispatch({ type: 'SET_AUTHENTICATION', payload: { isAuthenticated, user } });
   };
 
+  const setRescheduleAppointmentId = (appointmentId: string | null) => {
+    dispatch({ type: 'SET_RESCHEDULE_APPOINTMENT_ID', payload: appointmentId });
+  };
+
   const resetBooking = () => {
     try {
       sessionStorage.removeItem('bookingState');
@@ -212,6 +222,7 @@ export function BookingProvider({ children }: BookingProviderProps) {
     setPersonalDetails,
     setDateTime,
     setAuthentication,
+    setRescheduleAppointmentId,
     resetBooking,
   };
 
