@@ -29,6 +29,7 @@ export interface UserWithDashboard extends User {
   appointments: Appointment[];
   notifications: Notification[];
   familyMembers: FamilyMember[];
+  profileImage?: string;  
 }
 
 export const staticUsers: UserWithDashboard[] = [

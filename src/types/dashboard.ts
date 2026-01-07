@@ -4,6 +4,7 @@ export interface DashboardUser {
   email: string;
   avatar?: string;
   profileCompletion: number;
+  profileImage?: string;
 }
 
 export interface Appointment {
