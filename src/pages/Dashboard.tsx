@@ -1,73 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Appointments } from '../components/dashboard/Appointments';
 import { NotificationsPanel } from '../components/dashboard/NotificationsPanel';
 import { FamilyMembers } from '../components/dashboard/FamilyMembers';
-import { ProfileCompletionStatus } from '../components/dashboard/ProfileCompletionStatus';
 import { HelpAndSupport } from '../components/dashboard/HelpAndSupport';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useBooking } from '../hooks/booking/useBookingContext';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
-
-// --- ICONS ---
-const Icons = {
-  Calendar: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  Bell: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  ),
-  User: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  ),
-  Shield: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  Family: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  ),
-  Help: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Logout: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-    </svg>
-  ),
-  ChevronRight: () => (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  ),
-  Menu: () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  ),
-  Close: () => (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  ),
-  CheckCircle: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-};
-
-// --- COMPONENTS ---
+import { Icons } from '../components/dashboard/Icons';
+import type { DashboardUser } from '../types/dashboard';
+import { Profile } from '../components/dashboard/Profile';
+import { updateUserProfile } from '../data/users';
+import { clinics } from '../data/clinics';
+import BookingModal from '../components/booking/BookingModal';
+import type { Clinic } from '../types';
 
 interface NavLinkProps {
   icon: React.ReactNode;
@@ -131,7 +78,7 @@ const MobileNav: React.FC<{
   activeView: string;
   onNavClick: (view: string) => void;
   onClose: () => void;
-  user: any;
+  user: DashboardUser | null;
   unreadCount: number;
 }> = ({ activeView, onNavClick, onClose, user, unreadCount }) => {
   const navigate = useNavigate();
@@ -237,9 +184,12 @@ type ActiveViewType = 'appointments' | 'notifications' | 'profile' | 'family' | 
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     dashboardUser,
+    fullUserData,
     appointments,
     notifications,
     familyMembers,
@@ -248,9 +198,25 @@ const Dashboard: React.FC = () => {
     updateFamilyMembers
   } = useDashboardData();
 
+  const { setRescheduleAppointmentId } = useBooking();
+
   const [showMobileNav, setShowMobileNav] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveViewType>('appointments');
+  const [activeView, setActiveView] = useState<ActiveViewType>(() => {
+    const viewParam = searchParams.get('view');
+    const validViews: ActiveViewType[] = ['appointments', 'notifications', 'profile', 'family', 'help', 'security'];
+    return validViews.includes(viewParam as ActiveViewType) ? (viewParam as ActiveViewType) : 'appointments';
+  });
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
+  const [selectedDentistId, setSelectedDentistId] = useState<string>('');
+
+  // Update URL when active view changes
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('view', activeView);
+    setSearchParams(newSearchParams, { replace: true });
+  }, [activeView, searchParams, setSearchParams]);
 
   const handleNavClick = (view: ActiveViewType) => {
     setActiveView(view);
@@ -261,13 +227,40 @@ const Dashboard: React.FC = () => {
     navigate('/');
   };
 
-  const handleBookAppointment = () => navigate('/booking');
+  const handleBookAppointment = () => navigate('/');
   const handleContactSupport = () => console.log('Contact support');
   const handleSubmitFeedback = () => {
     setFeedbackSuccess(true);
     setTimeout(() => setFeedbackSuccess(false), 3000);
   };
-  const handleRescheduleAppointment = (appointmentId: string) => console.log('Reschedule:', appointmentId);
+  const handleRescheduleAppointment = (appointmentId: string) => {
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    if (!appointment) return;
+
+    // Find clinic that contains the dentist
+    const clinic = clinics.find(c =>
+      c.dentists?.some(d => d.name === appointment.dentistName)
+    );
+
+    if (!clinic) {
+      console.error('Clinic not found for dentist:', appointment.dentistName);
+      return;
+    }
+
+    // Find the dentist ID
+    const dentist = clinic.dentists?.find(d => d.name === appointment.dentistName);
+    if (!dentist) {
+      console.error('Dentist not found:', appointment.dentistName);
+      return;
+    }
+
+    // Set reschedule appointment ID in booking context
+    setRescheduleAppointmentId(appointmentId);
+
+    setSelectedClinic(clinic);
+    setSelectedDentistId(dentist.id);
+    setShowBookingModal(true);
+  };
   const handleMarkAsRead = (notificationId: string) => {
     const updatedNotifications = notifications.map(n =>
       n.id === notificationId ? { ...n, isRead: true } : n
@@ -293,7 +286,6 @@ const Dashboard: React.FC = () => {
     const updatedFamilyMembers = familyMembers.filter(m => m.id !== memberId);
     updateFamilyMembers(updatedFamilyMembers);
   };
-  const handleCompleteProfile = () => console.log('Complete profile');
   const handleCancelAppointment = (appointmentId: string) => {
     const updatedAppointments = appointments.map(apt =>
       apt.id === appointmentId ? { ...apt, status: 'cancelled' as const } : apt
@@ -323,16 +315,28 @@ const Dashboard: React.FC = () => {
           onBookAppointment={handleBookAppointment}
           onReschedule={handleRescheduleAppointment}
           onCancel={handleCancelAppointment}
-          onViewDetails={(id) => console.log('View details:', id)}
         />
       ),
       notifications: (
         <NotificationsPanel notifications={notifications} onMarkAsRead={handleMarkAsRead} />
       ),
-      profile: dashboardUser ? (
-        <ProfileCompletionStatus
-          completionPercentage={dashboardUser.profileCompletion}
-          onCompleteProfile={handleCompleteProfile}
+      profile: fullUserData ? (
+        <Profile
+          user={fullUserData}
+          onUpdateUser={(updatedUser) => {
+            const result = updateUserProfile(updatedUser.id, {
+              firstName: updatedUser.firstName,
+              lastName: updatedUser.lastName,
+              email: updatedUser.email,
+              dateOfBirth: updatedUser.dateOfBirth,
+              gender: updatedUser.gender,
+              mobileNumber: updatedUser.mobileNumber
+            });
+            if (result) {
+              // Update the dashboardUser state to reflect changes
+              console.log('Profile updated:', result);
+            }
+          }}
         />
       ) : null,
       family: (
@@ -400,20 +404,7 @@ const Dashboard: React.FC = () => {
                   </p>
                 </div>
 
-                {dashboardUser && (
-                  <div className="mt-6 pt-6 border-t border-gray-100">
-                    <div className="flex justify-between text-xs font-semibold mb-2 text-gray-500">
-                      <span>Profile Status</span>
-                      <span className="text-orange-600">{dashboardUser.profileCompletion}%</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                        style={{ width: `${dashboardUser.profileCompletion}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+
               </div>
 
               {/* Navigation */}
@@ -606,8 +597,23 @@ const Dashboard: React.FC = () => {
           unreadCount={unreadNotifications}
         />
       )}
+
+      {/* Booking Modal for Reschedule */}
+      {showBookingModal && selectedClinic && (
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => {
+            setShowBookingModal(false);
+            setRescheduleAppointmentId(null);
+          }}
+          clinic={selectedClinic}
+          selectedDentistId={selectedDentistId}
+        />
+      )}
     </div>
   );
 };
 
 export default Dashboard;
+
+

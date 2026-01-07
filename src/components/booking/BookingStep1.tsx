@@ -5,8 +5,6 @@ import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
 import BookingSidebar from "./BookingSidebar";
 import BookingModal from "./BookingModal";
 import EmergencyModal from "../emergency/EmergencyModal";
-import type { Vishwa } from "../../types/clinic";
-import { vishwa } from "../../data/clinics";
 
 
 const BookingStep1: React.FC = () => {
@@ -22,7 +20,6 @@ const BookingStep1: React.FC = () => {
 
   const [showEmergency, setShowEmergency] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [vishwas, setVishwa] = useState<Vishwa | null>(null);
   useEffect(() => {
     const storedReferrer = sessionStorage.getItem('bookingReferrer');
     if (storedReferrer) {
@@ -33,14 +30,6 @@ const BookingStep1: React.FC = () => {
     }
   }, []);
 
-
-
-  useEffect(() => {
-    const data = vishwa
-    console.log(data);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVishwa(data);
-  }, []);
 
   const handleBack = () => {
     const dentistId = state.dentistId;
@@ -105,32 +94,6 @@ const BookingStep1: React.FC = () => {
           </nav>
           <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
             <div className="space-y-10 animate-in fade-in duration-500">
-              {/* <div className="bg-red-500 p-5 text-center"> */}
-              <div className="flex justify-center items-center text-center">
-                <div className="bg-red-500 p-5 flex flex-col items-start w-full max-w-md">
-                  <p className="font-bold text-xl">Name</p>
-                  <p className="mb-3">{vishwas?.name || 'N/A'}</p>
-
-                  <p className="font-bold text-xl">Role</p>
-                  <p className="mb-3">{vishwas?.role || 'N/A'}</p>
-
-                  <p className="font-bold text-xl">Tech</p>
-                  <div className="flex flex-wrap gap-2">
-                    {vishwas?.tech && vishwas.tech.length > 0 ? (
-                      vishwas.tech.map((t) => (
-                        <span
-                          key={t}
-                          className="bg-white/20 px-3 py-1 rounded-full text-sm"
-                        >
-                          {t}
-                        </span>
-                      ))
-                    ) : (
-                      <p>No tech listed</p>
-                    )}
-                  </div>
-                </div>
-              </div>
               <section>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6">
                   Who is this appointment for?
