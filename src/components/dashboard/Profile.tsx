@@ -96,6 +96,16 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     });
   };
 
+  // Helper function to render required symbol
+  const RequiredSymbol = () => (
+    <span className="text-red-500 ml-1">*</span>
+  );
+
+  // Determine if field is required (all fields except gender)
+  const isRequired = (fieldName: string) => {
+    return fieldName !== 'gender';
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -118,101 +128,135 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
 
       {isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Required fields note */}
+          <div className="mb-4">
+            <p className="text-sm text-gray-500 flex items-center gap-1">
+              Fields marked with <span className="text-red-500">*</span> are required
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* First Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 First Name
+                {isRequired('firstName') && <RequiredSymbol />}
               </label>
               <input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg  ${errors.firstName ? 'border-red-500' : 'border-gray-300'
                   }`}
+                required
               />
               {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  {errors.firstName}
+                </p>
               )}
             </div>
 
+            {/* Last Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Last Name
+                {isRequired('lastName') && <RequiredSymbol />}
               </label>
               <input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.lastName ? 'border-red-500' : 'border-gray-300'
                   }`}
+                required
               />
               {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  {errors.lastName}
+                </p>
               )}
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Email Address
+                {isRequired('email') && <RequiredSymbol />}
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
+                required
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  {errors.email}
+                </p>
               )}
             </div>
 
+            {/* Mobile Number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Mobile Number
+                {isRequired('mobileNumber') && <RequiredSymbol />}
               </label>
               <input
                 type="tel"
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
+                required
               />
               {errors.mobileNumber && (
-                <p className="mt-1 text-sm text-red-600">{errors.mobileNumber}</p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  {errors.mobileNumber}
+                </p>
               )}
             </div>
 
+            {/* Date of Birth */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Date of Birth
+                {isRequired('dateOfBirth') && <RequiredSymbol />}
               </label>
               <input
                 type="date"
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
                   }`}
+                required
               />
               {errors.dateOfBirth && (
-                <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  {errors.dateOfBirth}
+                </p>
               )}
             </div>
 
+            {/* Gender - Not Required */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Gender
+                <span className="text-gray-400 text-xs ml-2">(Optional)</span>
               </label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -274,31 +318,6 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
               </div>
             </div>
           </div>
-
-          {/* <div className="border-t pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Profile Completion</h3>
-                <p className="text-sm text-gray-500">Complete your profile to get personalized recommendations</p>
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-orange-600">{user.profileCompletion}%</div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-500 ease-out ${
-                    user.profileCompletion >= 80 ? 'bg-green-500' :
-                    user.profileCompletion >= 60 ? 'bg-orange-500' :
-                    user.profileCompletion >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${user.profileCompletion}%` }}
-                ></div>
-              </div>
-            </div>
-          </div> */}
         </div>
       )}
     </div>

@@ -4,7 +4,6 @@ export type { PersonalDetails, Appointment } from './booking';
 export type { 
   DashboardUser, 
   FamilyMember, 
-  Payment, 
   Notification, 
   SearchFilters, 
   QuickAction 
