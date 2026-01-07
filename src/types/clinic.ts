@@ -56,3 +56,10 @@ export interface Dentist {
   overview?: string;
   reviews?: Review[];
 }
+
+
+export interface Vishwa {
+  name: string;
+  role: string;
+  tech: string[];
+};

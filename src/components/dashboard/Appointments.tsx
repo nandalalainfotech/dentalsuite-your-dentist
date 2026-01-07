@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Appointment } from '../../types/dashboard';
+import { Icons } from './Icons';
 
 interface AppointmentsProps {
     appointments: Appointment[];
@@ -7,7 +8,6 @@ interface AppointmentsProps {
     onBookAppointment: () => void;
     onReschedule: (appointmentId: string) => void;
     onCancel: (appointmentId: string) => void;
-    onViewDetails: (appointmentId: string) => void;
 }
 
 export const Appointments: React.FC<AppointmentsProps> = ({
@@ -16,7 +16,6 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     onBookAppointment,
     onReschedule,
     onCancel,
-    onViewDetails
 }) => {
     const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
 
@@ -53,19 +52,12 @@ export const Appointments: React.FC<AppointmentsProps> = ({
             hour12: true
         });
     };
-const Icons = {
-  Calendar: () => (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-};
     return (
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <div className="p-2 bg-gray-900 rounded-xl text-white">
-            <Icons.Calendar />
-          </div>Appointments</h2>
+                    <Icons.Calendar />
+                </div>Appointments</h2>
 
             {/* Tabs */}
             <div className="flex space-x-4 sm:space-x-8 mb-6 sm:mb-8 border-b border-gray-200">
@@ -178,13 +170,6 @@ const Icons = {
                                     )}
 
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <button
-                                            onClick={() => onViewDetails(appointment.id)}
-                                            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                                        >
-                                            View Details
-                                        </button>
-
                                         {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
                                             <>
                                                 <button

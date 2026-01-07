@@ -35,4 +35,5 @@ export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; message: string }>;
   signup: (credentials: SignupCredentials) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
+  updateProfile: (userData: Partial<User>) => void;
 }

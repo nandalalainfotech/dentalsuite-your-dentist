@@ -1,5 +1,6 @@
 import { SAMPLE_REVIEWS } from '../constants/reviews';
 import type { Clinic } from '../types';
+import type { Vishwa } from '../types/clinic';
 
 export const clinics: Clinic[] = [
   {
@@ -303,3 +304,9 @@ export const clinics: Clinic[] = [
     ]
   }
 ];
+
+export const vishwa: Vishwa = {
+  name: "Vishwa",
+  role: "Full Stack Developer || Devops Engineer",
+  tech: ["Angular", "Spring Boot", "MySQL"]
+};

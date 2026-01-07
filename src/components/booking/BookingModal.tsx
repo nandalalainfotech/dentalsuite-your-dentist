@@ -26,10 +26,10 @@ const BookingModal = ({
     );
     const [selectedDateStr, setSelectedDateStr] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
-    
+
     // viewDate controls the visible month in the calendar
     const [viewDate, setViewDate] = useState(new Date());
-    
+
     const [showCalendarMobile, setShowCalendarMobile] = useState(false);
     const [showPractitionerDropdown, setShowPractitionerDropdown] = useState(false);
 
@@ -56,7 +56,7 @@ const BookingModal = ({
         while (validDaysFound < 5 && daysChecked < 45) {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + daysChecked);
-            
+
             // Normalize time to compare dates accurately
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -102,6 +102,7 @@ const BookingModal = ({
     useEffect(() => {
         if (isOpen && clinic?.dentists && clinic.dentists.length > 0) {
             if (selectedDentistId) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedPractitioner(selectedDentistId);
             } else if (!selectedPractitioner) {
                 setSelectedPractitioner(clinic.dentists[0].id);
@@ -134,6 +135,7 @@ const BookingModal = ({
         }
 
         const dates = getAvailableDates(startCalculationDate, currentDentist);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUpcomingDates(dates);
 
         // Auto-scroll list to top when data changes
@@ -164,7 +166,7 @@ const BookingModal = ({
             if (currentPath.includes('/clinicprofile/')) referrerPath = currentPath;
             else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) referrerPath = documentReferrer;
             else if (currentPath.includes('/dentist/')) referrerPath = `/dentist/${selectedDentistId}`;
-            
+
             sessionStorage.setItem('bookingReferrer', referrerPath);
         }
 
@@ -217,13 +219,13 @@ const BookingModal = ({
 
             const isAvailableDay = currentDentist?.availabledays?.includes(dayName);
             const isSelected = selectedDateStr === dateString;
-            
+
             // Strict comparison for Past/Today
             const today = new Date();
-            today.setHours(0,0,0,0);
+            today.setHours(0, 0, 0, 0);
             const checkDate = new Date(date);
-            checkDate.setHours(0,0,0,0);
-            
+            checkDate.setHours(0, 0, 0, 0);
+
             const isToday = checkDate.getTime() === today.getTime();
             const isPast = checkDate < today;
 
@@ -270,7 +272,7 @@ const BookingModal = ({
 
                 {/* Main Box - Responsive Height & Radius */}
                 <div className="bg-white w-5xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
-                    
+
                     {/* DESKTOP/TABLET SIDEBAR */}
                     {/* Tablet Optimization: Width is tighter on md (260px) and wider on lg (380px) */}
                     <div className="hidden md:flex md:w-[260px] lg:w-[380px] bg-gray-50 flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0 transition-all duration-300">
@@ -389,7 +391,7 @@ const BookingModal = ({
                                                     {getSelectedDateDetails()}
                                                 </p>
                                             </div>
-                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCalendarMobile ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCalendarMobile ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                                         </div>
                                     </button>
                                 </div>
@@ -407,7 +409,7 @@ const BookingModal = ({
                                                     {currentDentist?.name || "Select"}
                                                 </p>
                                             </div>
-                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPractitionerDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPractitionerDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                                         </div>
                                     </button>
                                 </div>
@@ -478,8 +480,8 @@ const BookingModal = ({
                                 Select a time
                             </h2>
                             <p className="text-gray-500 text-xs mt-1">
-                                {selectedDateStr 
-                                    ? `Available slots for ${selectedDateStr}` 
+                                {selectedDateStr
+                                    ? `Available slots for ${selectedDateStr}`
                                     : "Showing available slots for upcoming days"}
                             </p>
                         </div>
@@ -536,15 +538,15 @@ const BookingModal = ({
 
                         {/* Sticky Footer */}
                         <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
-                            
+
                             {/* Selected Info */}
                             <div className="w-full md:w-auto text-sm text-gray-500 mb-2 md:mb-0 md:mr-auto text-center md:text-left">
                                 {selectedDateStr && selectedTime ? (
                                     <div className="flex flex-row md:flex-col items-center md:items-start justify-center gap-2 md:gap-0">
                                         <span className="text-gray-500 font-medium hidden md:inline">Selected:</span>
                                         <span className="text-gray-900 font-bold">
-                                            {selectedDateStr} <span className="md:hidden text-gray-400 font-normal mx-1">at</span> 
-                                            <span className="hidden md:inline font-normal text-gray-400 mx-1">at</span> 
+                                            {selectedDateStr} <span className="md:hidden text-gray-400 font-normal mx-1">at</span>
+                                            <span className="hidden md:inline font-normal text-gray-400 mx-1">at</span>
                                             {selectedTime}
                                         </span>
                                     </div>
