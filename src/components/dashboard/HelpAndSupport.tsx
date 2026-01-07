@@ -209,7 +209,7 @@ export const HelpAndSupport: React.FC<HelpAndSupportProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Feedback Type
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm">
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
                   <option>General Feedback</option>
                   <option>Bug Report</option>
                   <option>Feature Request</option>
