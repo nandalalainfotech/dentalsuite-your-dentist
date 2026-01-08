@@ -25,12 +25,18 @@ const sampleFamilyMembers: FamilyMember[] = [
 
 // Extended user data with dashboard information
 export interface UserWithDashboard extends User {
-  profileCompletion: number;
   appointments: Appointment[];
   notifications: Notification[];
   familyMembers: FamilyMember[];
-  profileImage?: string;  
+  profileImage?: string;
 }
+
+// Dummy user images for testing
+export const dummyUserImages = [
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+];
 
 export const staticUsers: UserWithDashboard[] = [
   {
@@ -43,10 +49,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61412345678',
     createdAt: '2024-01-15T10:00:00Z',
-    profileCompletion: 85,
     appointments: sampleAppointments,
     notifications: sampleNotifications,
-    familyMembers: sampleFamilyMembers
+    familyMembers: sampleFamilyMembers,
+    profileImage: "'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'"
   },
   {
     id: '2',
@@ -58,8 +64,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61423456789',
     createdAt: '2024-02-20T14:30:00Z',
-    profileCompletion: 60,
     appointments: [sampleAppointments[0], sampleAppointments[1]],
+    profileImage: "",
 
     notifications: [sampleNotifications[0], sampleNotifications[2]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
@@ -74,8 +80,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61434567890',
     createdAt: '2024-03-10T09:15:00Z',
-    profileCompletion: 90,
     appointments: [sampleAppointments[1], sampleAppointments[2]],
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
 
     notifications: [sampleNotifications[1], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1]]
@@ -90,9 +96,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61445678901',
     createdAt: '2024-01-25T16:45:00Z',
-    profileCompletion: 85,
     appointments: [sampleAppointments[2]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[3]]
   },
@@ -106,9 +111,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61456789012',
     createdAt: '2024-02-14T11:20:00Z',
-    profileCompletion: 70,
     appointments: [sampleAppointments[0]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[0], sampleNotifications[1]],
     familyMembers: [sampleFamilyMembers[0]]
   },
@@ -122,9 +126,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61412345678',
     createdAt: '2024-01-01T09:00:00Z',
-    profileCompletion: 75,
     appointments: sampleAppointments,
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: sampleNotifications,
     familyMembers: sampleFamilyMembers
   },
@@ -138,9 +141,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61467890123',
     createdAt: '2024-03-15T11:30:00Z',
-    profileCompletion: 95,
     appointments: [sampleAppointments[0], sampleAppointments[2]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[0], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
   },
@@ -154,9 +156,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61478901234',
     createdAt: '2024-02-28T14:45:00Z',
-    profileCompletion: 80,
     appointments: [sampleAppointments[1]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[1], sampleNotifications[2]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[3]]
   },
@@ -170,9 +171,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61489012345',
     createdAt: '2024-04-10T16:20:00Z',
-    profileCompletion: 65,
     appointments: [sampleAppointments[0]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[0]],
     familyMembers: [sampleFamilyMembers[0]]
   },
@@ -186,9 +186,8 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61490123456',
     createdAt: '2024-01-20T10:15:00Z',
-    profileCompletion: 88,
     appointments: [sampleAppointments[1], sampleAppointments[2]],
-
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     notifications: [sampleNotifications[1], sampleNotifications[2], sampleNotifications[3]],
     familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[2]]
   }
@@ -216,7 +215,6 @@ export const addUser = (userData: Omit<User, 'id' | 'createdAt'>): UserWithDashb
     ...userData,
     id: (staticUsers.length + 1).toString(),
     createdAt: new Date().toISOString(),
-    profileCompletion: 0,
     appointments: [],
     notifications: [],
     familyMembers: []
