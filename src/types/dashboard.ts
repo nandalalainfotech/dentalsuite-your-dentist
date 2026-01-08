@@ -3,7 +3,6 @@ export interface DashboardUser {
   name: string;
   email: string;
   avatar?: string;
-  profileCompletion: number;
   profileImage?: string;
 }
 
