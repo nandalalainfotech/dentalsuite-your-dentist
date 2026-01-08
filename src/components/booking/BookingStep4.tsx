@@ -375,13 +375,14 @@ const BookingStep4: React.FC = () => {
         </div>
       </main>
 
-      {/* Booking Modal */}
+{/* Booking Modal */}
       {state.clinic && (
         <BookingModal
           isOpen={showBookingModal}
           onClose={() => setShowBookingModal(false)}
           clinic={state.clinic}
           selectedDentistId={state.dentistId || undefined}
+          mode="update"
         />
       )}
     </div>

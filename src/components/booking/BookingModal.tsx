@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { Clinic, Dentist } from "../../types";
+import { useBooking } from "../../hooks/booking/useBookingContext";
 
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     clinic: Clinic | null;
     selectedDentistId?: string;
+    mode?: "new" | "update";
 }
 
 const BookingModal = ({
@@ -14,21 +16,24 @@ const BookingModal = ({
     onClose,
     clinic,
     selectedDentistId,
+    mode = "new",
 }: BookingModalProps) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { setDateTime } = useBooking();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    // --- State ---
     const [selectedService, setSelectedService] = useState("dentistry");
     const [selectedPractitioner, setSelectedPractitioner] = useState(
         selectedDentistId || ""
     );
+
     const [selectedDateStr, setSelectedDateStr] = useState<string>("");
     const [selectedTime, setSelectedTime] = useState<string>("");
 
-    // viewDate controls the visible month in the calendar
-    const [viewDate, setViewDate] = useState(new Date());
+    const [viewDate, setViewDate] = useState(new Date()); // Controls the Calendar Month (Left side)
+    const [listStartDate, setListStartDate] = useState(new Date()); // Controls the Slots List Start Date (Right side)
 
     const [showCalendarMobile, setShowCalendarMobile] = useState(false);
     const [showPractitionerDropdown, setShowPractitionerDropdown] = useState(false);
@@ -37,35 +42,26 @@ const BookingModal = ({
         { date: Date; dateStr: string; slots: string[] }[]
     >([]);
 
-    // --- Helpers ---
 
-    // Memoize current dentist to prevent unnecessary recalcs
     const currentDentist = useMemo(() => {
         return clinic?.dentists?.find((d: Dentist) => d.id === selectedPractitioner);
     }, [clinic, selectedPractitioner]);
 
-    // Logic to calculate available dates/slots
     const getAvailableDates = (startDate: Date, dentist: Dentist | undefined) => {
         if (!dentist) return [];
 
         const dates: { date: Date; dateStr: string; slots: string[] }[] = [];
-        let daysChecked = 0;
-        let validDaysFound = 0;
 
-        // Safety break: check max 45 days ahead or until we find 5 valid days
-        while (validDaysFound < 5 && daysChecked < 45) {
+        for (let i = 0; i < 7; i++) {
             const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + daysChecked);
+            currentDate.setDate(startDate.getDate() + i);
 
-            // Normalize time to compare dates accurately
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const checkDate = new Date(currentDate);
             checkDate.setHours(0, 0, 0, 0);
 
-            // Skip past dates
             if (checkDate < today) {
-                daysChecked++;
                 continue;
             }
 
@@ -88,17 +84,12 @@ const BookingModal = ({
                         }),
                         slots: availableSlots,
                     });
-                    validDaysFound++;
                 }
             }
-            daysChecked++;
         }
         return dates;
     };
 
-    // --- Effects ---
-
-    // 1. Reset state on open
     useEffect(() => {
         if (isOpen && clinic?.dentists && clinic.dentists.length > 0) {
             if (selectedDentistId) {
@@ -107,84 +98,83 @@ const BookingModal = ({
             } else if (!selectedPractitioner) {
                 setSelectedPractitioner(clinic.dentists[0].id);
             }
-            setViewDate(new Date());
+
+            const today = new Date();
+            setViewDate(today);
+            setListStartDate(today); // Start list from Today
+
             setSelectedDateStr("");
             setSelectedTime("");
             setShowCalendarMobile(false);
             setShowPractitionerDropdown(false);
         }
-    }, [isOpen, clinic, selectedDentistId]); // removed dependency loop
+    }, [isOpen, clinic, selectedDentistId]);
 
-    // 2. Calculate Slots
     useEffect(() => {
         if (!currentDentist) return;
 
-        let startCalculationDate: Date;
-
-        // If user selected a specific date in calendar, start list from there
-        if (selectedDateStr) {
-            startCalculationDate = new Date(selectedDateStr);
-        } else {
-            // Otherwise start from the beginning of the viewed month
-            startCalculationDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-            const today = new Date();
-            // If viewing current month, start from Today, not the 1st
-            if (startCalculationDate.getMonth() === today.getMonth() && startCalculationDate.getFullYear() === today.getFullYear()) {
-                startCalculationDate = today;
-            }
-        }
-
-        const dates = getAvailableDates(startCalculationDate, currentDentist);
+        const dates = getAvailableDates(listStartDate, currentDentist);
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setUpcomingDates(dates);
 
-        // Auto-scroll list to top when data changes
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = 0;
         }
 
-    }, [selectedPractitioner, viewDate, selectedDateStr, currentDentist]);
+    }, [listStartDate, currentDentist]);
 
-    // --- Handlers ---
-    const handleBookAppointment = () => {
+const handleBookAppointment = () => {
         if (!selectedDateStr || !selectedTime) return;
 
-        // Create date in local time to avoid timezone shifts
         const dateObj = new Date(selectedDateStr);
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
         const formattedDate = `${year}-${month}-${day}`;
 
-        // Referrer Logic
-        const existingReferrer = sessionStorage.getItem('bookingReferrer');
-        if (!existingReferrer) {
-            const currentPath = location.pathname;
-            const documentReferrer = document.referrer;
-            let referrerPath = '/';
+        if (mode === "update") {
+            // Just update the date and time in the booking context
+            setDateTime(formattedDate, selectedTime);
+            onClose();
+        } else {
+            // Original behavior for new bookings
+            const existingReferrer = sessionStorage.getItem('bookingReferrer');
+            if (!existingReferrer) {
+                const currentPath = location.pathname;
+                const documentReferrer = document.referrer;
+                let referrerPath = '/';
 
-            if (currentPath.includes('/clinicprofile/')) referrerPath = currentPath;
-            else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) referrerPath = documentReferrer;
-            else if (currentPath.includes('/dentist/')) referrerPath = `/dentist/${selectedDentistId}`;
+                if (currentPath.includes('/clinicprofile/')) referrerPath = currentPath;
+                else if (documentReferrer && documentReferrer.includes('/clinicprofile/')) referrerPath = documentReferrer;
+                else if (currentPath.includes('/dentist/')) referrerPath = `/dentist/${selectedDentistId}`;
 
-            sessionStorage.setItem('bookingReferrer', referrerPath);
-        }
-
-        navigate(`/booking/${selectedPractitioner}`, {
-            state: {
-                date: formattedDate,
-                time: selectedTime,
-                service: selectedService,
+                sessionStorage.setItem('bookingReferrer', referrerPath);
             }
-        });
-        onClose();
+
+            navigate(`/booking/${selectedPractitioner}`, {
+                state: {
+                    date: formattedDate,
+                    time: selectedTime,
+                    service: selectedService,
+                }
+            });
+            onClose();
+        }
     };
 
     const changeMonth = (offset: number) => {
         const newDate = new Date(viewDate);
         newDate.setMonth(newDate.getMonth() + offset);
         setViewDate(newDate);
-        // Clear specific selection when changing month so list defaults to "Available from start of month"
+        const today = new Date();
+        let newStart = new Date(newDate);
+        if (newDate.getMonth() === today.getMonth() && newDate.getFullYear() === today.getFullYear()) {
+            newStart = today;
+        } else {
+            newStart.setDate(1);
+        }
+
+        setListStartDate(newStart);
         setSelectedDateStr("");
         setSelectedTime("");
     };
@@ -192,10 +182,10 @@ const BookingModal = ({
     const handleDateSelect = (dateString: string) => {
         setSelectedDateStr(dateString);
         setSelectedTime("");
+        setListStartDate(new Date(dateString));
         setShowCalendarMobile(false);
     };
 
-    // --- Render Calendar ---
     const renderCalendar = () => {
         const year = viewDate.getFullYear();
         const month = viewDate.getMonth();
@@ -220,14 +210,13 @@ const BookingModal = ({
             const isAvailableDay = currentDentist?.availabledays?.includes(dayName);
             const isSelected = selectedDateStr === dateString;
 
-            // Strict comparison for Past/Today
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const checkDate = new Date(date);
             checkDate.setHours(0, 0, 0, 0);
 
-            const isToday = checkDate.getTime() === today.getTime();
             const isPast = checkDate < today;
+            const isToday = checkDate.getTime() === today.getTime();
 
             let buttonClass = "h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors ";
 
@@ -270,11 +259,10 @@ const BookingModal = ({
 
             <div className="fixed inset-0 z-[99999] flex items-center justify-center sm:p-4 md:p-6">
 
-                {/* Main Box - Responsive Height & Radius */}
+                {/* Main Box */}
                 <div className="bg-white w-5xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in fade-in zoom-in duration-200">
 
-                    {/* DESKTOP/TABLET SIDEBAR */}
-                    {/* Tablet Optimization: Width is tighter on md (260px) and wider on lg (380px) */}
+                    {/* SIDEBAR (Desktop/Tablet) */}
                     <div className="hidden md:flex md:w-[260px] lg:w-[380px] bg-gray-50 flex-col border-b md:border-b-0 md:border-r border-gray-200 shrink-0 transition-all duration-300">
                         <div className="p-4 lg:p-6 overflow-y-auto max-h-full h-full">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 leading-tight">
@@ -327,9 +315,6 @@ const BookingModal = ({
                                                 </option>
                                             ))}
                                         </select>
-                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -342,9 +327,9 @@ const BookingModal = ({
                                             value={selectedPractitioner}
                                             onChange={(e) => {
                                                 setSelectedPractitioner(e.target.value);
-                                                // Reset specific selections when changing dentist
                                                 setSelectedDateStr("");
                                                 setSelectedTime("");
+                                                setListStartDate(new Date());
                                             }}
                                             className="w-full px-3 py-2 lg:px-4 lg:py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-600 appearance-none cursor-pointer"
                                         >
@@ -354,18 +339,14 @@ const BookingModal = ({
                                                 </option>
                                             ))}
                                         </select>
-                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* MOBILE HEADER (Visible only on < md) */}
+                    {/* MOBILE HEADER */}
                     <div className="md:hidden bg-white border-b border-gray-200">
-                        {/* Top Bar */}
                         <div className="flex justify-between items-center p-4">
                             <h2 className="text-lg font-bold text-gray-900 line-clamp-1">
                                 {clinic?.name}
@@ -374,11 +355,9 @@ const BookingModal = ({
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
-
                         {/* Mobile Filters */}
                         <div className="px-4 pb-4 sm:px-6">
                             <div className="flex items-center gap-3">
-                                {/* Calendar Button */}
                                 <div className="flex-1">
                                     <button
                                         onClick={() => setShowCalendarMobile(!showCalendarMobile)}
@@ -395,8 +374,6 @@ const BookingModal = ({
                                         </div>
                                     </button>
                                 </div>
-
-                                {/* Practitioner Button */}
                                 <div className="flex-1">
                                     <button
                                         onClick={() => setShowPractitionerDropdown(!showPractitionerDropdown)}
@@ -415,10 +392,8 @@ const BookingModal = ({
                                 </div>
                             </div>
                         </div>
-
-                        {/* Mobile Calendar Dropdown */}
                         {showCalendarMobile && (
-                            <div className="px-4 pb-4 animate-in slide-in-from-top duration-200">
+                            <div className="px-4 pb-4">
                                 <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <span className="text-gray-700 font-semibold text-lg">
@@ -438,10 +413,8 @@ const BookingModal = ({
                                 </div>
                             </div>
                         )}
-
-                        {/* Mobile Practitioner Dropdown */}
                         {showPractitionerDropdown && (
-                            <div className="px-4 pb-4 animate-in slide-in-from-top duration-200">
+                            <div className="px-4 pb-4">
                                 <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-h-60 overflow-y-auto">
                                     <div className="space-y-2">
                                         {clinic?.dentists?.map((dentist: Dentist) => (
@@ -466,7 +439,6 @@ const BookingModal = ({
                     {/* --- RIGHT CONTENT (Slots) --- */}
                     <div className="flex-1 flex flex-col bg-white overflow-hidden relative min-h-0">
 
-                        {/* Close Button (Desktop/Tablet) */}
                         <button
                             onClick={onClose}
                             className="hidden md:block absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
@@ -474,15 +446,12 @@ const BookingModal = ({
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
 
-                        {/* Content Header */}
-                        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
+<div className="p-4 md:p-6 lg:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
                             <h2 className="text-base md:text-xl lg:text-2xl font-bold text-gray-800">
-                                Select a time
+                                {mode === "update" ? "Update appointment time" : "Select a time"}
                             </h2>
                             <p className="text-gray-500 text-xs mt-1">
-                                {selectedDateStr
-                                    ? `Available slots for ${selectedDateStr}`
-                                    : "Showing available slots for upcoming days"}
+                                {listStartDate ? `Showing availability starting from ${listStartDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}` : "Showing availability for next 7 days"}
                             </p>
                         </div>
 
@@ -492,7 +461,11 @@ const BookingModal = ({
                                 upcomingDates.map((item, index) => {
                                     const isSelectedDate = selectedDateStr === item.dateStr;
                                     return (
-                                        <div key={index} className={`p-3 md:p-4 ${isSelectedDate ? 'bg-orange-50 rounded-xl border border-orange-100' : ''}`}>
+                                        <div
+                                            key={index}
+                                            ref={(el) => { dateRefs.current[item.dateStr] = el; }}
+                                            className={`p-3 md:p-4 transition-all duration-300 ${isSelectedDate ? 'bg-orange-50 rounded-xl border border-orange-100' : ''}`}
+                                        >
                                             <div className="flex items-center gap-3 mb-3">
                                                 <h3 className="font-semibold text-gray-800 text-sm md:text-base lg:text-lg">
                                                     {item.dateStr}
@@ -500,7 +473,6 @@ const BookingModal = ({
                                                 {isSelectedDate && <span className="bg-orange-100 text-orange-700 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-bold">Selected</span>}
                                             </div>
 
-                                            {/* Tablet Optimization: Grid instead of Flex for cleaner alignment on medium screens */}
                                             <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:flex xl:flex-wrap gap-2 md:gap-3">
                                                 {item.slots.map((time, tIndex) => {
                                                     const isSelectedTime = selectedDateStr === item.dateStr && selectedTime === time;
@@ -530,7 +502,7 @@ const BookingModal = ({
                                     <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                         <i className="bi bi-calendar-x text-2xl"></i>
                                     </div>
-                                    <p className="text-sm md:text-base text-center px-4">No available slots found for this month.</p>
+                                    <p className="text-sm md:text-base text-center px-4">No available slots in the selected 7-day range.</p>
                                     <button onClick={() => changeMonth(1)} className="mt-4 text-orange-600 font-semibold hover:underline text-sm">Check next month</button>
                                 </div>
                             )}
@@ -538,8 +510,6 @@ const BookingModal = ({
 
                         {/* Sticky Footer */}
                         <div className="p-4 md:p-6 border-t border-gray-100 bg-white flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none z-20">
-
-                            {/* Selected Info */}
                             <div className="w-full md:w-auto text-sm text-gray-500 mb-2 md:mb-0 md:mr-auto text-center md:text-left">
                                 {selectedDateStr && selectedTime ? (
                                     <div className="flex flex-row md:flex-col items-center md:items-start justify-center gap-2 md:gap-0">
@@ -562,12 +532,12 @@ const BookingModal = ({
                                 >
                                     Cancel
                                 </button>
-                                <button
+<button
                                     onClick={handleBookAppointment}
                                     disabled={!selectedDateStr || !selectedTime}
                                     className="flex-1 md:flex-none px-4 md:px-8 py-3 md:py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20 transition-all text-sm md:text-base whitespace-nowrap"
                                 >
-                                    Confirm
+                                    {mode === "update" ? "Update Date & Time" : "Confirm"}
                                 </button>
                             </div>
                         </div>
