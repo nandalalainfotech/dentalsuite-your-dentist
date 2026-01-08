@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { UserWithDashboard } from '../../data/users';
 import { Icons } from './Icons';
+import { dummyUserImages } from '../../data/users';
 
 interface ProfileProps {
   user: UserWithDashboard;
@@ -16,8 +17,11 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     dateOfBirth: user.dateOfBirth,
     gender: user.gender,
     mobileNumber: user.mobileNumber,
+    profileImage: user.profileImage || null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -67,6 +71,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
       const updatedUser: UserWithDashboard = {
         ...user,
         ...formData,
+        profileImage: formData.profileImage || undefined,
       };
 
       onUpdateUser(updatedUser);
@@ -82,9 +87,11 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
       dateOfBirth: user.dateOfBirth,
       gender: user.gender,
       mobileNumber: user.mobileNumber,
+      profileImage: user.profileImage || null,
     });
     setErrors({});
     setIsEditing(false);
+    setIsEditingImage(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -96,6 +103,11 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     });
   };
 
+  const getUserInitials = () => {
+    if (!user.firstName || !user.lastName) return 'U';
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  };
+
   // Helper function to render required symbol
   const RequiredSymbol = () => (
     <span className="text-red-500 ml-1">*</span>
@@ -104,6 +116,28 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   // Determine if field is required (all fields except gender)
   const isRequired = (fieldName: string) => {
     return fieldName !== 'gender';
+  };
+
+  // Image handling functions
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, profileImage: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSelectDummyImage = (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, profileImage: imageUrl }));
+    setIsEditingImage(false);
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, profileImage: null }));
+    setIsEditingImage(false);
   };
 
   return (
@@ -131,8 +165,115 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
           {/* Required fields note */}
           <div className="mb-4">
             <p className="text-sm text-gray-500 flex items-center gap-1">
-              Fields marked with <span className="text-red-500">*</span> are required
+              Fields marked with <span className="text-red-500">* are required</span>
             </p>
+          </div>
+
+          {/* Profile Image Section */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">Profile Picture</label>
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                {formData.profileImage ? (
+                  <img
+                    src={formData.profileImage}
+                    alt={`${formData.firstName} ${formData.lastName}`}
+                    className="w-24 h-24 rounded-2xl object-cover border-4 border-gray-100"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`w-24 h-24 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-500 font-bold text-2xl border-4 border-gray-100 ${formData.profileImage ? 'hidden' : ''}`}>
+                  {getUserInitials()}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingImage(true)}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors shadow-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-600 mb-2">Click the edit button to change your profile picture</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    Upload Photo
+                  </button>
+                  {formData.profileImage && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </div>
+
+            {/* Image Selection Modal */}
+            {isEditingImage && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700">Choose a profile picture</h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingImage(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="grid grid-cols-5 gap-3 mb-3">
+                  {dummyUserImages.map((imageUrl, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleSelectDummyImage(imageUrl)}
+                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${formData.profileImage === imageUrl
+                        ? 'border-orange-500 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Option ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {formData.profileImage === imageUrl && (
+                        <div className="absolute inset-0 bg-orange-500 bg-opacity-20 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">Or upload your own photo using the button above</p>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

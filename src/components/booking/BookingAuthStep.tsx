@@ -104,8 +104,11 @@ const BookingAuthStep: React.FC = () => {
     setIsLoading(false);
   };
 
+  // const handleBack = () => {
+  //   navigate(`/booking/${state.dentistId}/step-3`);
+  // };
   const handleBack = () => {
-    navigate(`/booking/${state.dentistId}/step-3`);
+    navigate(-1);
   };
 
   if (loading || !hasData) {
@@ -318,11 +321,10 @@ const BookingAuthStep: React.FC = () => {
                                 type="password"
                                 value={signupData.confirmPassword}
                                 onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                                className={`w-full px-4 py-3 rounded-lg border-2 ${
-                                  signupData.confirmPassword && signupData.password !== signupData.confirmPassword
+                                className={`w-full px-4 py-3 rounded-lg border-2 ${signupData.confirmPassword && signupData.password !== signupData.confirmPassword
                                     ? 'border-red-300 focus:border-red-500'
                                     : 'border-gray-200 focus:border-orange-500'
-                                } outline-none transition-all`}
+                                  } outline-none transition-all`}
                                 required
                                 placeholder="Re-enter password"
                               />
