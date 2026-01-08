@@ -28,7 +28,6 @@ export const useDashboardData = () => {
             name: `${userData.firstName} ${userData.lastName}`,
             email: userData.email,
             avatar: '',
-            profileCompletion: userData.profileCompletion
           });
 
           setAppointments(userData.appointments);
@@ -41,7 +40,6 @@ export const useDashboardData = () => {
             name: `${user.firstName} ${user.lastName}`,
             email: user.email,
             avatar: '',
-            profileCompletion: 75
           });
 
           setAppointments([

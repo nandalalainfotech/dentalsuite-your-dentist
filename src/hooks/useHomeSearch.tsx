@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { clinicApi } from '../api';
 import { useFilters } from './filters/useFilters';
 import type { Clinic, SearchFilters, Dentist, TimeSlot } from '../types';
@@ -10,8 +10,9 @@ interface TimeSlotWithDentist {
 }
 
 export const useClinicData = () => {
-  const getAllAvailableSlots = (clinic: Clinic): TimeSlotWithDentist[] => {
-    if (!clinic.dentists) return [];
+  const getAllAvailableSlots = useCallback((clinic: Clinic): TimeSlotWithDentist[] => {
+    if (!clinic?.dentists) return [];
+    
     const allSlots: TimeSlotWithDentist[] = [];
 
     clinic.dentists.forEach((dentist: Dentist) => {
@@ -33,7 +34,7 @@ export const useClinicData = () => {
       const timeB = new Date(`2000-01-01 ${b.time}`);
       return timeA.getTime() - timeB.getTime();
     });
-  };
+  }, []);
 
   return { getAllAvailableSlots };
 };
@@ -57,29 +58,31 @@ export const useHomeSearch = () => {
     setLocationInput,
   } = useFilters();
 
-  const handleServiceChange = (value: string) => {
+  const handleServiceChange = useCallback((value: string) => {
     setServiceInput(value);
     setActiveDropdown("service");
     const results = clinicApi.searchClinics(value);
     setServiceResults(results);
-  };
+  }, [setServiceInput]);
 
-  const handleLocationChange = (value: string) => {
+  const handleLocationChange = useCallback((value: string) => {
     setLocationInput(value);
     setActiveDropdown("location");
     const results = clinicApi.searchClinics(value);
     setLocationResults(results);
-  };
+  }, [setLocationInput]);
 
-  const handleClearService = () => {
+  const handleClearService = useCallback(() => {
     setServiceInput("");
+    setServiceResults([]);
     setActiveDropdown(null);
-  };
+  }, [setServiceInput]);
 
-  const handleClearLocation = () => {
+  const handleClearLocation = useCallback(() => {
     setLocationInput("");
+    setLocationResults([]);
     setActiveDropdown(null);
-  };
+  }, [setLocationInput]);
 
   const { searchResults, showResults } = useMemo(() => {
     const hasAnyFilter = serviceInput || locationInput ||
@@ -107,13 +110,21 @@ export const useHomeSearch = () => {
       searchResults: [],
       showResults: false
     };
-  }, [serviceInput, locationInput, selectedLanguage, selectedGender, selectedSpecialty, selectedInsurance, selectedAvailableDays]);
+  }, [
+    serviceInput, 
+    locationInput, 
+    selectedLanguage, 
+    selectedGender, 
+    selectedSpecialty, 
+    selectedInsurance, 
+    selectedAvailableDays
+  ]);
 
   const languages = useMemo(() => clinicApi.getAllLanguages(), []);
   const specialties = useMemo(() => clinicApi.getAllSpecialties(), []);
   const insuranceOptions = useMemo(() => clinicApi.getAllInsurances(), []);
   const availableDaysOptions = useMemo(() => clinicApi.getAllAvailableDays(), []);
-  const genderOptions = ["male", "female", "other"];
+  const genderOptions = useMemo(() => ["male", "female", "other"], []);
 
   return {
     serviceResults,
