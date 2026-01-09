@@ -11,8 +11,7 @@ interface UpcomingAppointmentsProps {
 export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
   appointments,
   onReschedule,
-  onCancel,
-  onViewDetails
+  onCancel
 }) => {
   const getStatusColor = (status: Appointment['status']) => {
     switch (status) {
@@ -111,12 +110,6 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
                   )}
 
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => onViewDetails(appointment.id)}
-                      className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                    >
-                      View Details
-                    </button>
 
                     {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
                       <>
