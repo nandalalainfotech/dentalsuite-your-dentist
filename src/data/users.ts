@@ -1,26 +1,174 @@
 import type { User } from '../types/auth';
 import type { Appointment, Notification, FamilyMember } from '../types/dashboard';
 
-const sampleAppointments: Appointment[] = [
+// Unique appointments for each user
+const vishwaAppointments: Appointment[] = [
   { id: '1', dentistName: 'Dr. Sarah Johnson', clinicName: 'Smile Dental Care', dateTime: new Date('2024-01-15T10:00:00'), status: 'confirmed', treatment: 'Regular Checkup', price: 150 },
   { id: '2', dentistName: 'Dr. Michael Chen', clinicName: 'City Dental Clinic', dateTime: new Date('2024-01-20T14:30:00'), status: 'pending', treatment: 'Teeth Cleaning', price: 120 },
   { id: '3', dentistName: 'Dr. Emily Wilson', clinicName: 'Family Dental', dateTime: new Date('2024-01-25T11:00:00'), status: 'confirmed', treatment: 'Dental Filling', price: 200 }
 ];
 
+const janeAppointments: Appointment[] = [
+  { id: '4', dentistName: 'Dr. Robert Taylor', clinicName: 'Downtown Dental', dateTime: new Date('2024-01-18T09:00:00'), status: 'confirmed', treatment: 'Root Canal', price: 800 },
+  { id: '5', dentistName: 'Dr. Lisa Anderson', clinicName: 'Happy Smiles Clinic', dateTime: new Date('2024-01-22T15:30:00'), status: 'pending', treatment: 'Braces Consultation', price: 150 }
+];
 
+const mikeAppointments: Appointment[] = [
+  { id: '6', dentistName: 'Dr. James Martinez', clinicName: 'Elite Dental Center', dateTime: new Date('2024-01-19T11:00:00'), status: 'confirmed', treatment: 'Wisdom Teeth Extraction', price: 500 },
+  { id: '7', dentistName: 'Dr. Nancy Davis', clinicName: 'Gentle Care Dental', dateTime: new Date('2024-01-26T13:00:00'), status: 'pending', treatment: 'Teeth Whitening', price: 200 }
+];
 
-const sampleNotifications: Notification[] = [
+const sarahAppointments: Appointment[] = [
+  { id: '8', dentistName: 'Dr. Kevin Thompson', clinicName: 'Premier Dental', dateTime: new Date('2024-01-21T10:30:00'), status: 'confirmed', treatment: 'Veneers', price: 1200 }
+];
+
+const davidAppointments: Appointment[] = [
+  { id: '9', dentistName: 'Dr. Amanda White', clinicName: 'Bright Smile Dental', dateTime: new Date('2024-01-17T14:00:00'), status: 'confirmed', treatment: 'Dental Crown', price: 600 }
+];
+
+const sureaAppointments: Appointment[] = [
+  { id: '10', dentistName: 'Dr. Chris Johnson', clinicName: 'Modern Dental Care', dateTime: new Date('2024-01-16T08:30:00'), status: 'confirmed', treatment: 'Deep Cleaning', price: 180 },
+  { id: '11', dentistName: 'Dr. Maria Garcia', clinicName: 'Family Dental Center', dateTime: new Date('2024-01-23T16:00:00'), status: 'pending', treatment: 'Kids Checkup', price: 100 },
+  { id: '12', dentistName: 'Dr. Tom Wilson', clinicName: 'Quick Dental', dateTime: new Date('2024-01-27T12:00:00'), status: 'confirmed', treatment: 'Gum Treatment', price: 250 }
+];
+
+const emilyAppointments: Appointment[] = [
+  { id: '13', dentistName: 'Dr. Rachel Brown', clinicName: 'Care Dental', dateTime: new Date('2024-01-14T09:30:00'), status: 'confirmed', treatment: 'Regular Checkup', price: 140 },
+  { id: '14', dentistName: 'Dr. Steven Lee', clinicName: 'Advanced Dental', dateTime: new Date('2024-01-28T11:30:00'), status: 'pending', treatment: 'Invisalign Consultation', price: 200 }
+];
+
+const alexAppointments: Appointment[] = [
+  { id: '15', dentistName: 'Dr. Jennifer Kim', clinicName: 'Sunshine Dental', dateTime: new Date('2024-01-24T13:30:00'), status: 'confirmed', treatment: 'Night Guard', price: 300 }
+];
+
+const lisaAppointments: Appointment[] = [
+  { id: '16', dentistName: 'Dr. Mark Robinson', clinicName: 'Tranquil Dental', dateTime: new Date('2024-01-19T15:00:00'), status: 'confirmed', treatment: 'Oral Surgery', price: 900 }
+];
+
+const robertAppointments: Appointment[] = [
+  { id: '17', dentistName: 'Dr. Diana Clark', clinicName: 'Comfort Dental', dateTime: new Date('2024-01-22T10:00:00'), status: 'pending', treatment: 'Dental Implant', price: 2000 },
+  { id: '18', dentistName: 'Dr. Brian Foster', clinicName: 'Professional Dental', dateTime: new Date('2024-01-29T14:30:00'), status: 'confirmed', treatment: 'Scale and Polish', price: 150 }
+];
+
+// Unique notifications for each user
+const vishwaNotifications: Notification[] = [
   { id: '1', type: 'appointment_reminder', title: 'Appointment Reminder', message: 'Your appointment with Dr. Sarah Johnson is tomorrow at 10:00 AM', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20), isRead: false },
   { id: '2', type: 'payment_update', title: 'Payment Confirmation', message: 'Your payment of $150 has been confirmed', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72), isRead: true },
   { id: '3', type: 'cancellation', title: 'Appointment Cancellation', message: 'Your appointment on Jan 25 has been cancelled by the clinic', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), isRead: true },
   { id: '4', type: 'feedback_request', title: 'Feedback Request', message: 'How was your recent visit? Please share your experience', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), isRead: false }
 ];
 
-const sampleFamilyMembers: FamilyMember[] = [
-  { id: '1', name: 'John Doe', relationship: 'self', isActive: true },
-  { id: '2', name: 'Jane Doe', relationship: 'spouse', isActive: false },
-  { id: '3', name: 'Jimmy Doe', relationship: 'child', isActive: false },
-  { id: '4', name: 'Robert Doe', relationship: 'father', isActive: false }
+const janeNotifications: Notification[] = [
+  { id: '5', type: 'appointment_reminder', title: 'Upcoming Appointment', message: 'Your root canal appointment is scheduled for tomorrow', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 18), isRead: false },
+  { id: '6', type: 'payment_due', title: 'Payment Due', message: 'Payment of $800 is due for your upcoming treatment', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96), isRead: true },
+  { id: '7', type: 'new_service', title: 'New Service Available', message: 'We now offer orthodontic treatments at our clinic', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 168), isRead: true }
+];
+
+const mikeNotifications: Notification[] = [
+  { id: '8', type: 'appointment_confirmed', title: 'Appointment Confirmed', message: 'Your wisdom teeth extraction has been confirmed', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), isRead: false },
+  { id: '9', type: 'preparation', title: 'Pre-Appointment Instructions', message: 'Please avoid eating 6 hours before your extraction', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 36), isRead: true }
+];
+
+const sarahNotifications: Notification[] = [
+  { id: '10', type: 'appointment_reminder', title: 'Veneers Appointment', message: 'Your veneers fitting is scheduled for next week', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), isRead: true },
+  { id: '11', type: 'payment_update', title: 'Payment Received', message: 'Your payment of $1200 for veneers has been processed', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 120), isRead: false }
+];
+
+const davidNotifications: Notification[] = [
+  { id: '12', type: 'appointment_reminder', title: 'Crown Fitting', message: 'Your dental crown appointment is tomorrow at 2:00 PM', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 22), isRead: false },
+  { id: '13', type: 'insurance_update', title: 'Insurance Coverage', message: 'Your insurance covers 80% of your crown treatment', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72), isRead: true }
+];
+
+const sureaNotifications: Notification[] = [
+  { id: '14', type: 'appointment_reminder', title: 'Kids Dental Checkup', message: "Your child's dental appointment is tomorrow", timestamp: new Date(Date.now() - 1000 * 60 * 60 * 16), isRead: false },
+  { id: '15', type: 'promotion', title: 'Family Discount', message: 'Get 20% off on family dental packages this month', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48), isRead: true },
+  { id: '16', type: 'appointment_confirmed', title: 'Gum Treatment Confirmed', message: 'Your gum treatment appointment has been confirmed', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), isRead: false }
+];
+
+const emilyNotifications: Notification[] = [
+  { id: '17', type: 'appointment_reminder', title: 'Regular Checkup', message: 'Your dental checkup is tomorrow morning', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 14), isRead: false },
+  { id: '18', type: 'follow_up', title: 'Follow-up Needed', message: 'Please schedule a follow-up in 6 months', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 720), isRead: true }
+];
+
+const alexNotifications: Notification[] = [
+  { id: '19', type: 'appointment_reminder', title: 'Night Guard Fitting', message: 'Your custom night guard fitting is tomorrow', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20), isRead: false },
+  { id: '20', type: 'payment_due', title: 'Payment Reminder', message: 'Balance of $150 is due for your night guard', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96), isRead: true }
+];
+
+const lisaNotifications: Notification[] = [
+  { id: '21', type: 'appointment_reminder', title: 'Oral Surgery', message: 'Your oral surgery consultation is tomorrow', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 18), isRead: false },
+  { id: '22', type: 'preparation', title: 'Surgery Instructions', message: 'Please avoid eating or drinking before your surgery', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 42), isRead: true }
+];
+
+const robertNotifications: Notification[] = [
+  { id: '23', type: 'appointment_reminder', title: 'Dental Implant', message: 'Your dental implant consultation is tomorrow', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 16), isRead: false },
+  { id: '24', type: 'payment_update', title: 'Payment Processed', message: 'Your implant payment has been processed successfully', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 120), isRead: false },
+  { id: '25', type: 'follow_up', title: 'Post-Op Checkup', message: 'Schedule your post-operative checkup', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 168), isRead: true }
+];
+
+// Unique family members for each user
+const vishwaFamilyMembers: FamilyMember[] = [
+  { id: '1', name: 'Vishwa C', relationship: 'self', isActive: true },
+  { id: '2', name: 'Priya C', relationship: 'spouse', isActive: false },
+  { id: '3', name: 'Aarav C', relationship: 'child', isActive: false }
+];
+
+const janeFamilyMembers: FamilyMember[] = [
+  { id: '4', name: 'Jane Smith', relationship: 'self', isActive: true },
+  { id: '5', name: 'Tom Smith', relationship: 'spouse', isActive: false },
+  { id: '6', name: 'Emma Smith', relationship: 'child', isActive: false },
+  { id: '7', name: 'Lucas Smith', relationship: 'child', isActive: false }
+];
+
+const mikeFamilyMembers: FamilyMember[] = [
+  { id: '8', name: 'Mike Wilson', relationship: 'self', isActive: true },
+  { id: '9', name: 'Sarah Wilson', relationship: 'spouse', isActive: false },
+  { id: '10', name: 'Oliver Wilson', relationship: 'child', isActive: false }
+];
+
+const sarahFamilyMembers: FamilyMember[] = [
+  { id: '11', name: 'Sarah Brown', relationship: 'self', isActive: true },
+  { id: '12', name: 'David Brown', relationship: 'spouse', isActive: false },
+  { id: '13', name: 'Sophie Brown', relationship: 'child', isActive: false },
+  { id: '14', name: 'Max Brown', relationship: 'father', isActive: false },
+  { id: '15', name: 'Margaret Brown', relationship: 'mother', isActive: false }
+];
+
+const davidFamilyMembers: FamilyMember[] = [
+  { id: '16', name: 'David Lee', relationship: 'self', isActive: true },
+  { id: '17', name: 'Lisa Lee', relationship: 'spouse', isActive: false }
+];
+
+const sureaFamilyMembers: FamilyMember[] = [
+  { id: '18', name: 'Surea Dalmia', relationship: 'self', isActive: true },
+  { id: '19', name: 'Rhea Dalmia', relationship: 'spouse', isActive: false },
+  { id: '20', name: 'Kabir Dalmia', relationship: 'child', isActive: false },
+  { id: '21', name: 'Anaya Dalmia', relationship: 'child', isActive: false }
+];
+
+const emilyFamilyMembers: FamilyMember[] = [
+  { id: '22', name: 'Emily Johnson', relationship: 'self', isActive: true },
+  { id: '23', name: 'Michael Johnson', relationship: 'spouse', isActive: false },
+  { id: '24', name: 'Lily Johnson', relationship: 'child', isActive: false }
+];
+
+const alexFamilyMembers: FamilyMember[] = [
+  { id: '25', name: 'Alex Martinez', relationship: 'self', isActive: true },
+  { id: '26', name: 'Carlos Martinez', relationship: 'father', isActive: false }
+];
+
+const lisaFamilyMembers: FamilyMember[] = [
+  { id: '27', name: 'Lisa Anderson', relationship: 'self', isActive: true },
+  { id: '28', name: 'James Anderson', relationship: 'spouse', isActive: false },
+  { id: '29', name: 'Grace Anderson', relationship: 'child', isActive: false }
+];
+
+const robertFamilyMembers: FamilyMember[] = [
+  { id: '30', name: 'Robert Taylor', relationship: 'self', isActive: true },
+  { id: '31', name: 'Patricia Taylor', relationship: 'spouse', isActive: false },
+  { id: '32', name: 'Kevin Taylor', relationship: 'child', isActive: false },
+  { id: '33', name: 'Laura Taylor', relationship: 'child', isActive: false },
+  { id: '34', name: 'George Taylor', relationship: 'father', isActive: false }
 ];
 
 // Extended user data with dashboard information
@@ -34,7 +182,6 @@ export interface UserWithDashboard extends User {
 // Dummy user images for testing
 export const dummyUserImages = [
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
 ];
 
@@ -49,10 +196,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61412345678',
     createdAt: '2024-01-15T10:00:00Z',
-    appointments: sampleAppointments,
-    notifications: sampleNotifications,
-    familyMembers: sampleFamilyMembers,
-    profileImage: "'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'"
+    appointments: vishwaAppointments,
+    notifications: vishwaNotifications,
+    familyMembers: vishwaFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '2',
@@ -64,11 +211,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61423456789',
     createdAt: '2024-02-20T14:30:00Z',
-    appointments: [sampleAppointments[0], sampleAppointments[1]],
-    profileImage: "",
-
-    notifications: [sampleNotifications[0], sampleNotifications[2]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
+    appointments: janeAppointments,
+    notifications: janeNotifications,
+    familyMembers: janeFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '3',
@@ -80,11 +226,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61434567890',
     createdAt: '2024-03-10T09:15:00Z',
-    appointments: [sampleAppointments[1], sampleAppointments[2]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-
-    notifications: [sampleNotifications[1], sampleNotifications[3]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1]]
+    appointments: mikeAppointments,
+    notifications: mikeNotifications,
+    familyMembers: mikeFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '4',
@@ -96,10 +241,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61445678901',
     createdAt: '2024-01-25T16:45:00Z',
-    appointments: [sampleAppointments[2]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[3]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[3]]
+    appointments: sarahAppointments,
+    notifications: sarahNotifications,
+    familyMembers: sarahFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '5',
@@ -111,25 +256,25 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61456789012',
     createdAt: '2024-02-14T11:20:00Z',
-    appointments: [sampleAppointments[0]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[0], sampleNotifications[1]],
-    familyMembers: [sampleFamilyMembers[0]]
+    appointments: davidAppointments,
+    notifications: davidNotifications,
+    familyMembers: davidFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '6',
     email: 'surea@gmail.com',
     password: 'password123',
-    firstName: 'surea',
-    lastName: 'dalmia',
+    firstName: 'Surea',
+    lastName: 'Dalmia',
     dateOfBirth: '1985-03-15',
     gender: 'male',
     mobileNumber: '+61412345678',
     createdAt: '2024-01-01T09:00:00Z',
-    appointments: sampleAppointments,
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: sampleNotifications,
-    familyMembers: sampleFamilyMembers
+    appointments: sureaAppointments,
+    notifications: sureaNotifications,
+    familyMembers: sureaFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '7',
@@ -141,10 +286,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61467890123',
     createdAt: '2024-03-15T11:30:00Z',
-    appointments: [sampleAppointments[0], sampleAppointments[2]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[0], sampleNotifications[3]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[2]]
+    appointments: emilyAppointments,
+    notifications: emilyNotifications,
+    familyMembers: emilyFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '8',
@@ -156,10 +301,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61478901234',
     createdAt: '2024-02-28T14:45:00Z',
-    appointments: [sampleAppointments[1]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[1], sampleNotifications[2]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[3]]
+    appointments: alexAppointments,
+    notifications: alexNotifications,
+    familyMembers: alexFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '9',
@@ -171,10 +316,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'female',
     mobileNumber: '+61489012345',
     createdAt: '2024-04-10T16:20:00Z',
-    appointments: [sampleAppointments[0]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[0]],
-    familyMembers: [sampleFamilyMembers[0]]
+    appointments: lisaAppointments,
+    notifications: lisaNotifications,
+    familyMembers: lisaFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   },
   {
     id: '10',
@@ -186,10 +331,10 @@ export const staticUsers: UserWithDashboard[] = [
     gender: 'male',
     mobileNumber: '+61490123456',
     createdAt: '2024-01-20T10:15:00Z',
-    appointments: [sampleAppointments[1], sampleAppointments[2]],
-    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    notifications: [sampleNotifications[1], sampleNotifications[2], sampleNotifications[3]],
-    familyMembers: [sampleFamilyMembers[0], sampleFamilyMembers[1], sampleFamilyMembers[2]]
+    appointments: robertAppointments,
+    notifications: robertNotifications,
+    familyMembers: robertFamilyMembers,
+    profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
   }
 ];
 

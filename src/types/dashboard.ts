@@ -21,14 +21,14 @@ export interface FamilyMember {
   id: string;
   name: string;
   relationship: 'self' | 'father' | 'mother' | 'child' | 'spouse' | 'other';
-  dateOfBirth?: Date;
+  dateOfBirth?: string;
   avatar?: string;
   isActive: boolean;
 }
 
 export interface Notification {
   id: string;
-  type: 'appointment_reminder' | 'cancellation' | 'payment_update' | 'feedback_request' | 'general';
+  type: 'appointment_reminder' | 'cancellation' | 'payment_update' | 'feedback_request' | 'general' | 'payment_due' | 'new_service' | 'appointment_confirmed' | 'preparation' | 'insurance_update' | 'promotion' | 'follow_up';
   title: string;
   message: string;
   timestamp: Date;
