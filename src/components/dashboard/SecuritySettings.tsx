@@ -67,9 +67,7 @@ interface SecuritySettingsProps {
 
 const SecuritySettings: React.FC<SecuritySettingsProps> = ({
   onChangePassword,
-  onEnable2FA
 }) => {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -302,7 +300,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('current')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    className="absolute right-3 top-8 sm:top-10 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   >
                     {showPassword.current ? <Icons.EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icons.Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
@@ -326,7 +324,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('new')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    className="absolute right-3 top-8 sm:top-10 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   >
                     {showPassword.new ? <Icons.EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icons.Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
@@ -368,7 +366,7 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility('confirm')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    className="absolute right-3 top-8 sm:top-10 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   >
                     {showPassword.confirm ? <Icons.EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icons.Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
@@ -441,50 +439,6 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Two-Factor Authentication Card */}
-        <div className="group bg-white p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl lg:rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
-          <div className="flex flex-col gap-3 sm:gap-4">
-            {/* Card Header */}
-            <div className="flex items-start gap-3">
-              <div className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-300 group-hover:scale-110 flex-shrink-0 ${twoFactorEnabled ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-600'}`}>
-                <Icons.Shield className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">Two-Factor Authentication</h3>
-                  {twoFactorEnabled && (
-                    <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-green-100 text-green-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1">
-                      <Icons.CheckCircle className="w-3 h-3" />
-                      <span className="hidden xs:inline">Active</span>
-                      <span className="xs:hidden">On</span>
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                  Add an extra layer of security. We'll send a verification code to your device when logging in.
-                </p>
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <button
-              onClick={() => {
-                setTwoFactorEnabled(!twoFactorEnabled);
-                onEnable2FA();
-              }}
-              className={`
-                w-full px-4 py-2.5 sm:py-2.5 font-medium sm:font-semibold rounded-lg sm:rounded-xl transition-all duration-300 text-sm
-                ${twoFactorEnabled
-                  ? 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                  : 'bg-green-500 hover:bg-green-600 text-white shadow-sm hover:shadow-md'
-                }
-              `}
-            >
-              {twoFactorEnabled ? 'Turn Off' : 'Enable'}
-            </button>
-          </div>
         </div>
 
         {/* Security Tips Card */}
