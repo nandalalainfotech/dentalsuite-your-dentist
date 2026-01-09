@@ -15,6 +15,7 @@ import BookingStep5 from '../components/booking/BookingStep5'
 import BookingSuccess from '../components/booking/BookingSuccess'
 import { ProtectedRoute } from '../components/layout/ProtectedRoute'
 import Aboutus from '../pages/Aboutus'
+import ListYourPractice from '../pages/ListYourPractice'
 
 function AppRoutes() {
     return (
@@ -37,7 +38,8 @@ function AppRoutes() {
                 <Route path="/booking/:id/auth" element={<BookingAuthStep />} />
                 <Route path="/booking/:id/step-4" element={<BookingStep4 />} />
                 <Route path="/booking/:id/step-5" element={<BookingStep5 />} />
-                <Route path="aboutus" element={<Aboutus />} />
+                <Route path="/aboutus" element={<Aboutus />} />
+                <Route path="/list-your-practice" element={<ListYourPractice />} />
                 <Route path="/booking/success" element={
                     <ProtectedRoute>
                         <BookingSuccess />

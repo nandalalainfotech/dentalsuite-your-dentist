@@ -23,18 +23,18 @@ export const useDashboardData = () => {
 
         if (userData) {
           setFullUserData(userData);
-          setDashboardUser({
+setDashboardUser({
             id: userData.id,
             name: `${userData.firstName} ${userData.lastName}`,
             email: userData.email,
-            avatar: '',
+            avatar: userData.profileImage || '',
           });
 
           setAppointments(userData.appointments);
           setNotifications(userData.notifications);
           setFamilyMembers(userData.familyMembers);
-        } else {
-          // Fallback data if user not found in static data
+} else {
+          // User authenticated but not found in static data - create empty user data
           setDashboardUser({
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
@@ -42,26 +42,17 @@ export const useDashboardData = () => {
             avatar: '',
           });
 
-          setAppointments([
-            { id: '1', dentistName: 'Dr. Sarah Johnson', clinicName: 'Smile Dental Care', dateTime: new Date('2024-01-15T10:00:00'), status: 'confirmed', treatment: 'Regular Checkup', price: 150 },
-            { id: '2', dentistName: 'Dr. Michael Chen', clinicName: 'City Dental Clinic', dateTime: new Date('2024-01-20T14:30:00'), status: 'pending', treatment: 'Teeth Cleaning', price: 120 }
-          ]);
-
-          setNotifications([
-            { id: '1', type: 'appointment_reminder', title: 'Appointment Reminder', message: 'Your appointment with Dr. Sarah Johnson is tomorrow at 10:00 AM', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 20), isRead: false },
-            { id: '2', type: 'payment_update', title: 'Payment Confirmation', message: 'Your payment of $150 has been confirmed', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72), isRead: true }
-          ]);
-
+          setAppointments([]);
+          setNotifications([]);
           setFamilyMembers([
-            { id: '1', name: user.firstName, relationship: 'self', isActive: true },
-            { id: '2', name: 'Family Member', relationship: 'other', isActive: false }
+            { id: '1', name: user.firstName, relationship: 'self', isActive: true }
           ]);
         }
-      } else {
-        const firstUser = staticUsers[0];
-        setAppointments(firstUser?.appointments || []);
-        setNotifications(firstUser?.notifications || []);
-        setFamilyMembers(firstUser?.familyMembers || []);
+} else {
+        // No user logged in - don't show any data
+        setAppointments([]);
+        setNotifications([]);
+        setFamilyMembers([]);
       }
 
       setLoading(false);
