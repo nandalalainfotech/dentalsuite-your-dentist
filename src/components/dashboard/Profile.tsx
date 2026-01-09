@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import type { UserWithDashboard } from '../../data/users';
 import { Icons } from './Icons';
-import { dummyUserImages } from '../../data/users';
+
 
 interface ProfileProps {
   user: UserWithDashboard;
@@ -103,11 +103,6 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     });
   };
 
-  const getUserInitials = () => {
-    if (!user.firstName || !user.lastName) return 'U';
-    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-  };
-
   // Helper function to render required symbol
   const RequiredSymbol = () => (
     <span className="text-red-500 ml-1">*</span>
@@ -130,10 +125,6 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     }
   };
 
-  const handleSelectDummyImage = (imageUrl: string) => {
-    setFormData(prev => ({ ...prev, profileImage: imageUrl }));
-    setIsEditingImage(false);
-  };
 
   const handleRemoveImage = () => {
     setFormData(prev => ({ ...prev, profileImage: null }));
@@ -178,7 +169,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                   <img
                     src={formData.profileImage}
                     alt={`${formData.firstName} ${formData.lastName}`}
-                    className="w-24 h-24 rounded-2xl object-cover border-4 border-gray-100"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -187,8 +178,10 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                     }}
                   />
                 ) : null}
-                <div className={`w-24 h-24 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-500 font-bold text-2xl border-4 border-gray-100 ${formData.profileImage ? 'hidden' : ''}`}>
-                  {getUserInitials()}
+                <div className={`w-24 h-24 bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-2xl ${formData.profileImage ? 'hidden' : ''}`}>
+                  <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
                 <button
                   type="button"
@@ -214,7 +207,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                      className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm"
                     >
                       Remove
                     </button>
@@ -229,51 +222,6 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                 className="hidden"
               />
             </div>
-
-            {/* Image Selection Modal */}
-            {isEditingImage && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">Choose a profile picture</h3>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingImage(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="grid grid-cols-5 gap-3 mb-3">
-                  {dummyUserImages.map((imageUrl, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => handleSelectDummyImage(imageUrl)}
-                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${formData.profileImage === imageUrl
-                        ? 'border-orange-500 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                    >
-                      <img
-                        src={imageUrl}
-                        alt={`Option ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      {formData.profileImage === imageUrl && (
-                        <div className="absolute inset-0 bg-orange-500 bg-opacity-20 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500">Or upload your own photo using the button above</p>
-              </div>
-            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
