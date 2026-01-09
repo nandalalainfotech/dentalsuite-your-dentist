@@ -588,8 +588,8 @@ const DentistProfile = () => {
                             key={day}
                             className={`flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 rounded-md text-xs sm:text-sm
                             ${time === "Closed"
-                                ? "bg-red-50 text-red-500"
-                                : "bg-gray-100 text-gray-700"
+                                ? "text-red-500"
+                                : "text-gray-700"
                               }`}
                           >
                             <span className="font-medium">{day}</span>

@@ -441,7 +441,7 @@ const ClinicProfile = () => {
                 <main className="flex-1 min-w-0 space-y-6 sm:space-y-8 md:space-y-10">
                   {/* ==================== BASIC INFO SECTION ==================== */}
                   <section>
-                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
                       <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                         <i className="bi bi-info-circle text-orange-600 text-sm sm:text-base"></i>
                         Basic Info
@@ -464,7 +464,7 @@ const ClinicProfile = () => {
                     }}
                     className="scroll-mt-36"
                   >
-                    <div className="flex items-center justify-between mb-4 sm:mb-6 border-b-4 border-orange-400">
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
                       <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                         <i className="bi bi-briefcase text-orange-600 text-sm sm:text-base"></i>
                         Our Services
@@ -521,10 +521,10 @@ const ClinicProfile = () => {
                     }}
                     className="scroll-mt-20 sm:scroll-mt-24 md:scroll-mt-36"
                   >
-                    <div className="flex items-center justify-between mb-4 sm:mb-5 md:mb-6 border-b-2 sm:border-b-3 md:border-b-4 border-orange-400">
-                      <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2 sm:gap-3">
-                        <i className="bi bi-images text-orange-600 text-lg sm:text-xl md:text-2xl"></i>
-                        <span className="whitespace-nowrap">Gallery</span>
+                    <div className="flex items-center justify-between mb-6 border-b-4 border-orange-400">
+                      <h2 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                        <i className="bi bi-images text-orange-600 text-sm sm:text-base"></i>
+                        Gallery
                       </h2>
                     </div>
 
@@ -883,8 +883,8 @@ const ClinicProfile = () => {
                               key={day}
                               className={`flex justify-between items-center px-4 py-3 rounded-md text-sm sm:text-base
                               ${isClosed
-                                  ? "bg-red-50 text-red-500"
-                                  : "bg-gray-100 text-gray-700"
+                                  ? "text-red-500"
+                                  : "text-gray-700"
                                 }
                               `}
                             >
