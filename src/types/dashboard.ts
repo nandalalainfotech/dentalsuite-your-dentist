@@ -15,6 +15,10 @@ export interface Appointment {
   treatment: string;
   notes?: string;
   price?: number;
+  // Practice-side fields
+  patientName?: string;
+  patientEmail?: string;
+  patientPhone?: string;
 }
 
 export interface FamilyMember {
@@ -30,9 +34,17 @@ export interface FamilyMember {
 }
 
 
+export interface MenuItem {
+  id: 'appointments' | 'overview' | 'profile' | 'patients' | 'settings' | 'Help Centre';
+  label: string;
+  icon: React.FC<unknown>;
+  badge?: number;
+};
+
+
 export interface Notification {
   id: string;
-  type: 'appointment_reminder' | 'cancellation' | 'payment_update' | 'feedback_request' | 'general' | 'payment_due' | 'new_service' | 'appointment_confirmed' | 'preparation' | 'insurance_update' | 'promotion' | 'follow_up';
+  type: 'appointment_reminder' | 'cancellation' | 'payment_update' | 'feedback_request' | 'general' | 'payment_due' | 'new_service' | 'appointment_confirmed' | 'preparation' | 'insurance_update' | 'promotion' | 'follow_up' | 'new_booking' | 'payment_received' | 'review_received' | 'inventory_alert';
   title: string;
   message: string;
   timestamp: Date;
