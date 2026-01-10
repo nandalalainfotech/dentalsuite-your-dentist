@@ -10,6 +10,13 @@ export interface User {
   createdAt: string;
 }
 
+export interface UserWithDashboard extends User {
+  appointments: import('./dashboard').Appointment[];
+  notifications: import('./dashboard').Notification[];
+  familyMembers: import('./dashboard').FamilyMember[];
+  profileImage?: string;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

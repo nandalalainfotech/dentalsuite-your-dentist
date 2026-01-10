@@ -1,7 +1,6 @@
-import type { User } from '../types/auth';
+import type { User, UserWithDashboard } from '../types/auth';
 import type { Appointment, Notification, FamilyMember } from '../types/dashboard';
 
-// Unique appointments for each user
 const vishwaAppointments: Appointment[] = [
   { id: '1', dentistName: 'Dr. Sarah Johnson', clinicName: 'Smile Dental Care', dateTime: new Date('2024-01-15T10:00:00'), status: 'confirmed', treatment: 'Regular Checkup', price: 150 },
   { id: '2', dentistName: 'Dr. Michael Chen', clinicName: 'City Dental Clinic', dateTime: new Date('2024-01-20T14:30:00'), status: 'pending', treatment: 'Teeth Cleaning', price: 120 },
@@ -171,13 +170,7 @@ const robertFamilyMembers: FamilyMember[] = [
   { id: '34', name: 'George Taylor', relationship: 'father', isActive: false }
 ];
 
-// Extended user data with dashboard information
-export interface UserWithDashboard extends User {
-  appointments: Appointment[];
-  notifications: Notification[];
-  familyMembers: FamilyMember[];
-  profileImage?: string;
-}
+export type { UserWithDashboard } from '../types/auth';
 
 // Dummy user images for testing
 export const dummyUserImages = [

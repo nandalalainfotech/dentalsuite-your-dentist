@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthState, AuthContextType, LoginCredentials, SignupCredentials, User } from '../types/auth';
-import { validateUserCredentials, findUserByEmail, addUser, updateUser } from '../data/users';
+import { validateCredentials, getUserByEmail, addUser, updateUser } from '../data/userApi';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: LoginCredentials): Promise<{ success: boolean; message: string }> => {
     try {
-      const user = validateUserCredentials(credentials.emailOrMobile, credentials.password);
+      const user = validateCredentials(credentials.emailOrMobile, credentials.password);
 
       if (user) {
         setState({
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (credentials: SignupCredentials): Promise<{ success: boolean; message: string }> => {
     try {
-      const existingUser = findUserByEmail(credentials.email);
+      const existingUser = getUserByEmail(credentials.email);
 
       if (existingUser) {
         return { success: false, message: 'Email already exists' };

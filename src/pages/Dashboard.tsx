@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Appointments } from '../components/dashboard/Appointments';
 import { NotificationsPanel } from '../components/dashboard/NotificationsPanel';
 import { FamilyMembers } from '../components/dashboard/FamilyMembers';
@@ -9,9 +10,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBooking } from '../hooks/booking/useBookingContext';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
 import { Icons } from '../components/dashboard/Icons';
+import { AlertCircle } from 'lucide-react';
 import type { DashboardUser } from '../types/dashboard';
 import { Profile } from '../components/dashboard/Profile';
-import { updateUserProfile } from '../data/users';
+import { updateUserProfile } from '../data/userApi';
 import { clinics } from '../data/clinics';
 import BookingModal from '../components/booking/BookingModal';
 import type { Clinic } from '../types';
@@ -74,19 +76,19 @@ const NavLink: React.FC<NavLinkProps> = ({ icon, label, active = false, badge, o
   </button>
 );
 
-// Mobile Navigation Drawer - Now works on Mobile AND Tablet (< 1024px)
 const MobileNav: React.FC<{
   activeView: string;
   onNavClick: (view: string) => void;
   onClose: () => void;
+  onLogout: () => void;
   user: DashboardUser | null;
   unreadCount: number;
-}> = ({ activeView, onNavClick, onClose, user, unreadCount }) => {
-  const navigate = useNavigate();
+}> = ({ activeView, onNavClick, onClose, onLogout, user, unreadCount }) => {
 
   const handleNavClick = (view: string) => {
     if (view === 'logout') {
-      navigate('/');
+      onClose();
+      onLogout();
       return;
     }
     onNavClick(view);
@@ -105,13 +107,11 @@ const MobileNav: React.FC<{
 
   return (
     <>
-      {/* Overlay - Changed from md:hidden to lg:hidden for tablet support */}
       <div
         className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-300"
         onClick={onClose}
       />
 
-      {/* Drawer - Changed from md:hidden to lg:hidden for tablet support */}
       <div className="fixed right-0 top-0 bottom-0 w-80 sm:w-96 bg-white z-50 lg:hidden animate-in slide-in-from-right duration-300 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-6 sm:p-8 bg-gray-100 text-gray-800">
@@ -125,21 +125,17 @@ const MobileNav: React.FC<{
             </button>
           </div>
 
-          {/* Profile Card (same as desktop) */}
           <div className="group relative bg-white backdrop-blur-md rounded-3xl p-3 border border-white/20 transition-all duration-300">
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-2">
-                {/* Profile Image Container */}
                 <div className="w-16 h-16 rounded-full overflow-hidden shadow-md border-2 border-white/20">
                   {user?.profileImage ? (
-                    // If user has a profile image, show it
                     <img
                       src={user.profileImage}
                       alt={user?.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    // If no profile image, show a placeholder
                     <div className="w-full h-full bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 flex items-center justify-center">
                       <svg className="w-8 h-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -172,9 +168,10 @@ const MobileNav: React.FC<{
                   ? 'bg-orange-50 text-orange-700 font-semibold'
                   : 'text-gray-600 hover:bg-gray-50'
                 }
+                ${item.id === 'logout' ? 'text-red-500 hover:bg-red-50' : ''}
               `}
             >
-              <span className={`${activeView === item.id ? 'text-orange-500' : 'text-gray-400'}`}>
+              <span className={`${activeView === item.id ? 'text-orange-500' : (item.id === 'logout' ? 'text-red-500' : 'text-gray-400')}`}>
                 {item.icon}
               </span>
               <span className="flex-1 text-left text-base sm:text-lg">{item.label}</span>
@@ -193,7 +190,6 @@ const MobileNav: React.FC<{
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="p-4 sm:p-6 border-t border-gray-100">
           <p className="text-xs text-gray-400 text-center">
             © 2026 Dental Care. All rights reserved.
@@ -208,7 +204,7 @@ type ActiveViewType = 'appointments' | 'notifications' | 'profile' | 'family' | 
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  useAuth();
+  const { logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
@@ -225,6 +221,7 @@ const Dashboard: React.FC = () => {
   const { setRescheduleAppointmentId } = useBooking();
 
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // 4. State for logout modal
   const [activeView, setActiveView] = useState<ActiveViewType>(() => {
     const viewParam = searchParams.get('view');
     const validViews: ActiveViewType[] = ['appointments', 'notifications', 'profile', 'family', 'help', 'security'];
@@ -235,7 +232,6 @@ const Dashboard: React.FC = () => {
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [selectedDentistId, setSelectedDentistId] = useState<string>('');
 
-  // Update URL when active view changes
   useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set('view', activeView);
@@ -247,8 +243,18 @@ const Dashboard: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    logout();
     navigate('/');
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   const handleBookAppointment = () => navigate('/');
@@ -261,7 +267,6 @@ const Dashboard: React.FC = () => {
     const appointment = appointments.find(apt => apt.id === appointmentId);
     if (!appointment) return;
 
-    // Find clinic that contains the dentist
     const clinic = clinics.find(c =>
       c.dentists?.some(d => d.name === appointment.dentistName)
     );
@@ -271,16 +276,13 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Find the dentist ID
     const dentist = clinic.dentists?.find(d => d.name === appointment.dentistName);
     if (!dentist) {
       console.error('Dentist not found:', appointment.dentistName);
       return;
     }
 
-    // Set reschedule appointment ID in booking context
     setRescheduleAppointmentId(appointmentId);
-
     setSelectedClinic(clinic);
     setSelectedDentistId(dentist.id);
     setShowBookingModal(true);
@@ -356,10 +358,7 @@ const Dashboard: React.FC = () => {
               gender: updatedUser.gender,
               mobileNumber: updatedUser.mobileNumber
             });
-            if (result) {
-              // Update the dashboardUser state to reflect changes
-              console.log('Profile updated:', result);
-            }
+            if (result) console.log('Profile updated:', result);
           }}
         />
       ) : null,
@@ -409,17 +408,14 @@ const Dashboard: React.FC = () => {
               <div className="group relative bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-4">
-                    {/* Profile Image Container */}
                     <div className="w-20 h-20 rounded-full overflow-hidden shadow-md">
                       {dashboardUser?.profileImage ? (
-                        // If user has a profile image, show it
                         <img
                           src={dashboardUser.profileImage}
                           alt={dashboardUser?.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        // If no profile image, show a placeholder with user icon
                         <div className="w-full h-full bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 flex items-center justify-center">
                           <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -453,7 +449,7 @@ const Dashboard: React.FC = () => {
 
                 <div className="mt-8 pt-6 border-t border-gray-200/60">
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
                   >
                     <Icons.Logout />
@@ -539,39 +535,37 @@ const Dashboard: React.FC = () => {
             <div className="relative">
               {/* Mobile/Tablet Header (< 1024px) */}
               <div className="lg:hidden mb-6">
-                {/* Profile Card (Mobile/Tablet) - Same as desktop but responsive */}
-                  <div className="flex items-center gap-4">
-                    {/* Profile Image Container */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
-                        {dashboardUser?.profileImage ? (
-                          <img
-                            src={dashboardUser.profileImage}
-                            alt={dashboardUser?.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h2 className="font-bold text-gray-900 text-lg truncate">
-                        {dashboardUser?.name || 'Loading...'}
-                      </h2>
-                      <p className="text-gray-500 text-sm truncate">{dashboardUser?.email || ''}</p>
-                      <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
-                        User profile
-                      </p>
+                {/* Profile Card (Mobile/Tablet) */}
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
+                      {dashboardUser?.profileImage ? (
+                        <img
+                          src={dashboardUser.profileImage}
+                          alt={dashboardUser?.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                {/* Quick Action Button for Mobile/Tablet */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-bold text-gray-900 text-lg truncate">
+                      {dashboardUser?.name || 'Loading...'}
+                    </h2>
+                    <p className="text-gray-500 text-sm truncate">{dashboardUser?.email || ''}</p>
+                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
+                      User profile
+                    </p>
+                  </div>
+                </div>
+
                 <button
                   onClick={handleBookAppointment}
                   className="mt-4 w-full sm:w-auto px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-300"
@@ -620,7 +614,6 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </nav>
-
         </div>
       </div>
 
@@ -634,6 +627,7 @@ const Dashboard: React.FC = () => {
             }
           }}
           onClose={() => setShowMobileNav(false)}
+          onLogout={handleLogoutClick}
           user={dashboardUser}
           unreadCount={unreadNotifications}
         />
@@ -649,8 +643,67 @@ const Dashboard: React.FC = () => {
           }}
           clinic={selectedClinic}
           selectedDentistId={selectedDentistId}
+          mode="update"
+          onAppointmentUpdated={(appointmentId: string, newDate: string, newTime: string) => {
+            const updatedAppointments = appointments.map(apt => {
+              if (apt.id === appointmentId) {
+                const [year, month, day] = newDate.split('-').map(Number);
+                const [hours, minutes] = newTime.split(':').map(Number);
+                const newDateTime = new Date(year, month - 1, day, hours, minutes);
+
+                return { ...apt, dateTime: newDateTime };
+              }
+              return apt;
+            });
+            updateAppointments(updatedAppointments);
+          }}
         />
       )}
+
+      {/* --- 8. LOGOUT CONFIRMATION MODAL (PORTAL) --- */}
+      {showLogoutModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* Full Screen Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={cancelLogout}
+          ></div>
+
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 m-4 animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="text-red-600" size={24} />
+              </div>
+
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Sign out?
+              </h3>
+
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to sign out? You will need to log in again to access your dashboard.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelLogout}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       <Footer />
     </div>
   );
