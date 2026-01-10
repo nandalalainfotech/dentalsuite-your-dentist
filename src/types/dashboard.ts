@@ -20,11 +20,15 @@ export interface Appointment {
 export interface FamilyMember {
   id: string;
   name: string;
-  relationship: 'self' | 'father' | 'mother' | 'child' | 'spouse' | 'other';
+  relationship: 'self' | 'father' | 'mother' | 'child' | 'spouse' | 'other' | 'sibling';
   dateOfBirth?: string;
+  email?: string;
+  phone?: string;
+  gender?: 'male' | 'female' | 'other';
   avatar?: string;
   isActive: boolean;
 }
+
 
 export interface Notification {
   id: string;

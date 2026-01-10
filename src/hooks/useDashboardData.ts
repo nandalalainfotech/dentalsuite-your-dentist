@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { staticUsers } from '../data/users';
-import type { UserWithDashboard } from '../data/users';
+import { getUserById } from '../data/userApi';
+import type { UserWithDashboard } from '../types/auth';
 import type { DashboardUser, Appointment, Notification, FamilyMember } from '../types/dashboard';
 import { useAuth } from './useAuth';
 
@@ -18,12 +18,11 @@ export const useDashboardData = () => {
       setLoading(true);
 
       if (user) {
-        // Find the user in static data by email
-        const userData: UserWithDashboard | undefined = staticUsers.find(u => u.id === user.id);
+        const userData: UserWithDashboard | null = getUserById(user.id);
 
         if (userData) {
           setFullUserData(userData);
-setDashboardUser({
+          setDashboardUser({
             id: userData.id,
             name: `${userData.firstName} ${userData.lastName}`,
             email: userData.email,
@@ -33,8 +32,7 @@ setDashboardUser({
           setAppointments(userData.appointments);
           setNotifications(userData.notifications);
           setFamilyMembers(userData.familyMembers);
-} else {
-          // User authenticated but not found in static data - create empty user data
+        } else {
           setDashboardUser({
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
@@ -48,8 +46,7 @@ setDashboardUser({
             { id: '1', name: user.firstName, relationship: 'self', isActive: true }
           ]);
         }
-} else {
-        // No user logged in - don't show any data
+      } else {
         setAppointments([]);
         setNotifications([]);
         setFamilyMembers([]);

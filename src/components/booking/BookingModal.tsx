@@ -9,6 +9,7 @@ interface BookingModalProps {
     clinic: Clinic | null;
     selectedDentistId?: string;
     mode?: "new" | "update";
+    onAppointmentUpdated?: (appointmentId: string, newDate: string, newTime: string) => void;
 }
 
 const BookingModal = ({
@@ -17,10 +18,11 @@ const BookingModal = ({
     clinic,
     selectedDentistId,
     mode = "new",
+    onAppointmentUpdated,
 }: BookingModalProps) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { setDateTime } = useBooking();
+    const { setDateTime, state } = useBooking();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -123,7 +125,7 @@ const BookingModal = ({
 
     }, [listStartDate, currentDentist]);
 
-const handleBookAppointment = () => {
+    const handleBookAppointment = () => {
         if (!selectedDateStr || !selectedTime) return;
 
         const dateObj = new Date(selectedDateStr);
@@ -133,7 +135,9 @@ const handleBookAppointment = () => {
         const formattedDate = `${year}-${month}-${day}`;
 
         if (mode === "update") {
-            // Just update the date and time in the booking context
+            if (onAppointmentUpdated && state.rescheduleAppointmentId) {
+                onAppointmentUpdated(state.rescheduleAppointmentId, formattedDate, selectedTime);
+            }
             setDateTime(formattedDate, selectedTime);
             onClose();
         } else {
@@ -446,7 +450,7 @@ const handleBookAppointment = () => {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
 
-<div className="p-4 md:p-6 lg:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
+                        <div className="p-4 md:p-6 lg:p-8 border-b border-gray-100 flex-shrink-0 bg-white">
                             <h2 className="text-base md:text-xl lg:text-2xl font-bold text-gray-800">
                                 {mode === "update" ? "Update appointment time" : "Select a time"}
                             </h2>
@@ -532,7 +536,7 @@ const handleBookAppointment = () => {
                                 >
                                     Cancel
                                 </button>
-<button
+                                <button
                                     onClick={handleBookAppointment}
                                     disabled={!selectedDateStr || !selectedTime}
                                     className="flex-1 md:flex-none px-4 md:px-8 py-3 md:py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-600/20 transition-all text-sm md:text-base whitespace-nowrap"

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Menu, X, LayoutDashboard } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.svg";
 import { useAuth } from "../../hooks/useAuth";
@@ -66,34 +66,15 @@ const Navbar: React.FC = () => {
 
                     {isAuthenticated && user ? (
                         <>
-                            <Link to="/dashboard">
-                                <button
-                                    onClick={() => setMenuOpen(false)}
-                                    className="w-full px-4 py-2 rounded-lg font-bold text-sm text-black focus:text-orange-600 transition flex items-center space-x-2"
-                                >
-                                    <LayoutDashboard size={16} />
-                                    <span>Dashboard</span>
-                                </button>
-                            </Link>
-
-                            <div className="px-4 py-2">
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-medium text-gray-700">
-                                        {user.firstName} {user.lastName}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* <button
+                            <button
                                 onClick={() => {
-                                    logout();
                                     setMenuOpen(false);
-                                    navigate('/');
+                                    navigate('/dashboard');
                                 }}
-                                className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition"
+                                className="w-full px-4 py-2 rounded-lg text-left font-medium text-sm text-gray-700 hover:text-orange-600 transition"
                             >
-                                Logout
-                            </button> */}
+                                {user.firstName} {user.lastName}
+                            </button>
                             <button onClick={handleLogout} className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition">
                                 Logout
                             </button>
