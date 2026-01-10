@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Footer from "../components/layout/Footer";
 
 const ListYourPractice: React.FC = () => {
@@ -23,9 +24,9 @@ const ListYourPractice: React.FC = () => {
                             </p>
 
                             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                                <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-medium transition">
+                                <Link to="/practice/signup" className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-medium transition text-center">
                                     Join for free
-                                </button>
+                                </Link>
                                 <button className="bg-white hover:bg-gray-300 text-gray-800 px-8 py-3 rounded-lg font-medium border border-gray-300 transition">
                                     Book a consultation
                                 </button>
@@ -205,18 +206,22 @@ const ListYourPractice: React.FC = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="bg-orange-600 hover:bg-orange-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition">
+                            <Link to="/practice/signup" className="bg-orange-600 hover:bg-orange-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition text-center">
                                 Create Practice Profile
-                            </button>
+                            </Link>
                             <button className="bg-white hover:bg-gray-300 text-gray-800 px-10 py-4 rounded-lg font-semibold text-lg border border-gray-300 transition">
                                 Talk to an Expert
                             </button>
                         </div>
 
-                        <p className="mt-8 text-gray-500 text-sm">
-                            Need help onboarding? Reach our dedicated support line at
-                            <span className="font-medium text-gray-700"> 1800 123 456</span>
-                        </p>
+                            <p className="mt-8 text-gray-500 text-sm">
+                                Already have a practice account? 
+                                <Link to="/practice/signin" className="text-orange-600 hover:underline ml-1">Sign in here</Link>
+                            </p>
+                            <p className="mt-2 text-gray-500 text-sm">
+                                Need help onboarding? Reach our dedicated support line at
+                                <span className="font-medium text-gray-700"> 1800 123 456</span>
+                            </p>
                     </div>
                 </section>
             </div>
