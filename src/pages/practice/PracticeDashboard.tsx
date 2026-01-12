@@ -21,13 +21,15 @@ export default function PracticeDashboard() {
   }
 
   const menuItems: MenuItem[] = [
-    { id: 'appointments', label: 'Appointments', icon: Icons.appointments, badge: 1 },
-    { id: 'overview', label: 'Notifications', icon: Icons.Bell, badge: 10 },
-    { id: 'profile', label: 'Profile', icon: Icons.profile, badge: 12 },
+    { id: 'appointments', label: 'My Directory', icon: Icons.appointments, badge: 1 },
+    { id: 'overview', label: 'View Profile', icon: Icons.User, badge: 10 },
+    { id: 'profile', label: 'Appointments', icon: Icons.Clock, badge: 12 },
+    { id: 'certificate', label: 'My Certificate', icon: Icons.Certificate, badge: 5 },
     { id: 'patients', label: 'Patients', icon: Icons.patients, badge: 18 },
-    { id: 'settings', label: 'Settings', icon: Icons.settings, badge: 23 },
+    { id: 'settings', label: 'Settings', icon: Icons.settings, badge: 18 },
     { id: 'Help Centre', label: 'Help Centre', icon: Icons.HelpDesk, badge: 0 },
   ];
+
 
 
   return (

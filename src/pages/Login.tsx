@@ -1,23 +1,30 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import loginimg from "../assets/login.png"
 
 export default function Login() {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
-  const [formData, setFormData] = useState({
-    emailOrMobile: "",
-    password: ""
-  });
+
+  const [formData, setFormData] = useState({ emailOrMobile: "", password: "" });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError("");
+        setSuccess("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,103 +38,147 @@ export default function Login() {
     }
 
     const result = await login(formData);
-    
+
     if (result.success) {
-      setSuccess(result.message);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      setSuccess(result.message || "Login Successful!");
+      setTimeout(() => navigate("/dashboard"), 1500);
     } else {
-      setError(result.message);
+      setError(result.message || "Invalid credentials");
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
-      <div className="bg-white w-full max-w-[420px] shadow-xl rounded-2xl p-6 sm:p-8 mt-10">
+    <div className="fixed inset-0 z-50 flex bg-white">
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Patient log in</h1>
+      {/* --- SNACKBAR UI (Mobile Friendly) --- */}
+      <div className="fixed top-5 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
 
-          <Link to="/" className="text-gray-500 text-xl">✕</Link>
-        </div>
-
-        <p className="text-gray-600 text-sm mb-6">
-          Log in to book your appointments easily
-        </p>
-
+        {/* Error Toast */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
-            {error}
+          <div className="pointer-events-auto w-full max-w-sm bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between animate-bounce-in">
+            <div className="flex items-center gap-3">
+              <div className="p-1 bg-white/20 rounded-full shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium">{error}</span>
+            </div>
+            <button onClick={() => setError("")} className="ml-4 text-red-100 hover:text-white shrink-0 p-1">
+              ✕
+            </button>
           </div>
         )}
 
+        {/* Success Toast */}
         {success && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
-            {success}
+          <div className="pointer-events-auto w-full max-w-sm bg-green-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between animate-bounce-in">
+            <div className="flex items-center gap-3">
+              <div className="p-1 bg-white/20 rounded-full shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium">{success}</span>
+            </div>
           </div>
         )}
+      </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="text-sm font-medium">Email or Mobile</label>
+      {/* LEFT SIDE */}
+      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 overflow-y-auto">
+        <div className="max-w-md w-full">
+
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              🦷
+            </div>
+            <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
+            <p className="text-gray-500 text-sm mt-1">login to your account</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               type="text"
               name="emailOrMobile"
               value={formData.emailOrMobile}
               onChange={handleInputChange}
-              className="w-full mt-1 border-2 rounded-md px-3 py-2 
-              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
-              placeholder="Enter email or mobile number"
+              placeholder="Enter Your Email Address"
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-orange-500'}`}
             />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full mt-1 border-2 rounded-md px-3 py-2 
-              focus:ring-0 focus:border-orange-600 focus:border-2 outline-none"
-              placeholder="Enter password"
+              placeholder="Password"
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-orange-500'}`}
             />
+
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" className="h-4 w-4 accent-orange-600" />
+              Remember me
+            </label>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition disabled:opacity-50 shadow-lg shadow-orange-600/30"
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
+
+            <Link
+              to="/forgot-password"
+              className="text-sm text-gray-400 hover:text-gray-600 text-center block mt-2"
+            >
+              Forgot password?
+            </Link>
+          </form>
+
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-400">Or continue with</span>
+            </div>
           </div>
 
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="h-4 w-4 accent-orange-600" />
-            Keep me logged into this trusted device
-          </label>
+          {/* Social login buttons */}
+          <div className="flex flex-col gap-3">
+            <button className="w-full flex justify-center items-center gap-2 bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition">
+              Sign in with Google
+            </button>
+            <button className="w-full flex justify-center items-center gap-2 bg-gray-100 text-black py-3 rounded-xl hover:bg-gray-200 transition font-medium">
+              Sign up with Email
+            </button>
+          </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-orange-600 font-bold text-white py-2 rounded-lg hover:bg-orange-600 hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Logging in..." : "Log in"}
-          </button>
+          {/* --- NEW SECTION: SIGN UP LINK --- */}
+          <p className="text-center text-sm text-gray-600 mt-8">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-bold text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+            >
+              Create account
+            </Link>
+          </p>
 
-          <Link
-            to="/forgot-password"
-            className="text-blue-600 text-sm hover:underline"
-          >
-            Forgot your password?
-          </Link>
-        </form>
-
-        <hr className="my-6" />
-
-        <p className="text-sm mb-2">Don't have an account?</p>
-        <Link to="/signup">
-          <button className="w-full bg-black font-bold  text-white py-2 rounded-lg 
-            hover:bg-orange-600  hover:text-white transition-all">
-            Create patient account
-          </button></Link>
-
-        <div className="text-center mt-5">
-          <a href="#" className="text-blue-600 text-sm">Need help?</a>
         </div>
+      </div>
+
+      {/* RIGHT SIDE (Illustration) */}
+      <div className="hidden md:flex flex-1 bg-orange-600 justify-center items-center relative overflow-hidden">
+        <div className="absolute w-96 h-96 bg-orange-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -top-10 -left-10 animate-blob"></div>
+        <img
+          src={loginimg}
+          alt="Illustration"
+          className="max-w-md object-contain relative z-10"
+        />
       </div>
     </div>
   );

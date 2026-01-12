@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../hooks/booking/useBookingContext";
 import { useBookingDataLoader } from "../../hooks/booking/useBookingDataLoader";
@@ -10,6 +10,11 @@ const BookingStep2: React.FC = () => {
   const { state, setPatientStatus } = useBooking();
   const { loading, hasData } = useBookingDataLoader();
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [vishwa, setVishwa] = useState<{
+    name: string;
+    phone: string;
+    address: string;
+  } | null>(null);
 
   const handleStatusSelection = (status: "new" | "existing") => {
     setPatientStatus(status);
@@ -19,6 +24,18 @@ const BookingStep2: React.FC = () => {
   const handleBack = () => {
     navigate(`/booking/${state.dentistId}/step-1`);
   };
+
+
+  useEffect(() => {
+
+    const data = {
+      name: "vishwa",
+      phone: "+91 8992292929",
+      address: "Trichy, Tamilnadu, India - 621105"
+    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setVishwa(data);
+  }, []);
 
   if (loading || !hasData) {
     return (
@@ -53,7 +70,17 @@ const BookingStep2: React.FC = () => {
             </button>
           </nav>
           <div className="max-w-4xl mx-auto animate__animated animate__slideInUp animate__faster">
-
+            <div>
+              {vishwa && (
+                <div className="rounded-full bg-red-400 w-fit ">
+                  <div className="m-10">
+                    <p className="font-bold">Name:<span>{vishwa?.name}</span></p>
+                    <p className="font-bold">Phone: <span>{vishwa?.phone}</span></p>
+                    <p className="font-bold">Address: <span>{vishwa?.address}</span></p>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="space-y-10 animate-in slide-in-from-top-4 duration-300">
               <section>
                 <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4 lg:mb-6">
@@ -93,7 +120,7 @@ const BookingStep2: React.FC = () => {
         </div>
       </main>
 
-{/* Booking Modal */}
+      {/* Booking Modal */}
       {state.clinic && (
         <BookingModal
           isOpen={showBookingModal}
