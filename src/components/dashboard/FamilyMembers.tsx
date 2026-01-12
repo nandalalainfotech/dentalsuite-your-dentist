@@ -70,13 +70,16 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     resetNewMemberForm();
   };
 
-  const handleNewMemberFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleNewMemberFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setNewMemberForm(prev => ({
       ...prev,
       [name]: value
     }));
   };
+
 
   const handleAddMemberSubmit = () => {
     if (!newMemberForm.name.trim() || !newMemberForm.relationship) {
@@ -374,7 +377,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                 />
               </div>
               <div>
-                <label htmlFor="newMemberEmail" className="block text-sm font-medium text-gray-900 mb-1">Email</label>
+                <label htmlFor="newMemberEmail" className="block text-sm font-medium text-gray-900 mb-1">Email <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   id="newMemberEmail"
@@ -382,10 +385,11 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                   value={newMemberForm.email}
                   onChange={handleNewMemberFormChange}
                   className="block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  required
                 />
               </div>
               <div>
-                <label htmlFor="newMemberPhone" className="block text-sm font-medium text-gray-900 mb-1">Phone</label>
+                <label htmlFor="newMemberPhone" className="block text-sm font-medium text-gray-900 mb-1">Phone <span className="text-red-500">*</span></label>
                 <input
                   type="tel"
                   id="newMemberPhone"
@@ -393,10 +397,11 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                   value={newMemberForm.phone}
                   onChange={handleNewMemberFormChange}
                   className="block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  required
                 />
               </div>
               <div>
-                <label htmlFor="newMemberGender" className="block text-sm font-medium text-gray-900 mb-1">Gender</label>
+                <label htmlFor="newMemberGender" className="block text-sm font-medium text-gray-900 mb-1">Gender <span className="text-red-500">*</span></label>
                 <select
                   id="newMemberGender"
                   name="gender"
@@ -411,28 +416,29 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                 </select>
               </div>
               <div>
-                <label htmlFor="newMemberDob" className="block text-sm font-medium text-gray-900 mb-1">Date of Birth</label>
+                <label
+                  htmlFor="newMemberDob"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  Date of Birth
+                </label>
+
                 <div className="relative">
                   <input
-                    type="text" // Changed to text for placeholder accuracy
+                    type="date"
                     id="newMemberDob"
                     name="dob"
                     value={newMemberForm.dob}
                     onChange={handleNewMemberFormChange}
-                    placeholder="mm/dd/yyyy" // Placeholder as per image
-                    onFocus={(e) => (e.target.type = 'date')} // Change to date input on focus
-                    onBlur={(e) => { // Change back to text if empty after blur
-                      if (!e.target.value) {
-                        e.target.type = 'text';
-                      }
-                    }}
                     className="block w-full px-3 py-2.5 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                   />
+
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <Icons.Calendar />
                   </div>
                 </div>
               </div>
+
               <div>
                 <label htmlFor="newMemberRelationship" className="block text-sm font-medium text-gray-900 mb-1">Relationship <span className="text-red-500">*</span></label>
                 <select
