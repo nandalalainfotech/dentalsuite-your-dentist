@@ -107,67 +107,67 @@ const robertNotifications: Notification[] = [
 
 // Unique family members for each user
 const vishwaFamilyMembers: FamilyMember[] = [
-  { id: '1', name: 'Vishwa C', relationship: 'self', isActive: true },
-  { id: '2', name: 'Priya C', relationship: 'spouse', isActive: false },
-  { id: '3', name: 'Aarav C', relationship: 'child', isActive: false }
+  { id: '1', name: 'Vishwa C', relationship: 'self', dateOfBirth: '2002-01-01', email: 'vishwa@nandalalainfotech.com', phone: '+61412345678', gender: 'male', isActive: true },
+  { id: '2', name: 'Priya C', relationship: 'spouse', dateOfBirth: '2000-05-15', email: 'priya.c@example.com', phone: '+61412345679', gender: 'female', isActive: false },
+  { id: '3', name: 'Aarav C', relationship: 'child', dateOfBirth: '2018-08-20', email: 'aarav.c@example.com', phone: '+61412345680', gender: 'male', isActive: false }
 ];
 
 const janeFamilyMembers: FamilyMember[] = [
-  { id: '4', name: 'Jane Smith', relationship: 'self', isActive: true },
-  { id: '5', name: 'Tom Smith', relationship: 'spouse', isActive: false },
-  { id: '6', name: 'Emma Smith', relationship: 'child', isActive: false },
-  { id: '7', name: 'Lucas Smith', relationship: 'child', isActive: false }
+  { id: '4', name: 'Jane Smith', relationship: 'self', dateOfBirth: '1985-08-22', email: 'jane.smith@example.com', phone: '+61423456789', gender: 'female', isActive: true },
+  { id: '5', name: 'Tom Smith', relationship: 'spouse', dateOfBirth: '1983-03-10', email: 'tom.smith@example.com', phone: '+61423456790', gender: 'male', isActive: false },
+  { id: '6', name: 'Emma Smith', relationship: 'child', dateOfBirth: '2015-11-28', email: '', phone: '+61423456791', gender: 'female', isActive: false },
+  { id: '7', name: 'Lucas Smith', relationship: 'child', dateOfBirth: '2012-06-14', email: '', phone: '+61423456792', gender: 'male', isActive: false }
 ];
 
 const mikeFamilyMembers: FamilyMember[] = [
-  { id: '8', name: 'Mike Wilson', relationship: 'self', isActive: true },
-  { id: '9', name: 'Sarah Wilson', relationship: 'spouse', isActive: false },
-  { id: '10', name: 'Oliver Wilson', relationship: 'child', isActive: false }
+  { id: '8', name: 'Mike Wilson', relationship: 'self', dateOfBirth: '1992-12-03', email: 'mike.wilson@example.com', phone: '+61434567890', gender: 'male', isActive: true },
+  { id: '9', name: 'Sarah Wilson', relationship: 'spouse', dateOfBirth: '1994-07-18', email: 'sarah.wilson@example.com', phone: '+61434567891', gender: 'female', isActive: false },
+  { id: '10', name: 'Oliver Wilson', relationship: 'child', dateOfBirth: '2019-02-22', email: '', phone: '+61434567892', gender: 'male', isActive: false }
 ];
 
 const sarahFamilyMembers: FamilyMember[] = [
-  { id: '11', name: 'Sarah Brown', relationship: 'self', isActive: true },
-  { id: '12', name: 'David Brown', relationship: 'spouse', isActive: false },
-  { id: '13', name: 'Sophie Brown', relationship: 'child', isActive: false },
-  { id: '14', name: 'Max Brown', relationship: 'father', isActive: false },
-  { id: '15', name: 'Margaret Brown', relationship: 'mother', isActive: false }
+  { id: '11', name: 'Sarah Brown', relationship: 'self', dateOfBirth: '1988-04-18', email: 'sarah.brown@example.com', phone: '+61445678901', gender: 'female', isActive: true },
+  { id: '12', name: 'David Brown', relationship: 'spouse', dateOfBirth: '1986-09-25', email: 'david.brown@example.com', phone: '+61445678902', gender: 'male', isActive: false },
+  { id: '13', name: 'Sophie Brown', relationship: 'child', dateOfBirth: '2017-12-08', email: '', phone: '+61445678903', gender: 'female', isActive: false },
+  { id: '14', name: 'Max Brown', relationship: 'father', dateOfBirth: '1955-03-30', email: 'max.brown.sr@example.com', phone: '+61445678904', gender: 'male', isActive: false },
+  { id: '15', name: 'Margaret Brown', relationship: 'mother', dateOfBirth: '1958-07-12', email: 'margaret.brown@example.com', phone: '+61445678905', gender: 'female', isActive: false }
 ];
 
 const davidFamilyMembers: FamilyMember[] = [
-  { id: '16', name: 'David Lee', relationship: 'self', isActive: true },
-  { id: '17', name: 'Lisa Lee', relationship: 'spouse', isActive: false }
+  { id: '16', name: 'David Lee', relationship: 'self', dateOfBirth: '1995-09-30', email: 'david.lee@example.com', phone: '+61456789012', gender: 'male', isActive: true },
+  { id: '17', name: 'Lisa Lee', relationship: 'spouse', dateOfBirth: '1997-01-14', email: 'lisa.lee@example.com', phone: '+61456789013', gender: 'female', isActive: false }
 ];
 
 const sureaFamilyMembers: FamilyMember[] = [
-  { id: '18', name: 'Surea Dalmia', relationship: 'self', isActive: true },
-  { id: '19', name: 'Rhea Dalmia', relationship: 'spouse', isActive: false },
-  { id: '20', name: 'Kabir Dalmia', relationship: 'child', isActive: false },
-  { id: '21', name: 'Anaya Dalmia', relationship: 'child', isActive: false }
+  { id: '18', name: 'Surea Dalmia', relationship: 'self', dateOfBirth: '1985-03-15', email: 'surea@gmail.com', phone: '+61412345678', gender: 'male', isActive: true },
+  { id: '19', name: 'Rhea Dalmia', relationship: 'spouse', dateOfBirth: '1988-11-02', email: 'rhea.dalmia@example.com', phone: '+61412345679', gender: 'female', isActive: false },
+  { id: '20', name: 'Kabir Dalmia', relationship: 'child', dateOfBirth: '2016-04-25', email: '', phone: '+61412345680', gender: 'male', isActive: false },
+  { id: '21', name: 'Anaya Dalmia', relationship: 'child', dateOfBirth: '2019-09-10', email: '', phone: '+61412345681', gender: 'female', isActive: false }
 ];
 
 const emilyFamilyMembers: FamilyMember[] = [
-  { id: '22', name: 'Emily Johnson', relationship: 'self', isActive: true },
-  { id: '23', name: 'Michael Johnson', relationship: 'spouse', isActive: false },
-  { id: '24', name: 'Lily Johnson', relationship: 'child', isActive: false }
+  { id: '22', name: 'Emily Johnson', relationship: 'self', dateOfBirth: '1991-07-22', email: 'emily.johnson@example.com', phone: '+61467890123', gender: 'female', isActive: true },
+  { id: '23', name: 'Michael Johnson', relationship: 'spouse', dateOfBirth: '1989-02-14', email: 'michael.johnson@example.com', phone: '+61467890124', gender: 'male', isActive: false },
+  { id: '24', name: 'Lily Johnson', relationship: 'child', dateOfBirth: '2020-05-18', email: '', phone: '+61467890125', gender: 'female', isActive: false }
 ];
 
 const alexFamilyMembers: FamilyMember[] = [
-  { id: '25', name: 'Alex Martinez', relationship: 'self', isActive: true },
-  { id: '26', name: 'Carlos Martinez', relationship: 'father', isActive: false }
+  { id: '25', name: 'Alex Martinez', relationship: 'self', dateOfBirth: '1987-11-08', email: 'alex.martinez@example.com', phone: '+61478901234', gender: 'male', isActive: true },
+  { id: '26', name: 'Carlos Martinez', relationship: 'father', dateOfBirth: '1960-06-20', email: 'carlos.martinez.sr@example.com', phone: '+61478901235', gender: 'male', isActive: false }
 ];
 
 const lisaFamilyMembers: FamilyMember[] = [
-  { id: '27', name: 'Lisa Anderson', relationship: 'self', isActive: true },
-  { id: '28', name: 'James Anderson', relationship: 'spouse', isActive: false },
-  { id: '29', name: 'Grace Anderson', relationship: 'child', isActive: false }
+  { id: '27', name: 'Lisa Anderson', relationship: 'self', dateOfBirth: '1993-02-14', email: 'lisa.anderson@example.com', phone: '+61489012345', gender: 'female', isActive: true },
+  { id: '28', name: 'James Anderson', relationship: 'spouse', dateOfBirth: '1991-08-07', email: 'james.anderson@example.com', phone: '+61489012346', gender: 'male', isActive: false },
+  { id: '29', name: 'Grace Anderson', relationship: 'child', dateOfBirth: '2018-10-30', email: '', phone: '+61489012347', gender: 'female', isActive: false }
 ];
 
 const robertFamilyMembers: FamilyMember[] = [
-  { id: '30', name: 'Robert Taylor', relationship: 'self', isActive: true },
-  { id: '31', name: 'Patricia Taylor', relationship: 'spouse', isActive: false },
-  { id: '32', name: 'Kevin Taylor', relationship: 'child', isActive: false },
-  { id: '33', name: 'Laura Taylor', relationship: 'child', isActive: false },
-  { id: '34', name: 'George Taylor', relationship: 'father', isActive: false }
+  { id: '30', name: 'Robert Taylor', relationship: 'self', dateOfBirth: '1989-06-30', email: 'robert.taylor@example.com', phone: '+61490123456', gender: 'male', isActive: true },
+  { id: '31', name: 'Patricia Taylor', relationship: 'spouse', dateOfBirth: '1991-12-11', email: 'patricia.taylor@example.com', phone: '+61490123457', gender: 'female', isActive: false },
+  { id: '32', name: 'Kevin Taylor', relationship: 'child', dateOfBirth: '2014-03-22', email: '', phone: '+61490123458', gender: 'male', isActive: false },
+  { id: '33', name: 'Laura Taylor', relationship: 'child', dateOfBirth: '2016-07-15', email: '', phone: '+61490123459', gender: 'female', isActive: false },
+  { id: '34', name: 'George Taylor', relationship: 'father', dateOfBirth: '1962-01-08', email: 'george.taylor.sr@example.com', phone: '+61490123460', gender: 'male', isActive: false }
 ];
 
 export type { UserWithDashboard } from '../types/auth';

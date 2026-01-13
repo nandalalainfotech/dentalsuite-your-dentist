@@ -2,23 +2,24 @@ import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.svg";
-import { useAuth } from "../../hooks/useAuth";
-import UserDropdown from "./UserDropdown";
+import { usePracticeAuth } from "../../hooks/usePracticeAuth";
+import ConfirmLogoutModal from "../layout/ConfirmLogoutModal";
 
-const Navbar: React.FC = () => {
+const PracticeNavbar: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const { user, isAuthenticated, logout } = useAuth();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const { practice, isAuthenticated, logout } = usePracticeAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         await logout();
         setMenuOpen(false);
-        navigate('/', { replace: true });
+        setShowLogoutModal(false);
+        navigate('/list-your-practice', { replace: true });
     };
 
-
     return (
-        <nav className="w-full bg-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 sticky top-0 z-50">
+        <nav className="w-full bg-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 sticky top-0 z-50 border-b border-gray-200">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
 
                 <Link to="/" className="flex items-center gap-2">
@@ -26,19 +27,22 @@ const Navbar: React.FC = () => {
                 </Link>
 
                 <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
-
-                    <Link to="/list-your-practice" target="blank">
-                        <button className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-black hover:text-orange-600 transition">
-                            List Your Practice
-                        </button>
-                    </Link>
-
-                    {isAuthenticated && user ? (
-                        <UserDropdown />
+                    {isAuthenticated && practice ? (
+                        <>
+                            <span className="text-sm text-gray-600">
+                                Welcome, {practice.practiceName}
+                            </span>
+                            <button
+                                onClick={() => setShowLogoutModal(true)}
+                                className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-red-600 hover:text-red-700 transition"
+                            >
+                                Logout
+                            </button>
+                        </>
                     ) : (
-                        <Link to="/login">
+                        <Link to="/practice/signin">
                             <button className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-black hover:text-orange-600 transition">
-                                Login
+                                Practice Login
                             </button>
                         </Link>
                     )}
@@ -54,45 +58,48 @@ const Navbar: React.FC = () => {
 
             {menuOpen && (
                 <div className="md:hidden mt-2 sm:mt-3 space-y-2 pb-2 sm:pb-3">
-
-                    <Link to="/list-your-practice">
-                        <button
-                            onClick={() => setMenuOpen(false)}
-                            className="w-full px-4 py-2 rounded-lg font-bold text-sm text-black focus:text-orange-600 transition"
-                        >
-                            List Your Practice
-                        </button>
-                    </Link>
-
-                    {isAuthenticated && user ? (
+                    {isAuthenticated && practice ? (
                         <>
+                            <div className="px-4 py-2 text-sm text-gray-600">
+                                Welcome, {practice.practiceName}
+                            </div>
                             <button
                                 onClick={() => {
                                     setMenuOpen(false);
-                                    navigate('/dashboard');
+                                    navigate('/practice/dashboard');
                                 }}
                                 className="w-full px-4 py-2 rounded-lg text-left font-medium text-sm text-gray-700 hover:text-orange-600 transition"
                             >
-                                {user.firstName} {user.lastName}
+                                Dashboard
                             </button>
-                            <button onClick={handleLogout} className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition">
+                            <button
+                                onClick={() => setShowLogoutModal(true)}
+                                className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition"
+                            >
                                 Logout
                             </button>
                         </>
                     ) : (
-                        <Link to="/login">
+                        <Link to="/practice/signin">
                             <button
                                 onClick={() => setMenuOpen(false)}
                                 className="w-full px-4 py-2 rounded-lg font-bold text-sm text-black focus:text-orange-600 transition"
                             >
-                                Login
+                                Practice Login
                             </button>
                         </Link>
                     )}
                 </div>
             )}
+
+            {/* Confirm Logout Modal */}
+            <ConfirmLogoutModal
+                open={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
+                onConfirm={handleLogout}
+            />
         </nav>
     );
 };
 
-export default Navbar;
+export default PracticeNavbar;

@@ -63,7 +63,7 @@ const BookingStep4: React.FC = () => {
         lastName: user.lastName || "",
         email: user.email || "",
         phone: user.mobileNumber || "",
-        dateOfBirth: user.dateOfBirth || "",
+        dateOfBirth: 'dateOfBirth' in user ? user.dateOfBirth : "",
         reason: "",
       });
     }
@@ -189,18 +189,18 @@ const BookingStep4: React.FC = () => {
                               (m) => m.id === memberId
                             );
                             if (member) {
-                              setFormData({
-                                firstName: member.name.split(" ")[0] || "",
-                                lastName:
-                                  member.name.split(" ").slice(1).join(" ") || "",
-                                email: "",
-                                phone: "",
-                                dateOfBirth: member.dateOfBirth
-                                  ? new Date(member.dateOfBirth).toISOString().split("T")[0]
-                                  : "",
-                                reason: "",
-                              });
-                            }
+                               setFormData({
+                                 firstName: member.name.split(" ")[0] || "",
+                                 lastName:
+                                   member.name.split(" ").slice(1).join(" ") || "",
+                                 email: member.email || "",
+                                 phone: member.phone || "",
+                                 dateOfBirth: member.dateOfBirth
+                                   ? new Date(member.dateOfBirth).toISOString().split("T")[0]
+                                   : "",
+                                 reason: "",
+                               });
+                             }
                           } else {
                             // Reset if "Enter details manually" is selected
                             setFormData({
