@@ -94,8 +94,8 @@ export default function PracticeSignIn() {
             </button>
 
             {/* Header Content */}
-            <div className="flex flex-col items-center">
-              <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
+            <div className="flex flex-col ">
+              <h1 className="text-4xl font-bold mt-4">Login</h1>
               <p className="text-gray-500 text-sm mt-1">
                 Practice portal login
               </p>
@@ -103,13 +103,6 @@ export default function PracticeSignIn() {
 
           </div>
 
-
-          {/* <div className="flex flex-col items-center mb-6">
-            <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Practice portal login
-            </p>
-          </div> */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -145,7 +138,7 @@ export default function PracticeSignIn() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition disabled:opacity-50 shadow-lg shadow-orange-600/30"
+              className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition disabled:opacity-50 shadow-lg shadow-orange-600/30"
             >
               {isLoading ? "Signing in..." : "Login"}
             </button>
@@ -162,7 +155,7 @@ export default function PracticeSignIn() {
             Don&apos;t have a practice account?{" "}
             <Link
               to="/practice/signup"
-              className="font-bold text-orange-600 hover:text-orange-700 hover:underline"
+              className="font-bold text-orange-500 hover:text-orange-600 hover:underline"
             >
               Create account
             </Link>

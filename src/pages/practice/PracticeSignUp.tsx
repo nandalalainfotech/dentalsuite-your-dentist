@@ -118,9 +118,19 @@ export default function PracticeSignUp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto mt-10">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="relative mb-6">
+          {/* Close / Back Button – TOP RIGHT */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center
+               rounded-full bg-gray-100 hover:bg-gray-200
+               text-gray-600 text-xl transition"
+              aria-label="Go back"
+            >
+              ✕
+            </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Your Dentist Practice Portal</h1>
           <p className="text-gray-600">Connect with thousands of patients across Australia</p>
         </div>
@@ -139,7 +149,7 @@ export default function PracticeSignUp() {
         )}
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white border rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
 
             {/* Practice Information */}
@@ -373,7 +383,7 @@ export default function PracticeSignUp() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Creating Practice Account..." : "Create Practice Account"}
             </button>

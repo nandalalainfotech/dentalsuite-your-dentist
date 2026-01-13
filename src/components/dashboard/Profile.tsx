@@ -143,7 +143,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
           >
             <Icons.Edit />
             Edit Profile
