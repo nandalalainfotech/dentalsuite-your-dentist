@@ -1,23 +1,33 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePracticeAuth } from "../../hooks/usePracticeAuth";
+import loginimg from "../../assets/login.png";
 
 export default function PracticeSignIn() {
   const navigate = useNavigate();
   const { login, isLoading } = usePracticeAuth();
+
   const [formData, setFormData] = useState({
     emailOrMobile: "",
     password: ""
   });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError("");
+        setSuccess("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,107 +43,140 @@ export default function PracticeSignIn() {
     const result = await login(formData);
 
     if (result.success) {
-      setSuccess(result.message);
-      setTimeout(() => {
-        navigate("/practice/dashboard");
-      }, 1500);
+      setSuccess(result.message || "Login Successful!");
+      setTimeout(() => navigate("/practice/dashboard"), 1500);
     } else {
-      setError(result.message);
+      setError(result.message || "Invalid credentials");
     }
   };
 
   return (
-    <div className="mt-20 from-orange-50 to-blue-50 flex items-center justify-center px-4">
-      <div className="bg-white w-full max-w-md shadow-2xl rounded-2xl p-8">
+    <div className="fixed inset-0 z-50 flex bg-white">
 
-        {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Practice Sign In</h1>
-          <p className="text-gray-600 text-sm mt-2">Welcome back to your practice portal</p>
-        </div>
+      {/* TOASTS */}
+      <div className="fixed top-5 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
 
-        {/* Success/Error Messages */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
+          <div className="pointer-events-auto w-full max-w-sm bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between animate-bounce-in">
+            <div className="flex items-center gap-3">
+              <div className="p-1 bg-white/20 rounded-full">
+                ⚠️
+              </div>
+              <span className="text-sm font-medium">{error}</span>
+            </div>
+            <button onClick={() => setError("")} className="ml-4 text-white">✕</button>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-            {success}
+          <div className="pointer-events-auto w-full max-w-sm bg-green-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce-in">
+            ✅ <span className="text-sm font-medium">{success}</span>
           </div>
         )}
+      </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email Address
-            </label>
+      {/* LEFT SIDE */}
+      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 overflow-y-auto">
+        <div className="max-w-md w-full">
+
+          {/* Header */}
+          <div className="relative mb-6">
+
+            {/* Close / Back Button – TOP RIGHT */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center
+               rounded-full bg-gray-100 hover:bg-gray-200
+               text-gray-600 text-xl transition"
+              aria-label="Go back"
+            >
+              ✕
+            </button>
+
+            {/* Header Content */}
+            <div className="flex flex-col items-center">
+              <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
+              <p className="text-gray-500 text-sm mt-1">
+                Practice portal login
+              </p>
+            </div>
+
+          </div>
+
+
+          {/* <div className="flex flex-col items-center mb-6">
+            <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Practice portal login
+            </p>
+          </div> */}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
-              type="email"
+              type="text"
               name="emailOrMobile"
               value={formData.emailOrMobile}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-              placeholder="practice@example.com"
-              required
+              placeholder="Practice Email Address"
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-200 focus:ring-orange-500"
+                }`}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password
-            </label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-              placeholder="Enter your password"
-              required
+              placeholder="Password"
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-200 focus:ring-orange-500"
+                }`}
             />
-          </div>
 
-          <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500" />
+              <input type="checkbox" className="h-4 w-4 accent-orange-600" />
               Remember me
             </label>
-            <Link to="/practice/forgot-password" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700 transition disabled:opacity-50 shadow-lg shadow-orange-600/30"
+            >
+              {isLoading ? "Signing in..." : "Login"}
+            </button>
+
+            <Link
+              to="/practice/forgot-password"
+              className="text-sm text-gray-400 hover:text-gray-600 text-center"
+            >
               Forgot password?
             </Link>
-          </div>
+          </form>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        
-
-        {/* Sign Up Link */}
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 text-sm">
-            Don't have a practice account?{' '}
-            <Link to="/practice/signup" className="text-orange-600 hover:text-orange-700 font-semibold">
-              Sign up here
+          <p className="text-center text-sm text-gray-600 mt-8">
+            Don&apos;t have a practice account?{" "}
+            <Link
+              to="/practice/signup"
+              className="font-bold text-orange-600 hover:text-orange-700 hover:underline"
+            >
+              Create account
             </Link>
           </p>
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            &copy; 2026 Your Dentist All rights reserved.
-          </p>
-        </div>
+      {/* RIGHT SIDE */}
+      <div className="hidden md:flex flex-1 bg-orange-500 justify-center items-center">
+        <img
+          src={loginimg}
+          alt="Practice Login"
+          className="max-w-md object-contain"
+        />
       </div>
     </div>
   );

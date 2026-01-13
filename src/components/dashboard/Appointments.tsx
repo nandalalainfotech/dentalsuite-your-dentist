@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
 import type { Appointment } from '../../types/dashboard';
 import { Icons } from './Icons';
 
@@ -24,7 +24,22 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     const [rescheduleTime, setRescheduleTime] = useState('');
     const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
 
+    // --- NEW STATE FOR CUSTOM DROPDOWN ---
+    const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+    const timeDropdownRef = useRef<HTMLDivElement>(null);
+
     const displayAppointments = activeTab === 'current' ? appointments : appointmentHistory;
+
+    // --- NEW EFFECT TO CLOSE DROPDOWN ON OUTSIDE CLICK ---
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target as Node)) {
+                setIsTimeDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const getStatusColor = (status: Appointment['status']) => {
         switch (status) {
@@ -77,6 +92,9 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
     const timeSlots = generateTimeSlots();
 
+    // Helper to find label for custom dropdown
+    const selectedTimeLabel = timeSlots.find(slot => slot.value === rescheduleTime)?.label || "Select a time";
+
     const handleRescheduleClick = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
         setRescheduleDate(new Date(appointment.dateTime).toISOString().split('T')[0]);
@@ -84,29 +102,40 @@ export const Appointments: React.FC<AppointmentsProps> = ({
         setShowRescheduleModal(true);
     };
 
+    // const handleRescheduleSubmit = () => {
+    //     if (selectedAppointment && rescheduleDate && rescheduleTime) {
+    //         const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
+    //         onReschedule(selectedAppointment.id, newDateTime);
+    //         setShowRescheduleModal(false);
+    //         resetRescheduleForm();
+    //     }
+    // };
+
     const handleRescheduleSubmit = () => {
-        if (selectedAppointment && rescheduleDate && rescheduleTime) {
-            const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
-            onReschedule(selectedAppointment.id, newDateTime);
-            setShowRescheduleModal(false);
-            resetRescheduleForm();
-        }
-    };
+        // if (selectedAppointment && rescheduleDate && rescheduleTime) {
+        //     const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
+        //     onReschedule(selectedAppointment.id, newDateTime);
+        setShowRescheduleModal(false);
+        // resetRescheduleForm();
+    }
+    // };
 
-    const handleCancelClick = (appointmentId: string) => {
-        setShowCancelConfirm(appointmentId);
-    };
 
-    const handleConfirmCancel = (appointmentId: string) => {
-        onCancel(appointmentId);
-        setShowCancelConfirm(null);
-    };
+    // const handleCancelClick = (appointmentId: string) => {
+    //     setShowCancelConfirm(appointmentId);
+    // };
 
-    const resetRescheduleForm = () => {
-        setSelectedAppointment(null);
-        setRescheduleDate('');
-        setRescheduleTime('');
-    };
+    // const handleConfirmCancel = (appointmentId: string) => {
+    //     onCancel(appointmentId);
+    //     setShowCancelConfirm(null);
+    // };
+
+    // const resetRescheduleForm = () => {
+    //     setSelectedAppointment(null);
+    //     setRescheduleDate('');
+    //     setRescheduleTime('');
+    //     setIsTimeDropdownOpen(false); // Reset dropdown state
+    // };
 
     // Calculate min date for rescheduling (tomorrow)
     const tomorrow = new Date();
@@ -291,8 +320,10 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
                     {/* Modal */}
                     <div className="relative w-full max-w-md">
-                        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 relative z-50">
+                        {/* Note: Removed 'overflow-hidden' from main wrapper so dropdown can float over if needed, 
+                            though max-h logic keeps it inside usually. */}
+                        <div className="bg-white rounded-xl shadow-2xl">
+                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-900">Reschedule Appointment</h3>
                                     <p className="text-sm text-gray-500 mt-1">Select new date and time</p>
@@ -345,32 +376,68 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                         </p>
                                     </div>
 
-                                    <div className="relative"> {/* Added relative container */}
+                                    {/* --- REPLACED NATIVE SELECT WITH CUSTOM DROPDOWN --- */}
+                                    <div className="relative" ref={timeDropdownRef}>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             New Time <span className="text-red-500">*</span>
                                         </label>
-                                        <select
-                                            value={rescheduleTime}
-                                            onChange={(e) => setRescheduleTime(e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
-                                            required
-                                            style={{
-                                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                                backgroundPosition: 'right 0.5rem center',
-                                                backgroundRepeat: 'no-repeat',
-                                                backgroundSize: '1.5em 1.5em',
-                                                paddingRight: '2.5rem'
-                                            }}
+
+                                        {/* Trigger Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+                                            className={`w-full px-4 py-2 border rounded-lg text-left bg-white flex justify-between items-center transition-all ${isTimeDropdownOpen
+                                                ? 'ring-2 ring-orange-500 border-orange-500'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                                }`}
                                         >
-                                            <option value="">Select a time</option>
-                                            {timeSlots.map((slot) => (
-                                                <option key={slot.value} value={slot.value}>
-                                                    {slot.label}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            <span className={rescheduleTime ? "text-gray-900" : "text-gray-500"}>
+                                                {selectedTimeLabel}
+                                            </span>
+                                            <svg
+                                                className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${isTimeDropdownOpen ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+
+                                        {/* Dropdown Menu */}
+                                        {isTimeDropdownOpen && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                                                <ul className="max-h-60 overflow-y-auto py-1 text-base text-gray-700">
+                                                    <li
+                                                        onClick={() => {
+                                                            setRescheduleTime("");
+                                                            setIsTimeDropdownOpen(false);
+                                                        }}
+                                                        className="px-4 py-2 cursor-pointer hover:bg-orange-50 hover:text-orange-600 transition-colors text-gray-500"
+                                                    >
+                                                        Select a time
+                                                    </li>
+                                                    {timeSlots.map((slot) => (
+                                                        <li
+                                                            key={slot.value}
+                                                            onClick={() => {
+                                                                setRescheduleTime(slot.value);
+                                                                setIsTimeDropdownOpen(false);
+                                                            }}
+                                                            className={`px-4 py-2 cursor-pointer hover:bg-orange-50 hover:text-orange-600 transition-colors ${rescheduleTime === slot.value
+                                                                ? 'bg-orange-100 text-orange-700 font-medium'
+                                                                : ''
+                                                                }`}
+                                                        >
+                                                            {slot.label}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                         <p className="text-xs text-gray-500 mt-1">Clinic hours: 9:00 AM - 5:30 PM</p>
                                     </div>
+                                    {/* --- END CUSTOM DROPDOWN --- */}
 
                                     <div className="pt-4 border-t border-gray-200">
                                         <div className="flex space-x-3">
