@@ -90,7 +90,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
       id: member.id,
       name: member.name,
       email: member.email || '',
-      phone: member.phoneNumber || '',
+      phone: member.phone || '',
       gender: member.gender || '',
       dob: member.dateOfBirth || '',
       relationship: member.relationship,
@@ -130,7 +130,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     onAddMember({
       name: newMemberForm.name.trim(),
       email: newMemberForm.email?.trim() || undefined,
-      phoneNumber: newMemberForm.phone?.trim() || undefined,
+      phone: newMemberForm.phone?.trim() || undefined,
       gender: newMemberForm.gender as 'male' | 'female' | 'other' | undefined,
       dateOfBirth: newMemberForm.dob || undefined,
       relationship: newMemberForm.relationship as FamilyMember['relationship'],
@@ -148,7 +148,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     onEditMember(editMemberForm.id, {
       name: editMemberForm.name.trim(),
       email: editMemberForm.email?.trim() || undefined,
-      phoneNumber: editMemberForm.phone?.trim() || undefined,
+      phone: editMemberForm.phone?.trim() || undefined,
       gender: editMemberForm.gender as 'male' | 'female' | 'other' | undefined,
       dateOfBirth: editMemberForm.dob || undefined,
       relationship: editMemberForm.relationship as FamilyMember['relationship'],
@@ -472,13 +472,13 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                   <p className="text-sm text-gray-500">{getRelationshipLabel(member.relationship)}</p>
                   
                   {/* Additional Information */}
-                  {(member.email || member.phoneNumber || member.dateOfBirth) && (
+                  {(member.email || member.phone || member.dateOfBirth) && (
                     <div className="mt-2 space-y-1">
                       {member.email && (
                         <p className="text-xs text-gray-600">{member.email}</p>
                       )}
-                      {member.phoneNumber && (
-                        <p className="text-xs text-gray-600">{member.phoneNumber}</p>
+                      {member.phone && (
+                        <p className="text-xs text-gray-600">{member.phone}</p>
                       )}
                       {member.dateOfBirth && (
                         <p className="text-xs text-gray-600">

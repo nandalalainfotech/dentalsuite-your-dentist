@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'; // Added useRef, useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import type { Appointment } from '../../types/dashboard';
 import { Icons } from './Icons';
 
@@ -23,22 +23,63 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     const [rescheduleDate, setRescheduleDate] = useState('');
     const [rescheduleTime, setRescheduleTime] = useState('');
     const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
-
-    // --- NEW STATE FOR CUSTOM DROPDOWN ---
     const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+    
     const timeDropdownRef = useRef<HTMLDivElement>(null);
+    const timeButtonRef = useRef<HTMLButtonElement>(null);
 
-    const displayAppointments = activeTab === 'current' ? appointments : appointmentHistory;
+    // Default mock history data if none provided
+    const defaultHistory: Appointment[] = [
+        {
+            id: 'hist1',
+            dentistName: 'Dr. Emily Brown',
+            clinicName: 'Dental Care Center',
+            dateTime: new Date('2023-12-10T11:00:00'),
+            status: 'completed',
+            treatment: 'Root Canal Treatment',
+            price: 1200,
+            notes: 'Patient comfortable, procedure successful'
+        },
+        {
+            id: 'hist2',
+            dentistName: 'Dr. James Wilson',
+            clinicName: 'Smile Dental Clinic',
+            dateTime: new Date('2023-11-25T15:30:00'),
+            status: 'completed',
+            treatment: 'Regular Checkup',
+            price: 150,
+            notes: 'Good oral hygiene maintained'
+        },
+        {
+            id: 'hist3',
+            dentistName: 'Dr. Sarah Johnson',
+            clinicName: 'City Dental',
+            dateTime: new Date('2023-10-15T09:00:00'),
+            status: 'completed',
+            treatment: 'Teeth Cleaning',
+            price: 120,
+            notes: 'Deep cleaning performed'
+        }
+    ];
 
-    // --- NEW EFFECT TO CLOSE DROPDOWN ON OUTSIDE CLICK ---
+    const historyToUse = appointmentHistory.length > 0 ? appointmentHistory : defaultHistory;
+    const displayAppointments = activeTab === 'current' ? appointments : historyToUse;
+
+    // Close dropdown when clicking outside
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target as Node)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (timeDropdownRef.current && 
+                !timeDropdownRef.current.contains(event.target as Node) &&
+                timeButtonRef.current && 
+                !timeButtonRef.current.contains(event.target as Node)) {
                 setIsTimeDropdownOpen(false);
             }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
     const getStatusColor = (status: Appointment['status']) => {
@@ -76,8 +117,8 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     // Generate available time slots for rescheduling
     const generateTimeSlots = () => {
         const slots = [];
-        for (let hour = 9; hour <= 17; hour++) { // 9 AM to 5 PM
-            for (let minute of ['00', '30']) { // 30-minute intervals
+        for (let hour = 9; hour <= 17; hour++) {
+            for (let minute of ['00', '30']) {
                 const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
                 const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
                     hour: 'numeric',
@@ -91,51 +132,41 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     };
 
     const timeSlots = generateTimeSlots();
-
-    // Helper to find label for custom dropdown
     const selectedTimeLabel = timeSlots.find(slot => slot.value === rescheduleTime)?.label || "Select a time";
 
     const handleRescheduleClick = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
-        setRescheduleDate(new Date(appointment.dateTime).toISOString().split('T')[0]);
-        setRescheduleTime(new Date(appointment.dateTime).toTimeString().slice(0, 5));
+        const date = new Date(appointment.dateTime);
+        setRescheduleDate(date.toISOString().split('T')[0]);
+        setRescheduleTime(date.toTimeString().slice(0, 5));
+        setIsTimeDropdownOpen(false);
         setShowRescheduleModal(true);
     };
 
-    // const handleRescheduleSubmit = () => {
-    //     if (selectedAppointment && rescheduleDate && rescheduleTime) {
-    //         const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
-    //         onReschedule(selectedAppointment.id, newDateTime);
-    //         setShowRescheduleModal(false);
-    //         resetRescheduleForm();
-    //     }
-    // };
-
     const handleRescheduleSubmit = () => {
-        // if (selectedAppointment && rescheduleDate && rescheduleTime) {
-        //     const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
-        //     onReschedule(selectedAppointment.id, newDateTime);
-        setShowRescheduleModal(false);
-        // resetRescheduleForm();
-    }
-    // };
+        if (selectedAppointment && rescheduleDate && rescheduleTime) {
+            const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
+            onReschedule(selectedAppointment.id, newDateTime);
+            setShowRescheduleModal(false);
+            resetRescheduleForm();
+        }
+    };
 
+    const handleCancelClick = (appointmentId: string) => {
+        setShowCancelConfirm(appointmentId);
+    };
 
-    // const handleCancelClick = (appointmentId: string) => {
-    //     setShowCancelConfirm(appointmentId);
-    // };
+    const handleConfirmCancel = (appointmentId: string) => {
+        onCancel(appointmentId);
+        setShowCancelConfirm(null);
+    };
 
-    // const handleConfirmCancel = (appointmentId: string) => {
-    //     onCancel(appointmentId);
-    //     setShowCancelConfirm(null);
-    // };
-
-    // const resetRescheduleForm = () => {
-    //     setSelectedAppointment(null);
-    //     setRescheduleDate('');
-    //     setRescheduleTime('');
-    //     setIsTimeDropdownOpen(false); // Reset dropdown state
-    // };
+    const resetRescheduleForm = () => {
+        setSelectedAppointment(null);
+        setRescheduleDate('');
+        setRescheduleTime('');
+        setIsTimeDropdownOpen(false);
+    };
 
     // Calculate min date for rescheduling (tomorrow)
     const tomorrow = new Date();
@@ -162,7 +193,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                         ? 'text-orange-600 border-b-2 border-orange-600'
                         : 'text-gray-600 hover:text-gray-900'
                         }`}
-                >
+                > 
                     Current
                 </button>
                 <button
@@ -260,7 +291,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
                                     {appointment.price && (
                                         <p className="text-sm font-medium text-gray-900 mb-3">
-                                            ${appointment.price}
+                                            ${appointment.price.toLocaleString()}
                                         </p>
                                     )}
 
@@ -308,7 +339,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
             {/* Reschedule Modal */}
             {showRescheduleModal && selectedAppointment && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mt-10   ">
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-gray-900 bg-opacity-50"
@@ -319,9 +350,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                     ></div>
 
                     {/* Modal */}
-                    <div className="relative w-full max-w-md">
-                        {/* Note: Removed 'overflow-hidden' from main wrapper so dropdown can float over if needed, 
-                            though max-h logic keeps it inside usually. */}
+                    <div className="relative w-full max-w-md z-10">
                         <div className="bg-white rounded-xl shadow-2xl">
                             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
                                 <div>
@@ -358,25 +387,25 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                 </div>
 
                                 <div className="space-y-4">
+                                    {/* Date Input */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             New Date <span className="text-red-500">*</span>
                                         </label>
-                                        <input
-                                            type="date"
-                                            value={rescheduleDate}
-                                            onChange={(e) => setRescheduleDate(e.target.value)}
-                                            min={minDate}
-                                            max={maxDateString}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                                            required
-                                        />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Select a date between {new Date(minDate).toLocaleDateString()} and {new Date(maxDateString).toLocaleDateString()}
-                                        </p>
+                                        <div className="relative">
+                                            <input
+                                                type="date"
+                                                value={rescheduleDate}
+                                                onChange={(e) => setRescheduleDate(e.target.value)}
+                                                min={minDate}
+                                                max={maxDateString}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                                required
+                                            />
+                                        </div>
                                     </div>
 
-                                    {/* --- REPLACED NATIVE SELECT WITH CUSTOM DROPDOWN --- */}
+                                    {/* Custom Time Dropdown */}
                                     <div className="relative" ref={timeDropdownRef}>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             New Time <span className="text-red-500">*</span>
@@ -384,6 +413,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
                                         {/* Trigger Button */}
                                         <button
+                                            ref={timeButtonRef}
                                             type="button"
                                             onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
                                             className={`w-full px-4 py-2 border rounded-lg text-left bg-white flex justify-between items-center transition-all ${isTimeDropdownOpen
@@ -406,14 +436,14 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
                                         {/* Dropdown Menu */}
                                         {isTimeDropdownOpen && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-                                                <ul className="max-h-60 overflow-y-auto py-1 text-base text-gray-700">
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                <ul className="py-1">
                                                     <li
                                                         onClick={() => {
                                                             setRescheduleTime("");
                                                             setIsTimeDropdownOpen(false);
                                                         }}
-                                                        className="px-4 py-2 cursor-pointer hover:bg-orange-50 hover:text-orange-600 transition-colors text-gray-500"
+                                                        className="px-4 py-2 cursor-pointer hover:bg-gray-50 text-gray-500"
                                                     >
                                                         Select a time
                                                     </li>
@@ -425,7 +455,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                                                 setIsTimeDropdownOpen(false);
                                                             }}
                                                             className={`px-4 py-2 cursor-pointer hover:bg-orange-50 hover:text-orange-600 transition-colors ${rescheduleTime === slot.value
-                                                                ? 'bg-orange-100 text-orange-700 font-medium'
+                                                                ? 'bg-orange-50 text-orange-700 font-medium'
                                                                 : ''
                                                                 }`}
                                                         >
@@ -435,9 +465,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                                 </ul>
                                             </div>
                                         )}
-                                        <p className="text-xs text-gray-500 mt-1">Clinic hours: 9:00 AM - 5:30 PM</p>
                                     </div>
-                                    {/* --- END CUSTOM DROPDOWN --- */}
 
                                     <div className="pt-4 border-t border-gray-200">
                                         <div className="flex space-x-3">
@@ -471,8 +499,9 @@ export const Appointments: React.FC<AppointmentsProps> = ({
 
             {/* Cancel Confirmation Modal */}
             {showCancelConfirm && (
-                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-gray-900 bg-opacity-50"></div>
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md p-6 z-10">
                         <div className="text-center">
                             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                                 <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
