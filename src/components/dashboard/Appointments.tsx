@@ -6,7 +6,7 @@ interface AppointmentsProps {
     appointments: Appointment[];
     appointmentHistory?: Appointment[];
     onBookAppointment: () => void;
-    onReschedule: (appointmentId: string) => void;
+    onReschedule: (appointmentId: string, newDateTime: Date) => void;
     onCancel: (appointmentId: string) => void;
 }
 
@@ -18,6 +18,11 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     onCancel,
 }) => {
     const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+    const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+    const [rescheduleDate, setRescheduleDate] = useState('');
+    const [rescheduleTime, setRescheduleTime] = useState('');
+    const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
 
     const displayAppointments = activeTab === 'current' ? appointments : appointmentHistory;
 
@@ -52,6 +57,67 @@ export const Appointments: React.FC<AppointmentsProps> = ({
             hour12: true
         });
     };
+
+    // Generate available time slots for rescheduling
+    const generateTimeSlots = () => {
+        const slots = [];
+        for (let hour = 9; hour <= 17; hour++) { // 9 AM to 5 PM
+            for (let minute of ['00', '30']) { // 30-minute intervals
+                const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
+                const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                slots.push({ value: timeString, label: displayTime });
+            }
+        }
+        return slots;
+    };
+
+    const timeSlots = generateTimeSlots();
+
+    const handleRescheduleClick = (appointment: Appointment) => {
+        setSelectedAppointment(appointment);
+        setRescheduleDate(new Date(appointment.dateTime).toISOString().split('T')[0]);
+        setRescheduleTime(new Date(appointment.dateTime).toTimeString().slice(0, 5));
+        setShowRescheduleModal(true);
+    };
+
+    const handleRescheduleSubmit = () => {
+        if (selectedAppointment && rescheduleDate && rescheduleTime) {
+            const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`);
+            onReschedule(selectedAppointment.id, newDateTime);
+            setShowRescheduleModal(false);
+            resetRescheduleForm();
+        }
+    };
+
+    const handleCancelClick = (appointmentId: string) => {
+        setShowCancelConfirm(appointmentId);
+    };
+
+    const handleConfirmCancel = (appointmentId: string) => {
+        onCancel(appointmentId);
+        setShowCancelConfirm(null);
+    };
+
+    const resetRescheduleForm = () => {
+        setSelectedAppointment(null);
+        setRescheduleDate('');
+        setRescheduleTime('');
+    };
+
+    // Calculate min date for rescheduling (tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+
+    // Calculate max date for rescheduling (3 months from now)
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 3);
+    const maxDateString = maxDate.toISOString().split('T')[0];
+
     return (
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
@@ -173,13 +239,13 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                         {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
                                             <>
                                                 <button
-                                                    onClick={() => onReschedule(appointment.id)}
+                                                    onClick={() => handleRescheduleClick(appointment)}
                                                     className="px-3 py-1 text-sm bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
                                                 >
                                                     Reschedule
                                                 </button>
                                                 <button
-                                                    onClick={() => onCancel(appointment.id)}
+                                                    onClick={() => handleCancelClick(appointment.id)}
                                                     className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                                                 >
                                                     Cancel
@@ -209,12 +275,165 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                         Appointments may take up to 24 hours to appear in your dashboard after confirmation.
                     </p>
                 </div>
-                <button className="text-orange-600 hover:text-orange-700 shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
             </div>
+
+            {/* Reschedule Modal */}
+            {showRescheduleModal && selectedAppointment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-gray-900 bg-opacity-50"
+                        onClick={() => {
+                            setShowRescheduleModal(false);
+                            resetRescheduleForm();
+                        }}
+                    ></div>
+
+                    {/* Modal */}
+                    <div className="relative w-full max-w-md">
+                        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 relative z-50">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Reschedule Appointment</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Select new date and time</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowRescheduleModal(false);
+                                        resetRescheduleForm();
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="mb-6">
+                                    <h4 className="font-semibold text-gray-900 mb-2">Current Appointment</h4>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Dentist:</span> {selectedAppointment.dentistName}
+                                        </p>
+                                        <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Current Date:</span> {formatDate(selectedAppointment.dateTime)}
+                                        </p>
+                                        <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Current Time:</span> {formatTime(selectedAppointment.dateTime)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            New Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={rescheduleDate}
+                                            onChange={(e) => setRescheduleDate(e.target.value)}
+                                            min={minDate}
+                                            max={maxDateString}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Select a date between {new Date(minDate).toLocaleDateString()} and {new Date(maxDateString).toLocaleDateString()}
+                                        </p>
+                                    </div>
+
+                                    <div className="relative"> {/* Added relative container */}
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            New Time <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={rescheduleTime}
+                                            onChange={(e) => setRescheduleTime(e.target.value)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                                            required
+                                            style={{
+                                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                                backgroundPosition: 'right 0.5rem center',
+                                                backgroundRepeat: 'no-repeat',
+                                                backgroundSize: '1.5em 1.5em',
+                                                paddingRight: '2.5rem'
+                                            }}
+                                        >
+                                            <option value="">Select a time</option>
+                                            {timeSlots.map((slot) => (
+                                                <option key={slot.value} value={slot.value}>
+                                                    {slot.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">Clinic hours: 9:00 AM - 5:30 PM</p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-gray-200">
+                                        <div className="flex space-x-3">
+                                            <button
+                                                onClick={() => {
+                                                    setShowRescheduleModal(false);
+                                                    resetRescheduleForm();
+                                                }}
+                                                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleRescheduleSubmit}
+                                                disabled={!rescheduleDate || !rescheduleTime}
+                                                className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${!rescheduleDate || !rescheduleTime
+                                                    ? 'bg-orange-400 cursor-not-allowed'
+                                                    : 'bg-orange-600 hover:bg-orange-700'
+                                                    }`}
+                                            >
+                                                Confirm Reschedule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Confirmation Modal */}
+            {showCancelConfirm && (
+                <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.998-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Cancel Appointment</h3>
+                            <p className="text-sm text-gray-600 mb-6">
+                                Are you sure you want to cancel this appointment? This action cannot be undone.
+                            </p>
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={() => setShowCancelConfirm(null)}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Go Back
+                                </button>
+                                <button
+                                    onClick={() => handleConfirmCancel(showCancelConfirm)}
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                                >
+                                    Yes, Cancel Appointment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -24,12 +24,13 @@ export interface Appointment {
 export interface FamilyMember {
   id: string;
   name: string;
-  relationship: 'self' | 'father' | 'mother' | 'child' | 'spouse' | 'other' | 'sibling';
-  dateOfBirth?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   gender?: 'male' | 'female' | 'other';
-  avatar?: string;
+  dateOfBirth?: string;
+  relationship: 'self' | 'spouse' | 'child' | 'father' | 'mother' | 'sibling' | 'other';
   isActive: boolean;
 }
 
