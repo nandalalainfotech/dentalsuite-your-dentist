@@ -21,10 +21,14 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ className = '' }) => {
     setShowLogoutModal(true);
   };
 
-  const confirmLogout = () => {
-    setShowLogoutModal(false);
-    logout();
-    navigate('/');
+  const confirmLogout = async () => {
+    try {
+      setShowLogoutModal(false);
+      await logout();
+      navigate('/', { replace: true });
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
   };
 
   const cancelLogout = () => {
