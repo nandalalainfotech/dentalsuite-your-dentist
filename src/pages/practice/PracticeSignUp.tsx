@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { usePracticeAuth } from "../../hooks/usePracticeAuth";
 
@@ -121,7 +121,7 @@ export default function PracticeSignUp() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join DentalSuite Practice Portal</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Your Dentist Practice Portal</h1>
           <p className="text-gray-600">Connect with thousands of patients across Australia</p>
         </div>
 
@@ -378,11 +378,7 @@ export default function PracticeSignUp() {
               {isLoading ? "Creating Practice Account..." : "Create Practice Account"}
             </button>
 
-            {/* Sign In Link */}
-            <div className="text-center text-sm text-gray-600">
-              Already have a practice account?
-              <Link to="/practice/signin" className="text-orange-600 hover:underline font-semibold ml-1">Sign in here</Link>
-            </div>
+           
 
           </form>
         </div>

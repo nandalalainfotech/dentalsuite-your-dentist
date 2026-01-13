@@ -91,9 +91,6 @@ export default function Login() {
 
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              🦷
-            </div>
             <h1 className="text-4xl font-bold mt-4">Your Dentist</h1>
             <p className="text-gray-500 text-sm mt-1">login to your account</p>
           </div>
@@ -172,8 +169,7 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE (Illustration) */}
-      <div className="hidden md:flex flex-1 bg-orange-600 justify-center items-center relative overflow-hidden">
-        <div className="absolute w-96 h-96 bg-orange-600 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -top-10 -left-10 animate-blob"></div>
+      <div className="hidden md:flex flex-1 bg-orange-500 justify-center items-center relative overflow-hidden">
         <img
           src={loginimg}
           alt="Illustration"

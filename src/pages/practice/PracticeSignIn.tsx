@@ -116,12 +116,7 @@ export default function PracticeSignIn() {
           </button>
         </form>
 
-        {/* Demo Account Info */}
-        {/* <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800 font-semibold mb-2">Demo Account:</p>
-          <p className="text-xs text-blue-700">Email: contact@smiledentalcare.com.au</p>
-          <p className="text-xs text-blue-700">Password: practice123</p>
-        </div> */}
+        
 
         {/* Sign Up Link */}
         <div className="mt-8 text-center">
@@ -136,7 +131,7 @@ export default function PracticeSignIn() {
         {/* Footer */}
         <div className="mt-6 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
-            &copy; 2024 DentalSuite Practice Portal. All rights reserved.
+            &copy; 2026 Your Dentist All rights reserved.
           </p>
         </div>
       </div>
