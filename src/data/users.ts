@@ -114,9 +114,9 @@ const vishwaFamilyMembers: FamilyMember[] = [
 
 const janeFamilyMembers: FamilyMember[] = [
   { id: '4', name: 'Jane Smith', relationship: 'self', dateOfBirth: '1985-08-22', email: 'jane.smith@example.com', phone: '+61423456789', gender: 'female', isActive: true },
-  { id: '5', name: 'Tom Smith', relationship: 'spouse', dateOfBirth: '1983-03-10', email: 'tom.smith@example.com', phone: '+61423456790', gender: 'male', isActive: false },
-  { id: '6', name: 'Emma Smith', relationship: 'child', dateOfBirth: '2015-11-28', email: '', phone: '+61423456791', gender: 'female', isActive: false },
-  { id: '7', name: 'Lucas Smith', relationship: 'child', dateOfBirth: '2012-06-14', email: '', phone: '+61423456792', gender: 'male', isActive: false }
+  { id: '5', name: 'Smith', relationship: 'spouse', dateOfBirth: '1983-03-10', email: 'tom.smith@example.com', phone: '+61423456790', gender: 'male', isActive: false },
+  { id: '6', name: 'Emma Smith', relationship: 'child', dateOfBirth: '2015-11-28', email: 'tom.smith@example.com', phone: '+61423456791', gender: 'female', isActive: false },
+  { id: '7', name: 'Lucas Smith', relationship: 'child', dateOfBirth: '2012-06-14', email: 'tom.smith@example.com', phone: '+61423456792', gender: 'male', isActive: false }
 ];
 
 const mikeFamilyMembers: FamilyMember[] = [
@@ -196,8 +196,8 @@ export const staticUsers: UserWithDashboard[] = [
   },
   {
     id: '2',
-    email: 'jane.smith@example.com',
-    password: 'password456',
+    email: '  ',
+    password: 'js456',
     firstName: 'Jane',
     lastName: 'Smith',
     dateOfBirth: '1985-08-22',

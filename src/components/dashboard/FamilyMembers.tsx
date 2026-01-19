@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import React, { useState } from 'react';
 import type { FamilyMember } from '../../types/dashboard';
 
@@ -32,7 +33,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showEditMemberModal, setShowEditMemberModal] = useState(false);
-  
+
   const [newMemberForm, setNewMemberForm] = useState<NewMemberFormData>({
     name: '',
     email: '',
@@ -223,14 +224,14 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   };
 
   // Common Modal Component
-  const MemberModal = ({ 
-    isOpen, 
-    onClose, 
-    onSubmit, 
-    formData, 
-    onChange, 
+  const MemberModal = ({
+    isOpen,
+    onClose,
+    onSubmit,
+    formData,
+    onChange,
     mode = 'add',
-    title 
+    title
   }: {
     isOpen: boolean;
     onClose: () => void;
@@ -262,7 +263,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
           {/* Modal Body */}
           <div className="px-4 sm:px-6 py-4 sm:py-5 flex-1 overflow-y-auto">
             <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-3 sm:space-y-4">
-              
+
               {/* Name Field */}
               <div>
                 <label htmlFor={`${mode}MemberName`} className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -470,7 +471,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                     )}
                   </div>
                   <p className="text-sm text-gray-500">{getRelationshipLabel(member.relationship)}</p>
-                  
+
                   {/* Additional Information */}
                   {(member.email || member.phone || member.dateOfBirth) && (
                     <div className="mt-2 space-y-1">
@@ -491,18 +492,20 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
               </div>
 
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenEditMemberModal(member);
-                  }}
-                  className="p-1.5 text-gray-400 hover:text-orange-600 transition-colors"
-                  title="Edit member"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
+                {member.relationship !== 'self' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenEditMemberModal(member);
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-orange-600 transition-colors"
+                    title="Edit member"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                )}
 
                 {member.relationship !== 'self' && (
                   <button

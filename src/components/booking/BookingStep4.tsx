@@ -54,7 +54,8 @@ const BookingStep4: React.FC = () => {
     reason: "",
   });
 
-  // Pre-fill form data if user is authenticated AND booking for self
+  const [isFamilyMemberSelected, setIsFamilyMemberSelected] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated && user && !isBookingForSomeoneElse) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -87,6 +88,40 @@ const BookingStep4: React.FC = () => {
 
   const handleBack = () => {
     navigate(`/booking/${state.dentistId}/step-3`);
+  };
+
+  const handleFamilyMemberSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const memberId = e.target.value;
+    setSelectedFamilyMember(memberId);
+
+    if (memberId) {
+      const member = familyMembers.find(
+        (m) => m.id === memberId
+      );
+      if (member) {
+        setFormData({
+          firstName: member.name.split(" ")[0] || "",
+          lastName: member.name.split(" ").slice(1).join(" ") || "",
+          email: member.email || "",
+          phone: member.phone || "",
+          dateOfBirth: member.dateOfBirth
+            ? new Date(member.dateOfBirth).toISOString().split("T")[0]
+            : "",
+          reason: "",
+        });
+        setIsFamilyMemberSelected(true);
+      }
+    } else {
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        dateOfBirth: "",
+        reason: "",
+      });
+      setIsFamilyMemberSelected(false);
+    }
   };
 
   if (loading || !hasData) {
@@ -180,39 +215,7 @@ const BookingStep4: React.FC = () => {
                       <select
                         id="familyMember"
                         value={selectedFamilyMember}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                          const memberId = e.target.value;
-                          setSelectedFamilyMember(memberId);
-
-                          if (memberId) {
-                            const member = familyMembers.find(
-                              (m) => m.id === memberId
-                            );
-                            if (member) {
-                               setFormData({
-                                 firstName: member.name.split(" ")[0] || "",
-                                 lastName:
-                                   member.name.split(" ").slice(1).join(" ") || "",
-                                 email: member.email || "",
-                                 phone: member.phone || "",
-                                 dateOfBirth: member.dateOfBirth
-                                   ? new Date(member.dateOfBirth).toISOString().split("T")[0]
-                                   : "",
-                                 reason: "",
-                               });
-                             }
-                          } else {
-                            // Reset if "Enter details manually" is selected
-                            setFormData({
-                              firstName: "",
-                              lastName: "",
-                              email: "",
-                              phone: "",
-                              dateOfBirth: "",
-                              reason: "",
-                            });
-                          }
-                        }}
+                        onChange={handleFamilyMemberSelect}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-gray-900 appearance-none bg-white pr-10 cursor-pointer"
                       >
                         <option value="">Enter details manually</option>
@@ -244,138 +247,227 @@ const BookingStep4: React.FC = () => {
                     </p>
                   </div>
                 )}
-                {/* Patient Details Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label
-                        htmlFor="firstName"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        First Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
+
+                {/* Patient Details - Show as read-only when family member is selected */}
+                {isBookingForSomeoneElse && isFamilyMemberSelected ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ReadOnlyField
+                        label="First Name"
                         value={formData.firstName}
+                      />
+                      <ReadOnlyField
+                        label="Last Name"
+                        value={formData.lastName}
+                      />
+                    </div>
+
+                    <ReadOnlyField
+                      label="Date of Birth"
+                      value={formData.dateOfBirth}
+                    />
+
+                    <ReadOnlyField
+                      label="Mobile Number"
+                      value={formData.phone}
+                    />
+
+                    <ReadOnlyField
+                      label="Email Address"
+                      value={formData.email}
+                    />
+
+                    {/* <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Notes (Optional)
+                      </label>
+                      <div className="relative w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 min-h-[120px]">
+                        <div className="text-gray-900 font-medium whitespace-pre-wrap">
+                          {formData.reason || "No additional notes provided"}
+                        </div>
+                        <div className="absolute right-4 top-4 text-orange-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 12.75l6 6 9-13.5"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div> */}
+
+                    <div>
+                      <label
+                        htmlFor="reason"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Additional Notes (Optional)
+                      </label>
+                      <textarea
+                        id="reason"
+                        name="reason"
+                        value={formData.reason}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                        placeholder="Any additional information or special requirements..."
+                      />
+                    </div>
+
+                    <div className="pt-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPersonalDetails(formData);
+                          navigate(`/booking/${state.dentistId}/step-5`);
+                        }}
+                        className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                      >
+                        Continue with Selected Patient
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Patient Details Form - For manual entry */
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label
+                          htmlFor="firstName"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          First Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="firstName"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                          placeholder="Enter first name"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="lastName"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          Last Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="lastName"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                          placeholder="Enter last name"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="dateOfBirth"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Date of Birth <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="dateOfBirth"
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                        placeholder="Enter first name"
                       />
                     </div>
 
                     <div>
                       <label
-                        htmlFor="lastName"
+                        htmlFor="phone"
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
-                        Last Name <span className="text-red-500">*</span>
+                        Mobile Number <span className="text-red-500">*</span>
                       </label>
                       <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                        placeholder="Enter last name"
+                        placeholder="Enter phone number"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label
-                      htmlFor="dateOfBirth"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Date of Birth <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="dateOfBirth"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                    />
-                  </div>
+                    <div>
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
+                        placeholder="Enter email address"
+                      />
+                    </div>
 
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Mobile Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                      placeholder="Enter phone number"
-                    />
-                  </div>
+                    <div>
+                      <label
+                        htmlFor="reason"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Additional Notes (Optional)
+                      </label>
+                      <textarea
+                        id="reason"
+                        name="reason"
+                        value={formData.reason}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                        placeholder="Any additional information or special requirements..."
+                      />
+                    </div>
 
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Email Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors"
-                      placeholder="Enter email address"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="reason"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Additional Notes (Optional)
-                    </label>
-                    <textarea
-                      id="reason"
-                      name="reason"
-                      value={formData.reason}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 transition-colors resize-none"
-                      placeholder="Any additional information or special requirements..."
-                    />
-                  </div>
-
-                  <div className="pt-6">
-                    <button
-                      type="submit"
-                      className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                    >
-                      Confirm
-                    </button>
-                  </div>
-                </form>
+                    <div className="pt-6">
+                      <button
+                        type="submit"
+                        className="w-full bg-orange-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                      >
+                        Confirm
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </div>
         </div>
       </main>
 
-{/* Booking Modal */}
+      {/* Booking Modal */}
       {state.clinic && (
         <BookingModal
           isOpen={showBookingModal}
