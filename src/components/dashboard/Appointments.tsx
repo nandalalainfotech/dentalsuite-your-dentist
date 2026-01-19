@@ -24,7 +24,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     const [rescheduleTime, setRescheduleTime] = useState('');
     const [showCancelConfirm, setShowCancelConfirm] = useState<string | null>(null);
     const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
-    
+
     const timeDropdownRef = useRef<HTMLDivElement>(null);
     const timeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -68,9 +68,9 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (timeDropdownRef.current && 
+            if (timeDropdownRef.current &&
                 !timeDropdownRef.current.contains(event.target as Node) &&
-                timeButtonRef.current && 
+                timeButtonRef.current &&
                 !timeButtonRef.current.contains(event.target as Node)) {
                 setIsTimeDropdownOpen(false);
             }
@@ -118,7 +118,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
     const generateTimeSlots = () => {
         const slots = [];
         for (let hour = 9; hour <= 17; hour++) {
-            for (let minute of ['00', '30']) {
+            for (const minute of ['00', '30']) {
                 const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
                 const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
                     hour: 'numeric',
@@ -193,7 +193,7 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                         ? 'text-orange-600 border-b-2 border-orange-600'
                         : 'text-gray-600 hover:text-gray-900'
                         }`}
-                > 
+                >
                     Current
                 </button>
                 <button
