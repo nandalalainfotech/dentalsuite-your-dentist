@@ -1,5 +1,6 @@
 import React from "react";
 import aboutUsImg from "../assets/aboutus1.png";
+import Footer from "../components/layout/Footer";
 
 const STATS = [
     { number: "8M+", label: "Patients connected" },
@@ -50,10 +51,6 @@ const AboutUs: React.FC = () => {
 
                         {/* Hero Text */}
                         <div className="max-w-2xl">
-                            <div className="mb-6 inline-flex items-center rounded-full border border-orange-100 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800">
-                                <span className="mr-2 h-2 w-2 rounded-full bg-orange-600"></span>
-                                Our Mission
-                            </div>
                             <h1 className="text-4xl font-bold tracking-tight text-gray-600 sm:text-5xl md:text-6xl">
                                 Making healthcare <br className="hidden lg:block" />
                                 <span className="text-orange-600">accessible & simple</span> for everyone.
@@ -216,6 +213,7 @@ const AboutUs: React.FC = () => {
                     </div>
                 </div>
             </section>
+            <Footer/>
         </div>
     );
 };

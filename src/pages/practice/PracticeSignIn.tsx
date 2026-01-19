@@ -43,7 +43,7 @@ export default function PracticeSignIn() {
     const result = await login(formData);
 
     if (result.success) {
-      setSuccess(result.message || "Login Successful!");
+      setSuccess(result.message || "Login Successfully!");
       setTimeout(() => navigate("/practice/dashboard"), 1500);
     } else {
       setError(result.message || "Invalid credentials");

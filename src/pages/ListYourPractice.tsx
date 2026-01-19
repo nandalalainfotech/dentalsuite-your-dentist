@@ -118,8 +118,8 @@ const ListYourPractice: React.FC = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-0">
                             {[
-                                { icon: "📈", title: "Boost Patient Volume", desc: "Position your clinic in front of high-intent patients looking specifically for your services in your local area." },
-                                { icon: "⚡", title: "Seamless Integration", desc: "Our platform syncs effortlessly with your existing practice management software to automate bookings and reminders." },
+                                { icon: "⚡", title: "Boost Patient Volume", desc: "Position your clinic in front of high-intent patients looking specifically for your services in your local area." },
+                                { icon: "📈", title: "Seamless Integration", desc: "Our platform syncs effortlessly with your existing practice management software to automate bookings and reminders." },
                                 { icon: "🛡️", title: "Trust & Credibility", desc: "Leverage verified patient reviews to showcase your expertise and turn profile visitors into loyal, long-term patients." }
                             ].map((item, idx) => (
                                 <div 
@@ -178,7 +178,7 @@ const ListYourPractice: React.FC = () => {
                                     they completely revitalized how we acquire new patients.
                                 </blockquote>
 
-                                <div className="flex items-center gap-3 sm:gap-4 border-t border-slate-700 pt-4 sm:pt-6">
+                                {/* <div className="flex items-center gap-3 sm:gap-4 border-t border-slate-700 pt-4 sm:pt-6">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-base sm:text-lg">SP</div>
                                     <div>
                                         <p className="font-bold text-white text-sm sm:text-base">
@@ -188,7 +188,7 @@ const ListYourPractice: React.FC = () => {
                                             Clinical Director, Bright Smile Group
                                         </p>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@ const ListYourPractice: React.FC = () => {
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                             <Link 
                                 to="/practice/signup" 
-                                className="bg-orange-600 hover:bg-orange-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition text-center shadow-lg shadow-orange-200"
+                                className="bg-orange-600 hover:bg-orange-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition text-center"
                             >
                                 Create Practice Profile
                             </Link>
@@ -223,7 +223,7 @@ const ListYourPractice: React.FC = () => {
                                 <Link to="/practice/signin" className="text-orange-600 hover:underline font-semibold ml-1">Sign in here</Link>
                             </p>
                             <p className="text-gray-400 text-xs">
-                                Need help onboarding? Call our support line at <span className="font-medium text-gray-600">1800 123 456</span>
+                                Need help onboarding? Call our support line at <span className="font-medium text-gray-600">1800 123 456(static)</span>
                             </p>
                         </div>
                     </div>

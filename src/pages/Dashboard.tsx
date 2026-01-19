@@ -447,7 +447,7 @@ const Dashboard: React.FC = () => {
                   />
                 ))}
 
-                <div className="mt-8 pt-6 border-t border-gray-200/60">
+                <div className="mt-8 border-t border-gray-200/60">
                   <button
                     onClick={handleLogoutClick}
                     className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
@@ -461,7 +461,7 @@ const Dashboard: React.FC = () => {
           </aside>
 
           {/* --- MAIN CONTENT AREA --- */}
-          <main className="flex-1 min-w-0 pb-24 lg:pb-10">
+          <main className="flex-1 min-w-0 pb-10 lg:pb-10">
 
             {/* Desktop Header (1024px+) */}
             <header className="hidden lg:flex items-center justify-between mb-10">
@@ -582,7 +582,7 @@ const Dashboard: React.FC = () => {
           </main>
 
           {/* Mobile/Tablet Bottom Navigation (< 1024px) */}
-          <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-gray-900/90 backdrop-blur-md text-white rounded-2xl z-40 shadow-2xl shadow-gray-900/30">
+          <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-gray-800 border-orange-500backdrop-blur-md text-white rounded-2xl z-40 shadow-2xl shadow-gray-900/30">
             <div className="flex justify-around items-center h-16 sm:h-18 px-2">
               <button
                 onClick={() => handleNavClick('appointments')}
