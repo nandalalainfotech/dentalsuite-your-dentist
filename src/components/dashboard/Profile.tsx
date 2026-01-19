@@ -156,7 +156,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
           {/* Required fields note */}
           <div className="mb-4">
             <p className="text-sm text-gray-500 flex items-center gap-1">
-              Fields marked with <span className="text-red-500">* are required</span>
+              Fields marked with <span className="text-red-500">*</span>are required
             </p>
           </div>
 
