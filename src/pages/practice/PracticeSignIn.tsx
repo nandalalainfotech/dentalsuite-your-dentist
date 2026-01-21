@@ -93,13 +93,18 @@ export default function PracticeSignIn() {
               ✕
             </button>
 
-            {/* Header Content */}
-            <div className="flex flex-col ">
-              <h1 className="text-4xl font-bold mt-4">Login</h1>
-              <p className="text-gray-500 text-sm mt-1">
-                Practice portal login
-              </p>
+          {/* Header Content */}
+          <div className="flex flex-col ">
+            <h1 className="text-4xl font-bold mt-4">Practice Login</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Access your practice dashboard
+            </p>
+            <div className="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+              <p className="font-semibold mb-1">Test Credentials:</p>
+              <p>Email: vishwa@dentalcare.com.au</p>
+              <p>Password: vv123</p>
             </div>
+          </div>
 
           </div>
 
@@ -111,7 +116,7 @@ export default function PracticeSignIn() {
               name="emailOrMobile"
               value={formData.emailOrMobile}
               onChange={handleInputChange}
-              placeholder="Practice Email Address"
+              placeholder="Practice Email or Mobile"
               className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-200 focus:ring-orange-500"

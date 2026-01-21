@@ -1,5 +1,6 @@
 import type { Practice, PracticeWithDashboard } from '../types/auth';
 import type { Appointment, Notification } from '../types/dashboard';
+import { clinics } from './clinics';
 
 // Practice-specific appointments (patients booking with the practice)
 const smileDentalCareAppointments: Appointment[] = [
@@ -338,4 +339,40 @@ export const practiceMobileExists = (mobileNumber: string): boolean => {
 
 export const practiceABNExists = (abnNumber: string): boolean => {
   return staticPractices.some(practice => practice.abnNumber === abnNumber);
+};
+
+// Validate practice credentials against both practice and clinic data
+export const validateAllPracticeCredentials = (emailOrMobile: string, password: string): Practice | null => {
+  // First check practice data
+  const practice = validatePracticeCredentials(emailOrMobile, password);
+  if (practice) return practice;
+
+  // Then check clinic data for login credentials
+  const clinic = clinics.find(c =>
+    c.email && c.email.toLowerCase() === emailOrMobile.toLowerCase() &&
+    c.password === password
+  );
+
+  if (clinic) {
+    // Convert clinic to Practice format for authentication
+    return {
+      id: clinic.id,
+      practiceName: clinic.name,
+      abnNumber: "00000000000", // Default ABN for clinics
+      email: clinic.email || "",
+      password: clinic.password || "",
+      firstName: "Practice",
+      lastName: "Admin",
+      mobileNumber: clinic.phone || "",
+      practiceType: "general_dentistry",
+      practicePhone: clinic.phone || "",
+      practiceAddress: clinic.address,
+      practiceCity: clinic.address.split(",")[1]?.trim() || "",
+      practiceState: "NSW",
+      practicePostcode: clinic.address.split(",")[2]?.trim() || "2000",
+      createdAt: new Date(clinic.establishedYear?.toString() || "2024").toISOString()
+    };
+  }
+
+  return null;
 };

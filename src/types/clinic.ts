@@ -17,6 +17,7 @@ export interface Clinic {
   specialities: string[];
   phone?: string;
   email?: string;
+  password?: string;
   available?: boolean;
   website?: string;
   rating?: number;
@@ -36,6 +37,11 @@ export interface Clinic {
   dentists?: Dentist[];
   facilities?: string[];
   insurance?: string[];
+  insurances?: string[];
+  services?: string[];
+  tagline?: string;
+  team?: { name: string; role: string; qual?: string }[];
+  achievements?: { title: string; org?: string }[];
   parking?: boolean;
   emergency?: boolean;
 }
