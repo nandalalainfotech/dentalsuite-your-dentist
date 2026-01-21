@@ -29,9 +29,6 @@ const PracticeNavbar: React.FC = () => {
                 <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
                     {isAuthenticated && practice ? (
                         <>
-                            <span className="text-sm text-gray-600">
-                                Welcome, {practice.practiceName}
-                            </span>
                             <button
                                 onClick={() => setShowLogoutModal(true)}
                                 className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-red-600 hover:text-red-700 transition"
@@ -60,18 +57,6 @@ const PracticeNavbar: React.FC = () => {
                 <div className="md:hidden mt-2 sm:mt-3 space-y-2 pb-2 sm:pb-3">
                     {isAuthenticated && practice ? (
                         <>
-                            <div className="px-4 py-2 text-sm text-gray-600">
-                                Welcome, {practice.practiceName}
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setMenuOpen(false);
-                                    navigate('/practice/dashboard');
-                                }}
-                                className="w-full px-4 py-2 rounded-lg text-left font-medium text-sm text-gray-700 hover:text-orange-600 transition"
-                            >
-                                Dashboard
-                            </button>
                             <button
                                 onClick={() => setShowLogoutModal(true)}
                                 className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition"
