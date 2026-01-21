@@ -233,10 +233,8 @@ const Dashboard: React.FC = () => {
   const [selectedDentistId, setSelectedDentistId] = useState<string>('');
 
   useEffect(() => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('view', activeView);
-    setSearchParams(newSearchParams, { replace: true });
-  }, [activeView, searchParams, setSearchParams]);
+  setSearchParams({ view: activeView }, { replace: true });
+}, [activeView, setSearchParams]);
 
   const handleNavClick = (view: ActiveViewType) => {
     setActiveView(view);
@@ -582,37 +580,36 @@ const Dashboard: React.FC = () => {
           </main>
 
           {/* Mobile/Tablet Bottom Navigation (< 1024px) */}
-          <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-gray-800 border-orange-500backdrop-blur-md text-white rounded-2xl z-40 shadow-2xl shadow-gray-900/30">
-            <div className="flex justify-around items-center h-16 sm:h-18 px-2">
-              <button
-                onClick={() => handleNavClick('appointments')}
-                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'appointments' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icons.Calendar />
-              </button>
+          <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-gray-800 border border-orange-500/20 backdrop-blur-md text-white rounded-2xl z-40 shadow-2xl shadow-gray-900/30">            <div className="flex justify-around items-center h-16 sm:h-18 px-2">
+            <button
+              onClick={() => handleNavClick('appointments')}
+              className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'appointments' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
+            >
+              <Icons.Calendar />
+            </button>
 
-              <button
-                onClick={() => handleNavClick('notifications')}
-                className={`relative p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'notifications' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icons.Bell />
-                {unreadNotifications > 0 && <span className="absolute top-2 right-2 sm:top-3 sm:right-3 w-2 h-2 bg-red-500 rounded-full"></span>}
-              </button>
+            <button
+              onClick={() => handleNavClick('notifications')}
+              className={`relative p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'notifications' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
+            >
+              <Icons.Bell />
+              {unreadNotifications > 0 && <span className="absolute top-2 right-2 sm:top-3 sm:right-3 w-2 h-2 bg-red-500 rounded-full"></span>}
+            </button>
 
-              <button
-                onClick={() => handleNavClick('profile')}
-                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'profile' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icons.User />
-              </button>
+            <button
+              onClick={() => handleNavClick('profile')}
+              className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${activeView === 'profile' ? 'bg-white/20 text-orange-400' : 'text-gray-400 hover:text-white'}`}
+            >
+              <Icons.User />
+            </button>
 
-              <button
-                onClick={() => setShowMobileNav(true)}
-                className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${showMobileNav ? 'text-white' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Icons.Menu />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowMobileNav(true)}
+              className={`p-3 sm:p-4 rounded-xl transition-all duration-300 ${showMobileNav ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              <Icons.Menu />
+            </button>
+          </div>
           </nav>
         </div>
       </div>
