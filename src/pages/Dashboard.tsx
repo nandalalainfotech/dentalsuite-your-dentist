@@ -447,10 +447,10 @@ const Dashboard: React.FC = () => {
                   />
                 ))}
 
-                <div className="mt-8 border-t border-gray-200/60">
+                <div className="mt-4 border-t border-gray-200/60">
                   <button
                     onClick={handleLogoutClick}
-                    className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
+                    className="w-full flex items-center gap-3 px-5 py-3 text-gray-400 hover:text-red-500 rounded-2xl transition-all duration-200 group"
                   >
                     <Icons.Logout />
                     <span className="font-medium text-sm">Sign Out</span>
