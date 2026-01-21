@@ -1,15 +1,50 @@
-import { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState } from 'react';
 import {
     Info, Briefcase, Users, Image as ImageIcon,
     Trophy, MessageSquareQuote, ShieldCheck, Building,
     Phone, Save, Plus, Trash2, Star, Upload, MapPin,
     Clock, CheckCircle, MoreVertical, Edit3,
-    ArrowLeft, Mail, Globe, 
+    ArrowLeft, Mail, Globe,
     Facebook, Instagram, Twitter, Youtube, Image
 } from 'lucide-react';
+import type { Clinic } from '../../types/clinic';
+import { usePracticeAuth } from '../../hooks/usePracticeAuth';
 
 export default function DirectoryView() {
+    const { practice: authPractice, isAuthenticated } = usePracticeAuth();
     const [isEditing, setIsEditing] = useState(false);
+
+    // Use authenticated practice data or fallback to clinics[0]
+    const getClinicData = () => {
+        if (authPractice && isAuthenticated && 'practiceName' in authPractice) {
+            // Transform practice data to match clinic structure
+            return {
+                ...clinicFallback,
+                id: authPractice.id,
+                name: authPractice.practiceName,
+                tagline: 'Comprehensive dental care',
+                description: 'Professional dental services provided by experienced practitioners.',
+                address: `${authPractice.practiceAddress}, ${authPractice.practiceCity} ${authPractice.practiceState} ${authPractice.practicePostcode}`,
+                phone: authPractice.practicePhone,
+                email: authPractice.email,
+                services: authPractice.practiceType === 'general_dentistry'
+                    ? ['General Dentistry', 'Preventive Care', 'Oral Hygiene']
+                    : ['Specialist Dental Care'],
+                team: [{
+                    name: `${authPractice.firstName} ${authPractice.lastName}`,
+                    role: 'Practice Director',
+                    qual: 'BDS'
+                }],
+                insurance: ['Private Health Insurance'],
+                facilities: ['Modern Equipment', 'Sterilization Room'],
+                specialities: [authPractice.practiceType.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())],
+            };
+        }
+        return (clinics[0] || clinicFallback) as Clinic & typeof clinicFallback;
+    };
+
+    const clinicData = getClinicData();
 
     return (
         <div className="flex flex-col w-full animate-in fade-in duration-500 font-sans text-gray-800 bg-white min-h-screen">
@@ -55,47 +90,45 @@ export default function DirectoryView() {
             {/* --- MAIN CONTENT SWITCHER --- */}
             <div className="w-full relative">
                 {isEditing ? (
-                    <ClinicEditor />
+                    <ClinicEditor clinicData={clinicData} />
                 ) : (
-                    <ClinicProfilePreview />
+                    <ClinicProfilePreview clinicData={clinicData} />
                 )}
             </div>
         </div>
     );
 }
 
- /* SHARED DATA */
-const clinicData = {
-    name: "Bright Smile Dental",
-    tagline: "Multi-Speciality Dental Clinic",
-    description: "Specialized in pediatric dentistry and orthodontic treatments, providing gentle care for children and adults. Our clinic is equipped with the latest technology to ensure the best possible outcomes for all our patients.",
-    services: [
-        "Pediatric Dentistry", "Orthodontics", "Scaling & Cleaning", 
-        "Root Canal Treatment", "Teeth Whitening", "Dental Implants"
-    ],
-    team: [
-        { name: "Dr. Emily Watson", role: "Pediatric Dentistry", qual: "BDSc, MDSc" },
-        { name: "Dr. Michael Roberts", role: "Orthodontics", qual: "BDSc, MDSc" }
-    ],
-    address: "Level 3, 123 George Street, Sydney NSW 2000, Australia",
-    phone: "+61 3 9003 2211",
-    email: "info@brightsmiledental.com.au",
-    website: "https://brightsmiledental.com.au",
-    achievements: [
-        { title: "Best Clinic 2023", org: "Medical Association" },
-        { title: "Excellence Award", org: "Health Weekly" }
-    ],
-    insurances: ["Medicare", "BlueCross", "Aetna", "Cigna", "United Health"],
-    facilities: ["Wheelchair Access", "Free Wifi", "Parking", "Pharmacy", "X-Ray Lab", "Children's Area"]
+/* SHARED DATA */
+import { clinics } from '../../data/clinics';
+
+const clinicFallback = {
+    id: '0',
+    name: 'Unnamed Clinic',
+    tagline: '',
+    description: '',
+    services: [] as string[],
+    team: [] as { name: string; role: string; qual?: string }[],
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
+    achievements: [] as { title: string; org?: string }[],
+    insurances: [] as string[],
+    facilities: [] as string[],
+    specialities: [] as string[],
+    time: {
+        monday: '', tuesday: '', wednesday: '', thursday: '', friday: '', saturday: '', sunday: ''
+    }
 };
 
 /* ==================================================================================
    VIEW 1: CLINIC PROFILE PREVIEW (What the patient sees)
    ================================================================================== */
-const ClinicProfilePreview = () => {
+const ClinicProfilePreview = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => {
     return (
         <div className="bg-white pb-20 font-sans">
-            
+
             {/* 1. HEADER CARD (Banner & Logo) */}
             <div className="h-48 sm:h-64 bg-gradient-to-r from-blue-900 via-slate-800 to-gray-900 relative">
                 <div className="absolute inset-0 bg-black/10"></div>
@@ -139,7 +172,7 @@ const ClinicProfilePreview = () => {
                     <section>
                         <SectionHeading title="Our Services" icon={Briefcase} />
                         <div className="flex flex-wrap gap-3 sm:gap-4">
-                            {clinicData.services.map((service, i) => (
+                            {(clinicData.services || []).map((service, i) => (
                                 <span key={i} className="px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-gray-200 text-gray-700 font-medium hover:border-orange-500 hover:text-orange-600 transition cursor-default bg-white shadow-sm text-xs sm:text-sm">
                                     {service}
                                 </span>
@@ -153,11 +186,11 @@ const ClinicProfilePreview = () => {
                             <h3 className="text-lg font-extrabold text-gray-900 uppercase tracking-wide flex items-center gap-2">
                                 <Users className="w-5 h-5 text-orange-500" /> Our Team
                             </h3>
-                            <span className="bg-orange-100 text-orange-700 px-4 py-1 rounded-full text-sm font-bold">{clinicData.team.length} Dentists</span>
+                            <span className="bg-orange-100 text-orange-700 px-4 py-1 rounded-full text-sm font-bold">{(clinicData.team || []).length} Dentists</span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                            {clinicData.team.map((doc, i) => (
+                            {(clinicData.team || []).map((doc, i) => (
                                 <div key={i} className="flex flex-col items-center p-6 sm:p-8 border border-gray-200 rounded-3xl bg-white shadow-sm hover:shadow-md transition text-center">
                                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gray-100 mb-6 border-4 border-white shadow-md overflow-hidden relative">
                                         <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-400">
@@ -185,7 +218,7 @@ const ClinicProfilePreview = () => {
                     <section>
                         <SectionHeading title="Achievements" icon={Trophy} />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {clinicData.achievements.map((award, i) => (
+                            {(clinicData.achievements || []).map((award, i) => (
                                 <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:border-orange-200 transition">
                                     <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 flex-shrink-0">
                                         <Trophy className="w-6 h-6" />
@@ -217,7 +250,7 @@ const ClinicProfilePreview = () => {
                     <section>
                         <SectionHeading title="Insurances" icon={ShieldCheck} />
                         <ul className="space-y-3 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                            {clinicData.insurances.map((ins, i) => (
+                            {(clinicData.insurances || clinicData.insurance || []).map((ins, i) => (
                                 <li key={i} className="flex items-center gap-3 text-gray-700 font-medium">
                                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" /> {ins}
                                 </li>
@@ -229,7 +262,7 @@ const ClinicProfilePreview = () => {
                     <section>
                         <SectionHeading title="Facilities" icon={Building} />
                         <div className="flex flex-wrap gap-3 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                            {clinicData.facilities.map((fac, i) => (
+                            {(clinicData.facilities || []).map((fac, i) => (
                                 <span key={i} className="px-3 py-1.5 bg-gray-50 text-gray-700 text-sm rounded-lg font-medium border border-gray-200">
                                     {fac}
                                 </span>
@@ -345,7 +378,8 @@ const ClinicProfilePreview = () => {
 }
 
 // Helper for Section Headings
-const SectionHeading = ({ title, icon: Icon }: { title: string, icon: any }) => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SectionHeading = ({ title, icon: Icon }: { title: string; icon: React.ComponentType<any> }) => (
     <div className="flex items-center gap-2 mb-8 border-b-4 border-orange-500 pb-2">
         <Icon className="w-6 h-6 text-orange-600" />
         <h3 className="text-xl font-extrabold text-gray-900 uppercase tracking-wider">{title}</h3>
@@ -356,7 +390,7 @@ const SectionHeading = ({ title, icon: Icon }: { title: string, icon: any }) => 
 /* ==================================================================================
    VIEW 2: CLINIC EDITOR (The Form View)
    ================================================================================== */
-const ClinicEditor = () => {
+const ClinicEditor = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => {
     const [activeSection, setActiveSection] = useState('basic-info');
 
     const menuItems = [
@@ -373,16 +407,16 @@ const ClinicEditor = () => {
 
     const renderContent = () => {
         switch (activeSection) {
-            case 'basic-info': return <BasicInfoForm />;
-            case 'services': return <ServicesList />;
-            case 'team': return <TeamGrid />;
+            case 'basic-info': return <BasicInfoForm clinicData={clinicData} />;
+            case 'services': return <ServicesList clinicData={clinicData} />;
+            case 'team': return <TeamGrid clinicData={clinicData} />;
             case 'gallery': return <GalleryGrid />;
-            case 'achievements': return <AchievementsList />;
+            case 'achievements': return <AchievementsList clinicData={clinicData} />;
             case 'reviews': return <ReviewsList />;
-            case 'insurances': return <InsurancesGrid />;
-            case 'facilities': return <FacilitiesList />;
-            case 'contact': return <ContactSettings />;
-            default: return <BasicInfoForm />;
+            case 'insurances': return <InsurancesGrid clinicData={clinicData} />;
+            case 'facilities': return <FacilitiesList clinicData={clinicData} />;
+            case 'contact': return <ContactSettings clinicData={clinicData} />;
+            default: return <BasicInfoForm clinicData={clinicData} />;
         }
     };
 
@@ -440,7 +474,15 @@ const SectionHeader = ({ title, desc, actionLabel }: { title: string, desc: stri
     </div>
 );
 
-const InputGroup = ({ label, type = "text", defaultValue, placeholder, full = false }: any) => (
+interface InputGroupProps {
+    label: string;
+    type?: string;
+    defaultValue?: string;
+    placeholder?: string;
+    full?: boolean;
+}
+
+const InputGroup: React.FC<InputGroupProps> = ({ label, type = "text", defaultValue, placeholder, full = false }) => (
     <div className={`space-y-2 ${full ? 'col-span-full' : ''}`}>
         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">{label}</label>
         <input
@@ -453,7 +495,7 @@ const InputGroup = ({ label, type = "text", defaultValue, placeholder, full = fa
 );
 
 /* --- EDITOR SECTIONS (Forms) - POPULATED WITH PREVIEW DATA --- */
-const BasicInfoForm = () => (
+const BasicInfoForm = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-4xl mx-auto">
         <SectionHeader title="Basic Information" desc="Manage your clinic's identity and primary details." />
         <div className="flex flex-col md:flex-row gap-8 mb-8">
@@ -463,7 +505,7 @@ const BasicInfoForm = () => (
                     <span className="text-xs font-medium">Upload Logo</span>
                 </div>
             </div>
-            
+
             {/* Added Banner Image Upload */}
             <div className="flex-shrink-0">
                 <div className="w-full md:w-64 h-32 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100 hover:border-orange-400 transition group relative">
@@ -482,7 +524,7 @@ const BasicInfoForm = () => (
             <InputGroup label="Tagline" defaultValue={clinicData.tagline} />
             <InputGroup label="Establishment Date" type="date" defaultValue="2015-05-20" />
         </div>
-        
+
         <div className="space-y-2 mt-6">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">About the Practice</label>
             <textarea rows={5} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition" defaultValue={clinicData.description} />
@@ -490,12 +532,12 @@ const BasicInfoForm = () => (
     </div>
 );
 
-const ServicesList = () => {
+const ServicesList = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => {
     return (
         <div className="max-w-5xl mx-auto">
             <SectionHeader title="Medical Services" desc="List the treatments and procedures provided." actionLabel="Add Service" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {clinicData.services.map((service, i) => (
+                {(clinicData.services || []).map((service: any, i: any) => (
                     <div key={i} className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex justify-between items-center hover:bg-white hover:shadow-sm transition">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><Briefcase className="w-5 h-5" /></div>
@@ -509,11 +551,11 @@ const ServicesList = () => {
     );
 };
 
-const TeamGrid = () => (
+const TeamGrid = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-6xl mx-auto">
         <SectionHeader title="Our Team" desc="Doctors, nurses, and staff members." actionLabel="Add Member" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {clinicData.team.map((doc, i) => (
+            {(clinicData.team || []).map((doc: any, i: any) => (
                 <div key={i} className="relative flex flex-col items-center p-6 border border-gray-200 rounded-2xl bg-white text-center hover:border-orange-200 transition group">
                     <div className="w-20 h-20 rounded-full bg-gray-100 mb-4 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm"><Users className="w-8 h-8 text-gray-300" /></div>
                     <h3 className="font-bold text-gray-900">{doc.name}</h3>
@@ -539,11 +581,11 @@ const GalleryGrid = () => (
     </div>
 );
 
-const AchievementsList = () => (
+const AchievementsList = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-4xl mx-auto">
         <SectionHeader title="Achievements" desc="Awards and certifications." actionLabel="Add Achievement" />
         <div className="space-y-3">
-            {clinicData.achievements.map((award, i) => (
+            {(clinicData.achievements || []).map((award: any, i: any) => (
                 <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white">
                     <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600"><Trophy className="w-5 h-5" /></div>
                     <div><h4 className="font-bold text-gray-900">{award.title}</h4><p className="text-sm text-gray-500">{award.org}</p></div>
@@ -565,29 +607,29 @@ const ReviewsList = () => (
     </div>
 );
 
-const InsurancesGrid = () => (
+const InsurancesGrid = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-4xl mx-auto">
         <SectionHeader title="Insurances" desc="Accepted providers." />
         <div className="flex flex-wrap gap-3">
-            {clinicData.insurances.map((ins, i) => (
+            {(clinicData.insurances || clinicData.insurance || []).map((ins: any, i: any) => (
                 <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:border-orange-500 hover:text-orange-600 cursor-pointer transition"><ShieldCheck className="w-4 h-4" /><span className="text-sm font-medium">{ins}</span></div>
             ))}
         </div>
     </div>
 );
 
-const FacilitiesList = () => (
+const FacilitiesList = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-4xl mx-auto">
         <SectionHeader title="Facilities" desc="Amenities available." />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {clinicData.facilities.map((fac, i) => (
+            {(clinicData.facilities || []).map((fac: any, i: any) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-white"><CheckCircle className="w-5 h-5 text-green-500" /><span className="text-sm font-medium text-gray-700">{fac}</span></div>
             ))}
         </div>
     </div>
 );
 
-const ContactSettings = () => (
+const ContactSettings = ({ clinicData }: { clinicData: Clinic & typeof clinicFallback }) => (
     <div className="max-w-5xl mx-auto">
         <SectionHeader title="Contact Info" desc="Edit contact details and opening hours." />
 

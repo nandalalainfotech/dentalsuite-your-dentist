@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Practice } from '../types/auth';
-import { validatePracticeCredentials, getPracticeByEmail, addPractice, updatePractice } from '../data/practiceApi';
+import { validateAllPracticeCredentials, findPracticeByEmail, addPractice, updatePractice } from '../data/practices';
 
 interface PracticeAuthState {
   practice: Practice | null;
@@ -79,7 +79,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
   const login = async (credentials: { emailOrMobile: string; password: string }): Promise<{ success: boolean; message: string }> => {
     try {
-      const practice = validatePracticeCredentials(credentials.emailOrMobile, credentials.password);
+      const practice = validateAllPracticeCredentials(credentials.emailOrMobile, credentials.password);
 
       if (practice) {
         setState({
@@ -114,7 +114,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
     practicePostcode: string;
   }): Promise<{ success: boolean; message: string }> => {
     try {
-      const existingPractice = getPracticeByEmail(credentials.email);
+      const existingPractice = findPracticeByEmail(credentials.email);
 
       if (existingPractice) {
         return { success: false, message: 'Practice with this email already exists' };

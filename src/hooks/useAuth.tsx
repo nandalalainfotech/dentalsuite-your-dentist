@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isLoading: false,
           userRole: 'patient'
         });
-        localStorage.setItem('user', JSON.stringify({ ...user, userRole: 'patient' }));
+        localStorage.setItem('user', JSON.stringify(Object.assign({}, user, { userRole: 'patient' })));
         return { success: true, message: 'Login successful' };
       } else {
         return { success: false, message: 'Invalid email/mobile or password' };
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         userRole: 'patient'
       });
-      localStorage.setItem('user', JSON.stringify({ ...newUser, userRole: 'patient' }));
+      localStorage.setItem('user', JSON.stringify(Object.assign({}, newUser, { userRole: 'patient' })));
 
       return { success: true, message: 'Account created successfully' };
     } catch (error) {
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const updatedUser = updateUser(prev.user.id, userData);
       if (updatedUser) {
-        localStorage.setItem('user', JSON.stringify({ ...updatedUser, userRole: 'patient' }));
+        localStorage.setItem('user', JSON.stringify(Object.assign({}, updatedUser, { userRole: 'patient' })));
         return { ...prev, user: updatedUser };
       }
       return prev;
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isLoading: false,
           userRole: 'practice'
         });
-        localStorage.setItem('user', JSON.stringify({ ...practice, userRole: 'practice' }));
+        localStorage.setItem('user', JSON.stringify(Object.assign({}, practice, { userRole: 'practice' })));
         return { success: true, message: 'Login successful' };
       } else {
         return { success: false, message: 'Invalid email/mobile or password' };
@@ -185,7 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         userRole: 'practice'
       });
-      localStorage.setItem('user', JSON.stringify({ ...newPractice, userRole: 'practice' }));
+      localStorage.setItem('user', JSON.stringify(Object.assign({}, newPractice, { userRole: 'practice' })));
 
       return { success: true, message: 'Practice account created successfully' };
     } catch (error) {
@@ -200,7 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const updatedPractice = updatePractice(prev.user.id, practiceData);
       if (updatedPractice) {
-        localStorage.setItem('user', JSON.stringify({ ...updatedPractice, userRole: 'practice' }));
+        localStorage.setItem('user', JSON.stringify(Object.assign({}, updatedPractice, { userRole: 'practice' })));
         return { ...prev, user: updatedPractice };
       }
       return prev;
