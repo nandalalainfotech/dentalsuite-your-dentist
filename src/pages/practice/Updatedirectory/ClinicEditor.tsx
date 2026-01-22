@@ -31,9 +31,9 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
             case 'basic-info': return <PracticeBaseInfo clinicData={clinicData} />;
             case 'services': return <PracticeServices clinicData={clinicData} />;
             case 'team': return <PracticeTeam clinicData={clinicData} />;
-            case 'gallery': return <PracticeGallery />;
+            case 'gallery': return <PracticeGallery clinicData={clinicData} />;
             case 'achievements': return <PracticeAchievements clinicData={clinicData} />;
-            case 'reviews': return <PracticeReviews />;
+            case 'reviews': return <PracticeReviews clinicData={clinicData} />;
             case 'insurances': return <PracticeInsurances clinicData={clinicData} />;
             case 'facilities': return <PracticeFacilities clinicData={clinicData} />;
             case 'contact': return <PracticeContact clinicData={clinicData} />;
