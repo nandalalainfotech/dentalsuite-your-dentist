@@ -36,7 +36,7 @@ export interface FamilyMember {
 
 
 export interface MenuItem {
-  id: 'directory' | 'profile' | 'appointments' | 'certificate' | 'patients' | 'settings' | 'help' | 'notifications' | 'security';
+  id: 'directory' | 'profile' | 'appointments' | 'certificate' | 'patients' | 'settings' | 'help' | 'notifications' | 'security' | 'bookingcalender';
   label: string;
   icon: React.FC<unknown>;
   badge?: number;
