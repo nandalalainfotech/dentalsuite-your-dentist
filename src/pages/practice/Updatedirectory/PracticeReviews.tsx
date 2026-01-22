@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Star, Plus, X, Edit2, Trash2 } from 'lucide-react';
-import { SectionHeader, InputGroup } from './SharedEditorComponents';
+import { Star, Edit2, Trash2 } from 'lucide-react';
+import { InputGroup } from './SharedEditorComponents';
 import type { Clinic } from '../../../types/clinic';
 
 interface ReviewItem {
@@ -11,6 +11,7 @@ interface ReviewItem {
     date: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) {
     const [reviews, setReviews] = useState<ReviewItem[]>([
         {
@@ -66,8 +67,8 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
 
     const handleUpdateReview = () => {
         if (formData.patientName && formData.comment && editingReview) {
-            setReviews(reviews.map(review => 
-                review.id === editingReview 
+            setReviews(reviews.map(review =>
+                review.id === editingReview
                     ? { ...review, ...formData }
                     : review
             ));
@@ -90,11 +91,10 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
             {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                     key={star}
-                    className={`w-4 h-4 cursor-pointer transition-colors ${
-                        star <= rating 
-                            ? 'text-yellow-400 fill-current' 
-                            : 'text-gray-300 hover:text-yellow-200'
-                    }`}
+                    className={`w-4 h-4 cursor-pointer transition-colors ${star <= rating
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-300 hover:text-yellow-200'
+                        }`}
                     onClick={() => onChange?.(star)}
                 />
             ))}
@@ -103,13 +103,13 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
 
     return (
         <div className="max-w-4xl mx-auto">
-            <SectionHeader 
+            {/* <SectionHeader 
                 title="Reviews" 
                 desc="Patient feedback." 
                 actionLabel="Add Review"
                 onActionClick={() => setIsAddingReview(true)}
-            />
-            
+            /> */}
+
             {isAddingReview && (
                 <div className="mb-6 p-5 rounded-xl border border-orange-200 bg-orange-50">
                     <h3 className="font-semibold text-gray-900 mb-4">Add New Review</h3>
@@ -117,11 +117,11 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
                         <InputGroup
                             label="Patient Name"
                             value={formData.patientName}
-                            onChange={(e) => setFormData({...formData, patientName: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
                         />
                         <div className="space-y-2">
                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Rating</label>
-                            {renderStars(formData.rating, (rating) => setFormData({...formData, rating}))}
+                            {renderStars(formData.rating, (rating) => setFormData({ ...formData, rating }))}
                         </div>
                     </div>
                     <div className="space-y-2 mb-4">
@@ -130,7 +130,7 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
                             rows={3}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition"
                             value={formData.comment}
-                            onChange={(e) => setFormData({...formData, comment: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                         />
                     </div>
                     <div className="flex gap-2">
@@ -159,18 +159,18 @@ export default function PracticeReviews({ clinicData }: { clinicData: Clinic }) 
                                     <InputGroup
                                         label="Patient Name"
                                         value={formData.patientName}
-                                        onChange={(e) => setFormData({...formData, patientName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
                                     />
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Rating</label>
-                                        {renderStars(formData.rating, (rating) => setFormData({...formData, rating}))}
+                                        {renderStars(formData.rating, (rating) => setFormData({ ...formData, rating }))}
                                     </div>
                                 </div>
                                 <textarea
                                     rows={3}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition"
                                     value={formData.comment}
-                                    onChange={(e) => setFormData({...formData, comment: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
                                 />
                                 <div className="flex gap-2">
                                     <button
