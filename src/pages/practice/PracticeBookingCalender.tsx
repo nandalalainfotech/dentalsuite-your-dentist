@@ -795,6 +795,8 @@ const PracticeBookingCalender = () => {
                                                             ></div>
                                                             <span className="text-[10px] sm:text-xs font-bold truncate">
                                                                 {event.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                -
+                                                                {event.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
                                                         </div>
 
