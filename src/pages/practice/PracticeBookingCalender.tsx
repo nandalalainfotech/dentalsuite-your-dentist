@@ -407,10 +407,10 @@ const EventModal: React.FC<EventFormProps> = ({ isOpen, onClose, onSave, onDelet
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-                    {/* Break Title */}
+                    {/* Title */}
                     <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                            Break Title
+                            Title
                         </label>
                         <input
                             type="text"
