@@ -1,16 +1,88 @@
-/* eslint-disable react-hooks/static-components */
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
 import { usePracticeAuth } from '../../hooks/usePracticeAuth';
+
+// --- Reusable UI Components (Defined outside to prevent re-renders) ---
+
+const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
+    <div className="mb-6 border-b border-gray-200 pb-4">
+        <h3 className="text-lg font-medium leading-6 text-gray-900">{title}</h3>
+        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+    </div>
+);
+
+const Label = ({ children, required, htmlFor }: { children: React.ReactNode; required?: boolean; htmlFor?: string }) => (
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1.5">
+        {children} {required && <span className="text-red-500">*</span>}
+    </label>
+);
+
+const Input = ({
+    icon,
+    textarea = false,
+    className = "",
+    id,
+    ...props
+}: {
+    icon?: React.ReactNode;
+    textarea?: boolean;
+    className?: string;
+    [key: string]: any;
+}) => {
+    const baseClasses = "block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2.5 px-3 border";
+
+    return (
+        <div className="relative rounded-md shadow-sm">
+            {textarea ? (
+                <textarea
+                    id={id}
+                    className={`${baseClasses} ${className}`}
+                    rows={3}
+                    {...props}
+                />
+            ) : (
+                <input
+                    id={id}
+                    className={`${baseClasses} ${icon ? 'pr-10' : ''} ${className}`}
+                    {...props}
+                />
+            )}
+            {icon && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                    {icon}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const Select = ({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+    <select
+        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2.5 px-3 border bg-white"
+        {...props}
+    >
+        {children}
+    </select>
+);
+
+const PencilIcon = (
+    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+    </svg>
+);
+
+// --- Main Component ---
 
 const PractiveViewProfile = () => {
     const { practice, updateProfile } = usePracticeAuth();
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [form, setForm] = useState({
         // Basic Info
         businessName: '',
         abnAcn: '',
         businessType: 'general_dentistry',
-        // contactName: '',
         email: '',
         phone: '',
         // Contact Information
@@ -30,17 +102,14 @@ const PractiveViewProfile = () => {
         country: 'Australia',
     });
 
-    // Initialize form with practice data when component mounts or practice changes
     useEffect(() => {
         if (practice) {
             setForm({
                 businessName: practice.practiceName || '',
                 abnAcn: practice.abnNumber || '',
                 businessType: practice.practiceType || 'general_dentistry',
-                // contactName: `${practice.firstName} ${practice.lastName}` || '',
                 email: practice.email || '',
                 phone: practice.practicePhone || '',
-                // Contact Information
                 firstName: practice.firstName || '',
                 middleName: '',
                 lastName: practice.lastName || '',
@@ -76,390 +145,350 @@ const PractiveViewProfile = () => {
         reader.readAsDataURL(file);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!practice) return;
 
-        // Update practice profile with form data
-        updateProfile({
-            practiceName: form.businessName,
-            abnNumber: form.abnAcn,
-            practiceType: form.businessType as any,
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            mobileNumber: form.altPhone,
-            practicePhone: form.phone,
-            practiceAddress: form.address,
-            practiceCity: form.city,
-            practiceState: form.state as any,
-            practicePostcode: form.postCode,
-        });
-
-        alert('Profile updated successfully!');
-    };
-
-    const handleDelete = () => {
-        // TODO: call API to delete
-        if (confirm('Are you sure you want to delete your account?')) {
-            alert('Deleted! (wire up your API here)');
+        setIsSubmitting(true);
+        try {
+            await updateProfile({
+                practiceName: form.businessName,
+                abnNumber: form.abnAcn,
+                practiceType: form.businessType as any,
+                firstName: form.firstName,
+                lastName: form.lastName,
+                email: form.email,
+                mobileNumber: form.altPhone,
+                practicePhone: form.phone,
+                practiceAddress: form.address,
+                practiceCity: form.city,
+                practiceState: form.state as any,
+                practicePostcode: form.postCode,
+            });
+            alert('Profile updated successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to update profile.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const Label = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-            {children} {required && <span className="text-red-500">*</span>}
-        </label>
-    );
-
-    const Input = ({ icon, textarea = false, ...props }: {
-        icon?: React.ReactNode;
-        textarea?: boolean;
-        [key: string]: any
-    }) => (
-        <div className="relative">
-            {textarea ? (
-                <textarea
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    rows={3}
-                    {...props}
-                />
-            ) : (
-                <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    {...props}
-                />
-            )}
-            {icon && (
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    {icon}
-                </span>
-            )}
-        </div>
-    );
-
-    const PencilIcon = (
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M17.414 2.586a2 2 0 010 2.828l-9.9 9.9a1 1 0 01-.4.25l-3.5 1a1 1 0 01-1.243-1.243l1-3.5a1 1 0 01.25-.4l9.9-9.9a2 2 0 012.828 0zM12 5l3 3M4 16h12" />
-        </svg>
-    );
-
-    const SectionHeader = ({ children }: { children: React.ReactNode }) => (
-        <div className="mb-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-sm font-extrabold tracking-widest text-orange-600 uppercase">
-                    {children}
-                </h2>
-            </div>
-            <div className="mt-2 h-0.5 w-40 bg-orange-500" />
-        </div>
-    );
+    const handleDelete = () => {
+        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            alert('Deleted! (API integration required)');
+        }
+    };
 
     return (
-        <div className="mx-aut">
-            {/* Top action */}
-            <div className="mb-2 flex items-center justify-between">
-                <div />
-                <button
-                    type="button"
-                    onClick={handleDelete}
-                    className="rounded-md bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-orange-600 focus:outline-none"
-                >
-                    Delete My Account
-                </button>
-            </div>
+        <div className="min-h-screen bg-white py-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-            <form onSubmit={handleSubmit}>
-                {/* BASIC INFO */}
-                <SectionHeader>BASIC INFO</SectionHeader>
-
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    {/* Logo upload */}
-                    <div className="flex flex-col items-start">
-                        <span className="mb-2 text-sm font-medium text-gray-700">Business Logo</span>
-                        <div className="relative">
-                            <div className="flex h-36 w-36 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
-                                {logoPreview ? (
-                                    <img
-                                        src={logoPreview}
-                                        alt="Business logo preview"
-                                        className="h-full w-full object-cover"
-                                    />
-                                ) : (
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-20 w-20 text-gray-300"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                    >
-                                        <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.978 0-12 2.006-12 6v2h24v-2c0-3.994-8.022-6-12-6z" />
-                                    </svg>
-                                )}
-                            </div>
-
-                            <label
-                                htmlFor="logo"
-                                className="absolute -bottom-2 -right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-orange-500 text-white shadow hover:bg-orange-600"
-                                title="Upload logo"
-                            >
-                                <input id="logo" type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-                                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                                    <path d="M17.414 2.586a2 2 0 010 2.828l-9.9 9.9a1 1 0 01-.4.25l-3.5 1a1 1 0 01-1.243-1.243l1-3.5a1 1 0 01.25-.4l9.9-9.9a2 2 0 012.828 0zM12 5l3 3" />
-                                </svg>
-                            </label>
-                        </div>
+                {/* Page Header */}
+                <div className="md:flex md:items-center md:justify-between mb-8">
+                    <div className="min-w-0 flex-1">
+                        <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                            Basic Info
+                        </h2>
                     </div>
-
-                    {/* Basic info fields - left column of right side */}
-                    <div className="grid grid-cols-1 gap-5">
-                        <div>
-                            <Label required>Business Name</Label>
-                            <Input
-                                name="businessName"
-                                value={form.businessName}
-                                onChange={handleChange}
-                                placeholder="Enter business name"
-                            />
-                        </div>
-
-                        <div>
-                            <Label required>ABN / ACN Number</Label>
-                            <Input
-                                name="abnAcn"
-                                value={form.abnAcn}
-                                onChange={handleChange}
-                                placeholder="Enter ABN / ACN"
-                            />
-                        </div>
-
-                        <div>
-                            <Label required={false}>Business Type</Label>
-                            <select
-                                name="businessType"
-                                value={form.businessType}
-                                onChange={handleChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            >
-                                <option>Dental Practices</option>
-                                <option>General Practice</option>
-                                <option>Allied Health</option>
-                                <option>Specialist Clinic</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Basic info fields - right column of right side */}
-                    <div className="grid grid-cols-1 gap-5">
-                        {/* <div>
-                            <Label required>Contact Name</Label>
-                            <Input
-                                name="contactName"
-                                value={form.contactName}
-                                onChange={handleChange}
-                                icon={PencilIcon}
-                                placeholder="Enter contact name"
-                            />
-                        </div> */}
-
-                        <div>
-                            <Label required>Email</Label>
-                            <Input
-                                type="email"
-                                name="email"
-                                value={form.email}
-                                onChange={handleChange}
-                                placeholder="Enter email"
-                            />
-                        </div>
-
-                        <div>
-                            <Label required>Phone No</Label>
-                            <Input
-                                type="tel"
-                                name="phone"
-                                value={form.phone}
-                                onChange={handleChange}
-                                icon={PencilIcon}
-                                placeholder="Enter phone"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="my-8 border-b border-gray-200" />
-
-                {/* CONTACT INFORMATION */}
-                <SectionHeader>CONTACT INFORMATION</SectionHeader>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div>
-                        <Label required>First Name</Label>
-                        <Input
-                            name="firstName"
-                            value={form.firstName}
-                            onChange={handleChange}
-                            placeholder="Enter first name"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Middle Name</Label>
-                        <Input
-                            name="middleName"
-                            value={form.middleName}
-                            onChange={handleChange}
-                            placeholder="Enter middle name"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required>Last Name</Label>
-                        <Input
-                            name="lastName"
-                            value={form.lastName}
-                            onChange={handleChange}
-                            placeholder="Enter last name"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Fax Number</Label>
-                        <Input
-                            name="faxNumber"
-                            value={form.faxNumber}
-                            onChange={handleChange}
-                            placeholder="Enter fax number"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Alternate Phone Number</Label>
-                        <Input
-                            name="altPhone"
-                            value={form.altPhone}
-                            onChange={handleChange}
-                            icon={PencilIcon}
-                            placeholder="Enter alternate phone"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Alternate Email</Label>
-                        <Input
-                            type="email"
-                            name="altEmail"
-                            value={form.altEmail}
-                            onChange={handleChange}
-                            icon={PencilIcon}
-                            placeholder="Enter alternate email"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required>Address</Label>
-                        <Input
-                            name="address"
-                            value={form.address}
-                            onChange={handleChange}
-                            placeholder="Search or enter address"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Address Line 1</Label>
-                        <Input
-                            name="address1"
-                            value={form.address1}
-                            onChange={handleChange}
-                            placeholder="Enter address line 1"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Address Line 2</Label>
-                        <Input
-                            name="address2"
-                            value={form.address2}
-                            onChange={handleChange}
-                            textarea
-                            placeholder="Enter address line 2"
-                        />
-                    </div>
-
-                    <div>
-                        <Label required={false}>Landmark</Label>
-                        <Input
-                            name="landmark"
-                            value={form.landmark}
-                            onChange={handleChange}
-                            placeholder="Enter landmark"
-                        />
-                    </div>
-
-                    <div>
-                        <Label>City</Label>
-                        <Input
-                            name="city"
-                            value={form.city}
-                            onChange={handleChange}
-                            placeholder="Enter city"
-                        />
-                    </div>
-
-                    <div>
-                        <Label>State</Label>
-                        <select
-                            name="state"
-                            value={form.state}
-                            onChange={handleChange}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    <div className="mt-4 flex md:ml-4 md:mt-0">
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
                         >
-                            <option>New South Wales</option>
-                            <option>Victoria</option>
-                            <option>Queensland</option>
-                            <option>South Australia</option>
-                            <option>Western Australia</option>
-                            <option>Tasmania</option>
-                            <option>Northern Territory</option>
-                            <option>Australian Capital Territory</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <Label>Country</Label>
-                        <Input
-                            name="country"
-                            value={form.country}
-                            onChange={handleChange}
-                            placeholder="Enter country"
-                        />
-                    </div>
-
-                    <div>
-                        <Label>Post Code</Label>
-                        <Input
-                            name="postCode"
-                            value={form.postCode}
-                            onChange={handleChange}
-                            placeholder="Enter post code"
-                        />
+                            Delete Account
+                        </button>
                     </div>
                 </div>
 
-                {/* Footer actions */}
-                <div className="mt-10 flex justify-end">
-                    <button
-                        type="submit"
-                        className="rounded-full bg-orange-500 px-6 py-3 font-semibold text-white shadow hover:bg-orange-600 focus:outline-none"
-                    >
-                        Save & Update
-                    </button>
-                </div>
-            </form>
+                <form onSubmit={handleSubmit} className="space-y-8">
+
+                    {/* --- Basic Info Card --- */}
+                    <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+                        <div className="px-4 py-6 sm:p-8">
+                            <div className="grid grid-cols-1 gap-x-8 gap-y-8 lg:grid-cols-3">
+                                {/* Logo Column */}
+                                <div className="col-span-1 flex flex-col items-center lg:items-start">
+                                    <Label>Business Logo</Label>
+                                    <div className="mt-2 flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-6 w-full max-w-xs bg-gray-50">
+                                        <div className="text-center">
+                                            {logoPreview ? (
+                                                <div className="relative h-32 w-32 mx-auto overflow-hidden rounded-full ring-4 ring-white shadow-md">
+                                                    <img src={logoPreview} alt="Logo" className="h-full w-full object-cover" />
+                                                </div>
+                                            ) : (
+                                                <div className="mx-auto h-24 w-24 text-gray-300">
+                                                    <svg className="h-full w-full" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <div className="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
+                                                <label
+                                                    htmlFor="file-upload"
+                                                    className="relative cursor-pointer rounded-md font-semibold text-orange-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-orange-600 focus-within:ring-offset-2 hover:text-orange-500"
+                                                >
+                                                    <span>Upload a file</span>
+                                                    <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleLogoChange} />
+                                                </label>
+                                            </div>
+                                            <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF up to 5MB</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Form Fields Column */}
+                                <div className="col-span-1 lg:col-span-2 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                                    <div className="sm:col-span-2">
+                                        <Label required htmlFor="businessName">Business Name</Label>
+                                        <Input
+                                            id="businessName"
+                                            name="businessName"
+                                            value={form.businessName}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Sydney Dental Care"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label required htmlFor="abnAcn">ABN / ACN</Label>
+                                        <Input
+                                            id="abnAcn"
+                                            name="abnAcn"
+                                            value={form.abnAcn}
+                                            onChange={handleChange}
+                                            placeholder="12 345 678 901"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="businessType">Business Type</Label>
+                                        <Select
+                                            id="businessType"
+                                            name="businessType"
+                                            value={form.businessType}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="general_dentistry">Dental Practices</option>
+                                            <option value="general_practice">General Practice</option>
+                                            <option value="allied_health">Allied Health</option>
+                                            <option value="specialist">Specialist Clinic</option>
+                                        </Select>
+                                    </div>
+
+                                    <div>
+                                        <Label required htmlFor="email">Email Address</Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            name="email"
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            icon={PencilIcon}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label required htmlFor="phone">Phone Number</Label>
+                                        <Input
+                                            id="phone"
+                                            type="tel"
+                                            name="phone"
+                                            value={form.phone}
+                                            onChange={handleChange}
+                                            icon={PencilIcon}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* --- Contact Info Card --- */}
+                    <div className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+                        <div className="px-4 py-6 sm:p-8">
+                            <SectionHeader
+                                title="Contact Information"
+                            />
+
+                            <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+                                <div>
+                                    <Label required htmlFor="firstName">First Name</Label>
+                                    <Input
+                                        id="firstName"
+                                        name="firstName"
+                                        value={form.firstName}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="middleName">Middle Name</Label>
+                                    <Input
+                                        id="middleName"
+                                        name="middleName"
+                                        value={form.middleName}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label required htmlFor="lastName">Last Name</Label>
+                                    <Input
+                                        id="lastName"
+                                        name="lastName"
+                                        value={form.lastName}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="faxNumber">Fax Number</Label>
+                                    <Input
+                                        id="faxNumber"
+                                        name="faxNumber"
+                                        value={form.faxNumber}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="altPhone">Alt. Phone</Label>
+                                    <Input
+                                        id="altPhone"
+                                        name="altPhone"
+                                        value={form.altPhone}
+                                        onChange={handleChange}
+                                        icon={PencilIcon}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="altEmail">Alt. Email</Label>
+                                    <Input
+                                        id="altEmail"
+                                        type="email"
+                                        name="altEmail"
+                                        value={form.altEmail}
+                                        onChange={handleChange}
+                                        icon={PencilIcon}
+                                    />
+                                </div>
+
+                                <div className="sm:col-span-2 lg:col-span-3">
+                                    <Label required htmlFor="address">Full Address</Label>
+                                    <Input
+                                        id="address"
+                                        name="address"
+                                        value={form.address}
+                                        onChange={handleChange}
+                                        placeholder="Search address..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="address1">Address Line 1</Label>
+                                    <Input
+                                        id="address1"
+                                        name="address1"
+                                        value={form.address1}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="address2">Address Line 2</Label>
+                                    <Input
+                                        id="address2"
+                                        name="address2"
+                                        value={form.address2}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="landmark">Landmark</Label>
+                                    <Input
+                                        id="landmark"
+                                        name="landmark"
+                                        value={form.landmark}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="city">City</Label>
+                                    <Input
+                                        id="city"
+                                        name="city"
+                                        value={form.city}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="state">State</Label>
+                                    <Select
+                                        id="state"
+                                        name="state"
+                                        value={form.state}
+                                        onChange={handleChange}
+                                    >
+                                        <option>New South Wales</option>
+                                        <option>Victoria</option>
+                                        <option>Queensland</option>
+                                        <option>South Australia</option>
+                                        <option>Western Australia</option>
+                                        <option>Tasmania</option>
+                                        <option>Northern Territory</option>
+                                        <option>Australian Capital Territory</option>
+                                    </Select>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="postCode">Post Code</Label>
+                                    <Input
+                                        id="postCode"
+                                        name="postCode"
+                                        value={form.postCode}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="country">Country</Label>
+                                    <Input
+                                        id="country"
+                                        name="country"
+                                        value={form.country}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex items-center justify-end gap-x-6">
+                        <button
+                            type="button"
+                            className="text-sm font-semibold leading-6 text-gray-900 hover:text-orange-600 transition-colors"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="rounded-md bg-orange-600 px-8 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                        >
+                            {isSubmitting ? 'Saving...' : 'Save & Update'}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        // </div>
     );
 };
 
