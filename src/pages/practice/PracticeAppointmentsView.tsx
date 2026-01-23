@@ -38,11 +38,6 @@ interface FilterState {
   endDate: string;
 }
 
-interface DropdownPosition {
-  top: number;
-  right: number;
-}
-
 // --- Static Data Generation ---
 const getRelativeDate = (daysOffset: number, hour: number, minute: number): string => {
   const date = new Date();
@@ -329,6 +324,12 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
     </svg>
   ),
+  Spinner: ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={`animate-spin ${className}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  ),
 };
 
 // --- Date Formatters ---
@@ -443,6 +444,30 @@ const TableHeader = () => (
   </div>
 );
 
+// --- Simple Success Modal Component ---
+const SimpleSuccessModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  if (!isOpen) return null;
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 text-center">
+        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+           <Icons.Check className="w-6 h-6 text-green-600" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">The appointment is Rescheduled</h3>
+        <p className="text-sm text-gray-500 mb-6">The user has been notified via email and message.</p>
+        <button 
+          onClick={onClose}
+          className="w-full py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          OK
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 // --- Mobile Bottom Sheet Component (Portal) ---
 const MobileBottomSheet = ({
   apt,
@@ -468,8 +493,8 @@ const MobileBottomSheet = ({
   };
 
   const handleReschedule = () => {
-    onReschedule(apt);
-    onClose();
+    onClose(); 
+    setTimeout(() => onReschedule(apt), 100); 
   };
 
   return ReactDOM.createPortal(
@@ -561,16 +586,14 @@ const MobileBottomSheet = ({
   );
 };
 
-// --- Desktop Dropdown Component (Portal) ---
+// --- Desktop Dropdown Component (Inline Absolute) ---
 const DesktopDropdown = ({
   apt,
-  position,
   onUpdate,
   onReschedule,
   onClose,
 }: {
   apt: EnrichedAppointment;
-  position: DropdownPosition;
   onUpdate: (id: string, status: ValidStatus) => void;
   onReschedule: (apt: EnrichedAppointment) => void;
   onClose: () => void;
@@ -604,84 +627,82 @@ const DesktopDropdown = ({
     onClose();
   };
 
-  return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[9999]" style={{ pointerEvents: 'none' }}>
-      <div
-        ref={dropdownRef}
-        className="absolute w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-150"
-        style={{ top: position.top, right: position.right, pointerEvents: 'auto' }}
-      >
-        {apt.status === 'pending' && (
-          <>
-            <button onClick={() => handleAction('confirmed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-                <Icons.Check className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div>
-                <div className="font-medium">Confirm</div>
-                <div className="text-xs text-gray-400">Accept booking</div>
-              </div>
-            </button>
-            <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <div className="font-medium">Reschedule</div>
-                <div className="text-xs text-gray-400">Change date/time</div>
-              </div>
-            </button>
-            <div className="my-1 border-t border-gray-100" />
-            <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Icons.Archive className="w-4 h-4 text-gray-600" />
-              </div>
-              <div>
-                <div className="font-medium">Dismiss</div>
-                <div className="text-xs text-gray-400">Remove request</div>
-              </div>
-            </button>
-          </>
-        )}
-        {apt.status === 'confirmed' && (
-          <>
-            <button onClick={() => handleAction('completed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-                <Icons.Check className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div>
-                <div className="font-medium">Complete</div>
-                <div className="text-xs text-gray-400">Mark as done</div>
-              </div>
-            </button>
-            <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <div className="font-medium">Reschedule</div>
-                <div className="text-xs text-gray-400">Change date/time</div>
-              </div>
-            </button>
-            <div className="my-1 border-t border-gray-100" />
-            <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
-              <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                <Icons.X className="w-4 h-4 text-red-500" />
-              </div>
-              <div>
-                <div className="font-medium">Cancel</div>
-                <div className="text-xs text-red-400">Remove booking</div>
-              </div>
-            </button>
-          </>
-        )}
-      </div>
-    </div>,
-    document.body
+  return (
+    <div
+      ref={dropdownRef}
+      className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-150 z-50 origin-top-right"
+      style={{ pointerEvents: 'auto' }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {apt.status === 'pending' && (
+        <>
+          <button onClick={() => handleAction('confirmed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+              <Icons.Check className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div>
+              <div className="font-medium">Confirm</div>
+              <div className="text-xs text-gray-400">Accept booking</div>
+            </div>
+          </button>
+          <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <div className="font-medium">Reschedule</div>
+              <div className="text-xs text-gray-400">Change date/time</div>
+            </div>
+          </button>
+          <div className="my-1 border-t border-gray-100" />
+          <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Icons.Archive className="w-4 h-4 text-gray-600" />
+            </div>
+            <div>
+              <div className="font-medium">Cancel</div>
+              <div className="text-xs text-gray-400">Remove request</div>
+            </div>
+          </button>
+        </>
+      )}
+      {apt.status === 'confirmed' && (
+        <>
+          <button onClick={() => handleAction('completed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+              <Icons.Check className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div>
+              <div className="font-medium">Complete</div>
+              <div className="text-xs text-gray-400">Mark as done</div>
+            </div>
+          </button>
+          <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <div className="font-medium">Reschedule</div>
+              <div className="text-xs text-gray-400">Change date/time</div>
+            </div>
+          </button>
+          <div className="my-1 border-t border-gray-100" />
+          <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
+            <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+              <Icons.X className="w-4 h-4 text-red-500" />
+            </div>
+            <div>
+              <div className="font-medium">Cancel</div>
+              <div className="text-xs text-red-400">Remove booking</div>
+            </div>
+          </button>
+        </>
+      )}
+    </div>
   );
 };
 
-// --- Expanded Details Component (The exact design from image) ---
+// --- Expanded Details Component ---
 const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
   return (
     <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
@@ -739,12 +760,15 @@ export default function PracticeAppointmentsView() {
   const [appointments, setAppointments] = useState<EnrichedAppointment[]>(STATIC_APPOINTMENTS);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, right: 0 });
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Reschedule State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     type: '',
@@ -767,7 +791,10 @@ export default function PracticeAppointmentsView() {
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenMenuId(null);
+      if (e.key === 'Escape') {
+        setOpenMenuId(null);
+        setShowSuccessModal(false);
+      }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
@@ -785,14 +812,20 @@ export default function PracticeAppointmentsView() {
     setExpandedRowId(null);
   }, []);
 
-  const handleReschedule = useCallback((apt: EnrichedAppointment) => {
-    alert(`Reschedule appointment for ${apt.patientName}\nCurrent: ${formatDate(apt.dateTime)} at ${formatTime(apt.dateTime)}`);
+  // NEW: Handle Reschedule Click
+  const handleRescheduleClick = useCallback((apt: EnrichedAppointment) => {
+    // 1. Remove the appointment from the list immediately (simulating it moving to a different status/list)
+    setAppointments(prev => prev.filter(a => a.id !== apt.id));
+    
+    // 2. Show the success popup
+    setShowSuccessModal(true);
+    
+    // 3. Close any open menus
+    setOpenMenuId(null);
   }, []);
 
-  const handleOpenMenu = useCallback((aptId: string, buttonElement: HTMLButtonElement) => {
+  const handleOpenMenu = useCallback((aptId: string) => {
     setExpandedRowId(null);
-    const rect = buttonElement.getBoundingClientRect();
-    setDropdownPosition({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
     setOpenMenuId(aptId);
   }, []);
 
@@ -1086,7 +1119,7 @@ export default function PracticeAppointmentsView() {
                               <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} size="small" />
                               {!isTerminalState(apt.status) && (
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id, e.currentTarget); }} 
+                                  onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }} 
                                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
                                   <Icons.MoreVertical className="w-4 h-4" />
@@ -1172,15 +1205,26 @@ export default function PracticeAppointmentsView() {
                           </div>
 
                           {/* Actions */}
-                          <div className="w-16 flex justify-end items-center gap-1">
+                          <div className="w-16 flex justify-end items-center gap-1 relative">
                             {!isTerminalState(apt.status) && (
                               <button 
-                                onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id, e.currentTarget); }} 
+                                onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }} 
                                 className={`p-1.5 rounded-lg transition-all ${openMenuId === apt.id ? 'bg-gray-200 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                               >
                                 <Icons.MoreVertical className="w-5 h-5" />
                               </button>
                             )}
+
+                            {/* DROPDOWN RENDERED INLINE FOR DESKTOP */}
+                            {openMenuId === apt.id && !isMobile && (
+                                <DesktopDropdown 
+                                  apt={apt} 
+                                  onUpdate={handleStatusUpdate} 
+                                  onReschedule={handleRescheduleClick} 
+                                  onClose={handleCloseMenu} 
+                                />
+                            )}
+
                             <button 
                               onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }} 
                               className={`p-1.5 transition-transform duration-200 text-gray-400 hover:text-gray-600 ${isExpanded ? 'rotate-180' : ''}`}
@@ -1248,14 +1292,21 @@ export default function PracticeAppointmentsView() {
         </div>
       </div>
       
-      {/* Dropdown Portals */}
-      {openMenuId && openMenuApt && (
-        isMobile ? (
-          <MobileBottomSheet apt={openMenuApt} onUpdate={handleStatusUpdate} onReschedule={handleReschedule} onClose={handleCloseMenu} />
-        ) : (
-          <DesktopDropdown apt={openMenuApt} position={dropdownPosition} onUpdate={handleStatusUpdate} onReschedule={handleReschedule} onClose={handleCloseMenu} />
-        )
+      {/* Mobile Bottom Sheet Portal (Only for Mobile) */}
+      {openMenuId && openMenuApt && isMobile && (
+        <MobileBottomSheet 
+          apt={openMenuApt} 
+          onUpdate={handleStatusUpdate} 
+          onReschedule={handleRescheduleClick} 
+          onClose={handleCloseMenu} 
+        />
       )}
+
+      {/* Simple Success Modal */}
+      <SimpleSuccessModal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)}
+      />
     </div>
   );
 }
