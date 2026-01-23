@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
 // --- Types & Interfaces ---
@@ -684,14 +684,14 @@ const DesktopDropdown = ({
 // --- Expanded Details Component (The exact design from image) ---
 const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
   return (
-    <div className="px-4 pb-4 md:px-6 md:pb-6 cursor-default" onClick={(e) => e.stopPropagation()}>
-      <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+    <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl p-4 border border-gray-100 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Column 1: Contact Info */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Contact Info</h5>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
                 <Icons.Phone className="w-4 h-4 text-gray-400" />
                 <a href={`tel:${apt.mobile}`} className="hover:text-blue-600 transition-colors">
@@ -712,7 +712,7 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
           {/* Column 2: Booking Info */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Booking Info</h5>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
                 <Icons.Calendar className="w-4 h-4 text-gray-400" />
                 <span>Booked: {formatRelativeTime(apt.bookedAt)}</span>
@@ -723,7 +723,7 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
           {/* Column 3: Patient Notes */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Patient Notes</h5>
-            <div className="bg-white p-3 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[60px]">
+            <div className="bg-white p-3 rounded-lg border border-gray-200 text-xs text-gray-600 min-h-[60px]">
               {apt.patientNotes || "No notes provided."}
             </div>
           </div>
@@ -742,7 +742,7 @@ export default function PracticeAppointmentsView() {
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, right: 0 });
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
@@ -1121,10 +1121,11 @@ export default function PracticeAppointmentsView() {
                               </div>
                             </div>
                           </div>
+                          {/* Mobile/Tablet Expanded Details */}
+                        {isExpanded && <ExpandedDetailsCard apt={apt} />}
                         </div>
 
-                        {/* Mobile/Tablet Expanded Details */}
-                        {isExpanded && <ExpandedDetailsCard apt={apt} />}
+                        
                       </div>
 
                       {/* ============ DESKTOP VIEW (>= 1024px) ============ */}

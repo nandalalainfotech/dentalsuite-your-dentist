@@ -248,7 +248,7 @@ export default function PracticeDashboard() {
 
           {/* --- LEFT SIDEBAR (Desktop) --- */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="bg-white rounded-[20px] shadow-sm overflow-hidden sticky top-6">
+            <div className="bg-white rounded-[20px] shadow-sm overflow-hidden sticky top-18">
 
               {/* Profile Section */}
               <div className="p-8 pb-6">
