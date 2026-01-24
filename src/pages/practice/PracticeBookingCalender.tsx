@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import {
-    ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon,
-    Check, ChevronDown, Activity, Mail, Phone, MapPin, Clock, RefreshCw, AlertCircle
+import { 
+    ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon, 
+    Check, ChevronDown, Activity, Mail, Phone, MapPin, Clock, RefreshCw, AlertCircle 
 } from 'lucide-react';
 
 // --- Types ---
@@ -9,7 +9,6 @@ interface Practitioner {
     id: string;
     name: string;
     role?: string;
-    // Avatar removed as requested
 }
 
 interface Patient {
@@ -40,7 +39,6 @@ interface Appointment {
     serviceId: string;
     startTime: Date;
     endTime: Date;
-    // Removed 'dismissed'
     status: 'rescheduled' | 'confirmed' | 'pending' | 'completed' | 'cancelled';
     notes?: string;
     type: 'appointment';
@@ -809,12 +807,12 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
 
         const slots: string[] = [];
         const dateObj = new Date(selectedDate);
-
+        
         // Generate slots every 30 minutes from start to end hour
         for (let hour = START_HOUR; hour < END_HOUR; hour++) {
             for (let min = 0; min < 60; min += 30) {
                 const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-
+                
                 // Check for collisions
                 const slotStart = setTimeOnDate(dateObj, timeStr);
                 const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
@@ -824,7 +822,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                     if (appt.id === appointment.id) return false;
                     // Check only for selected practitioner
                     if (appt.practitionerId !== selectedPractitionerId) return false;
-
+                    
                     // Check overlap
                     return (
                         (slotStart >= appt.startTime && slotStart < appt.endTime) ||
@@ -869,7 +867,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-hidden w-full max-w-4xl flex flex-col">
-
+                
                 {/* Header */}
                 <div className="px-6 py-4 bg-white border-b flex justify-between items-center z-10">
                     <div>
@@ -885,10 +883,10 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
 
                 <div className="flex-1 overflow-y-auto">
                     <form onSubmit={handleSubmit} className="flex flex-col md:flex-row h-full">
-
+                        
                         {/* LEFT COLUMN: Date & Practitioner */}
                         <div className="w-full md:w-5/12 p-6 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col gap-6">
-
+                            
                             {/* Calendar Section */}
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -924,10 +922,11 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                                     setSelectedDate(dStr);
                                                     setSelectedTimeSlot('');
                                                 }}
-                                                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
-                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                                    }`}
+                                                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                                                    isSelected 
+                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                                }`}
                                             >
                                                 {offset === 0 ? 'Today' : offset === 1 ? 'Tmrw' : formatDate(d).split(',')[0]}
                                             </button>
@@ -945,7 +944,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                     <User size={14} />
                                     Select Practitioner
                                 </label>
-
+                                
                                 <div className="relative">
                                     <button
                                         type="button"
@@ -975,8 +974,9 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                                         setIsPractitionerDropdownOpen(false);
                                                         setSelectedTimeSlot('');
                                                     }}
-                                                    className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitionerId === p.id ? 'bg-blue-50/50' : ''
-                                                        }`}
+                                                    className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
+                                                        selectedPractitionerId === p.id ? 'bg-blue-50/50' : ''
+                                                    }`}
                                                 >
                                                     {/* Avatar replaced with generic icon */}
                                                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -1025,10 +1025,11 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                                             key={time}
                                                             type="button"
                                                             onClick={() => setSelectedTimeSlot(time)}
-                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${selectedTimeSlot === time
+                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
+                                                                selectedTimeSlot === time
                                                                     ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
                                                                     : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                                                                }`}
+                                                            }`}
                                                         >
                                                             {time}
                                                         </button>
@@ -1050,10 +1051,11 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                                             key={time}
                                                             type="button"
                                                             onClick={() => setSelectedTimeSlot(time)}
-                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${selectedTimeSlot === time
+                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
+                                                                selectedTimeSlot === time
                                                                     ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
                                                                     : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                                                                }`}
+                                                            }`}
                                                         >
                                                             {time} {parseInt(time.split(':')[0]) >= 12 ? 'PM' : 'AM'}
                                                         </button>
@@ -1094,10 +1096,11 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                     <button
                         onClick={handleSubmit}
                         disabled={!selectedTimeSlot}
-                        className={`px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 ${selectedTimeSlot
-                                ? 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-xl'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                            }`}
+                        className={`px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 ${
+                            selectedTimeSlot 
+                            ? 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-xl' 
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                        }`}
                     >
                         <RefreshCw size={16} />
                         Confirm Reschedule
@@ -1153,8 +1156,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     const service = SERVICES.find(s => s.id === appointment.serviceId);
 
     // Check if status is final (no more changes allowed)
-    // Removed 'dismissed' from check
-    const isFinalStatus = ['completed', 'cancelled'].includes(appointment.status);
+    // ADDED 'rescheduled' here so it acts like a final state
+    const isFinalStatus = ['completed', 'cancelled', 'rescheduled'].includes(appointment.status);
 
     const handleStatusClick = (status: Appointment['status']) => {
         if (status === 'rescheduled') {
@@ -1167,22 +1170,15 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     };
 
     // --- DYNAMIC STATUS LOGIC ---
-    // If Confirmed, remove Pending from options.
-    // Logic: 
-    // - Pending -> Confirmed, Cancelled, Rescheduled
-    // - Confirmed -> Completed, Cancelled, Rescheduled
-    // - Completed -> Final
-    // - Cancelled -> Final
     let availableStatuses: Appointment['status'][] = [];
-
+    
     if (appointment.status === 'pending') {
         availableStatuses = ['confirmed', 'rescheduled', 'cancelled'];
     } else if (appointment.status === 'confirmed') {
+        // Removed 'pending' from here as requested
         availableStatuses = ['completed', 'rescheduled', 'cancelled'];
-    } else if (appointment.status === 'rescheduled') {
-        availableStatuses = ['confirmed', 'cancelled'];
     }
-    // Final states (completed/cancelled) will have empty available statuses based on isFinalStatus check above
+    // Rescheduled/Completed/Cancelled have no available transitions because isFinalStatus blocks the dropdown.
 
     const statusConfig: Record<Appointment['status'], { bg: string; icon: React.ElementType }> = {
         'rescheduled': { bg: 'bg-blue-500', icon: RefreshCw },
@@ -1215,8 +1211,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     </button>
 
                     {/* Service Badge */}
-                    <div className="absolute mt-5 left-6">
-                        <span className="px-3 py-1 bg-white/25 backdrop-blur-sm text-black text-xs font-semibold rounded-full">
+                    <div className="absolute mt-4 left-6">
+                        <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
                             {service?.name}
                         </span>
                     </div>
@@ -1298,7 +1294,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                                 disabled={isCurrentStatus}
                                                                 className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-3 transition-all ${isCurrentStatus
                                                                     ? 'bg-gray-100 cursor-not-allowed'
-                                                                    : 'hover:bg-gray-50 '
+                                                                    : 'hover:bg-gray-50'
                                                                     }`}
                                                             >
                                                                 <div className={`w-7 h-7 ${statusConfig[status]?.bg} rounded-lg flex items-center justify-center`}>
@@ -1349,7 +1345,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                 <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
                                     <CalendarIcon size={16} className="text-violet-600" />
                                 </div>
-                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wider">Date</span>
+                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wider">Service</span>
                             </div>
                             <p className="text-sm font-semibold text-gray-800">
                                 {appointment.startTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -1374,13 +1370,40 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-100">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Practitioner</p>
                         <div className="flex items-center gap-3">
-
+                            
                             <div>
                                 <p className="font-semibold text-gray-800">{practitioner?.name}</p>
                                 <p className="text-xs text-gray-500">{practitioner?.role}</p>
                             </div>
                         </div>
                     </div>
+
+                    {/* Contact Section */}
+                    {/* <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Contact Details</p>
+                        <div className="space-y-2">
+                            <a href={`mailto:${patient?.email}`} className="flex items-center gap-3 p-3 bg-white hover:bg-gray-50 rounded-xl border border-gray-100 transition-colors group">
+                                <div className="w-9 h-9 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                                    <Mail size={16} className="text-blue-500" />
+                                </div>
+                                <span className="text-sm text-gray-700">{patient?.email}</span>
+                            </a>
+                            <a href={`tel:${patient?.phone}`} className="flex items-center gap-3 p-3 bg-white hover:bg-gray-50 rounded-xl border border-gray-100 transition-colors group">
+                                <div className="w-9 h-9 bg-green-50 group-hover:bg-green-100 rounded-lg flex items-center justify-center transition-colors">
+                                    <Phone size={16} className="text-green-500" />
+                                </div>
+                                <span className="text-sm text-gray-700">{patient?.phone}</span>
+                            </a>
+                            {patient?.address && (
+                                <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                                    <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center">
+                                        <MapPin size={16} className="text-rose-500" />
+                                    </div>
+                                    <span className="text-sm text-gray-700">{patient.address}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div> */}
 
                     {/* Notes Section */}
                     {appointment.notes && (
@@ -1673,6 +1696,7 @@ const PracticeBookingCalender = () => {
             return a;
         }));
 
+        // Immediately update selected appointment to reflect 'rescheduled' status
         if (selectedAppointment?.id === appointmentId) {
             setSelectedAppointment(prev => {
                 if (!prev) return null;
@@ -1739,8 +1763,8 @@ const PracticeBookingCalender = () => {
                                         <option key={p.id} value={p.id}>{p.name}</option>
                                     ))}
                                 </select>
-                                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <User size={16} className="absolute left-3 top-1/4 text-gray-400" />
+                                <ChevronDown size={16} className="absolute right-3 top-1/4 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
                     </div>
@@ -1847,7 +1871,7 @@ const PracticeBookingCalender = () => {
                                                     <div
                                                         key={minute}
                                                         onClick={() => handleSlotClick(day, slot.hour, minute)}
-                                                        className={`w-full cursor-pointer hover:bg-gray-100 transition-colors ${minute === 30 ? 'border-t border-gray-200 border-dashed' : ''
+                                                        className={`w-full cursor-pointer border border-dashed hover:bg-gray-100 transition-colors ${minute === 30 ? 'border-t border-gray-200 border-dashed' : ''
                                                             }`}
                                                         style={{ height: `${CELL_HEIGHT / 4}px` }}
                                                     />
