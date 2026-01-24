@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Users, Edit2, ArrowLeft, HelpCircle,
     Info, RefreshCw, Stethoscope, Check,
@@ -6,6 +6,156 @@ import {
 } from 'lucide-react';
 import { SectionHeader } from './SharedEditorComponents';
 import type { Clinic } from '../../../types/clinic';
+
+// Add the ProfessionalInterestsDropdown component at the top
+function ProfessionalInterestsDropdown({ value, onChange, placeholder }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const dropdownRef = useRef(null);
+
+    const options = [
+        "Cosmetic Dentistry",
+        "Family Dentistry",
+        "Pediatric Dentistry",
+        "Orthodontics",
+        "Endodontics",
+        "Periodontics",
+        "Oral Surgery",
+        "Prosthodontics",
+        "Dental Implants",
+        "Invisalign",
+        "Teeth Whitening",
+        "Root Canal Therapy",
+        "Wisdom Teeth Removal",
+        "Emergency Dental Care",
+        "Preventive Dentistry",
+        "Restorative Dentistry"
+    ];
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedValues = value ? value.split(', ').filter(i => i) : [];
+
+    const filteredOptions = options.filter(option =>
+        option.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const toggleOption = (option) => {
+        if (selectedValues.includes(option)) {
+            const updated = selectedValues.filter(item => item !== option);
+            onChange(updated.join(', '));
+        } else {
+            const updated = [...selectedValues, option];
+            onChange(updated.join(', '));
+        }
+    };
+
+    const removeOption = (option) => {
+        const updated = selectedValues.filter(item => item !== option);
+        onChange(updated.join(', '));
+    };
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            {/* Search Input */}
+            <div
+                className="w-full px-3 py-2 border border-gray-300 rounded bg-white flex items-center cursor-pointer"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <input
+                    type="text"
+                    className="w-full outline-none bg-transparent text-sm"
+                    placeholder={placeholder}
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setIsOpen(true);
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpen(true);
+                    }}
+                />
+                <svg
+                    className={`w-5 h-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+
+            {/* Dropdown with scroll */}
+            {isOpen && (
+                <div
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg"
+                    style={{
+                        height: '250px',
+                        overflowY: 'auto'
+                    }}
+                >
+                    {filteredOptions.length === 0 ? (
+                        <div className="p-3 text-sm text-gray-500 text-center">
+                            No options found
+                        </div>
+                    ) : (
+                        <div className="p-1">
+                            {filteredOptions.map((option, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer ${selectedValues.includes(option) ? 'bg-blue-50' : ''}`}
+                                    onClick={() => toggleOption(option)}
+                                >
+                                    <div className={`w-4 h-4 border rounded mr-2 flex items-center justify-center ${selectedValues.includes(option) ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}>
+                                        {selectedValues.includes(option) && (
+                                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        )}
+                                    </div>
+                                    <span className="text-sm">{option}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Selected tags */}
+            {selectedValues.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedValues.map((interest, index) => (
+                        <span
+                            key={index}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                        >
+                            {interest}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeOption(interest);
+                                }}
+                                className="ml-1 hover:text-blue-600"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 interface AppointmentType {
     id: string;
@@ -323,13 +473,34 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                             </div>
                             <div>
                                 <div className="flex justify-between items-end mb-1.5"><Label info>Link to Core Practice</Label><button className="text-xs border px-2 py-1 rounded bg-white"><RefreshCw className="w-3 h-3 inline" /> Refresh</button></div>
-                                <select className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm bg-white"><option>Select a Practitioner</option></select>
+                                <select className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm bg-white">
+                                    <option value="">Select a Practitioner</option>
+                                    {clinicData.dentists?.map(dentist => (
+                                        <option key={dentist.id} value={dentist.id}>{dentist.name}</option>
+                                    ))}
+                                </select>
                             </div>
-                            <div><Label>Gender</Label><select className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm bg-white"><option>Select</option></select></div>
+                            <div><Label>Gender</Label>
+                                <select value={formData.gender} onChange={e => updateField('gender', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm bg-white">
+                                    <option value="">Select</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
                             <div>
                                 <Label>Profession</Label>
                                 <select value={formData.role} onChange={e => updateField('role', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm bg-white">
-                                    <option value="">Select a profession</option><option value="Dentist">Dentist</option>
+                                    <option value="">Select a profession</option>
+                                    <option value="Dentist">Dentist</option>
+                                    <option value="Orthodontist">Orthodontist</option>
+                                    <option value="Periodontist">Periodontist</option>
+                                    <option value="Endodontist">Endodontist</option>
+                                    <option value="Oral Surgeon">Oral Surgeon</option>
+                                    <option value="Pediatric Dentist">Pediatric Dentist</option>
+                                    <option value="Prosthodontist">Prosthodontist</option>
+                                    <option value="Dental Hygienist">Dental Hygienist</option>
+                                    <option value="Dental Assistant">Dental Assistant</option>
                                 </select>
                             </div>
                             <div>
@@ -344,7 +515,16 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                         <div className="space-y-6">
                             <div className="flex items-center gap-4"><div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center border"><Stethoscope className="w-8 h-8 text-gray-400" /></div><button className="px-4 py-2 border bg-white rounded shadow-sm text-sm">Choose Image</button></div>
                             <div><Label>Professional Statement</Label><textarea rows={6} value={formData.professionalStatement} onChange={e => updateField('professionalStatement', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm outline-none text-sm"></textarea></div>
-                            <div><Label info>Professional Areas of Interest</Label><p className="text-xs text-gray-500 mb-1">e.g.: Women's health</p><select className="w-full px-3 py-2 border border-gray-300 rounded bg-white"><option>Type or select</option></select></div>
+                            {/* Replace the existing areas of interest with the new component */}
+                            <div>
+                                <Label info>Professional Areas of Interest</Label>
+                                <p className="text-xs text-gray-500 mb-1">e.g.: Women's health</p>
+                                <ProfessionalInterestsDropdown
+                                    value={formData.areasOfInterest}
+                                    onChange={(value) => updateField('areasOfInterest', value)}
+                                    placeholder="Type or select"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -361,8 +541,42 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                             <label className="flex items-start gap-3"><input type="checkbox" checked={formData.allowMultipleBookings} onChange={e => updateField('allowMultipleBookings', e.target.checked)} className="w-5 h-5 border-gray-300 text-orange-500 rounded mt-0.5" /> <span className="text-gray-700 text-sm">Allow multiple bookings</span></label>
                         </div>
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-600"><span>Book until</span><input type="number" className="w-12 border p-1 rounded text-center" defaultValue="0" /><select className="border p-1 rounded bg-white"><option>mins</option></select><span>before</span></div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600"><span>Cancel until</span><input type="number" className="w-12 border p-1 rounded text-center" defaultValue="0" /><select className="border p-1 rounded bg-white"><option>mins</option></select><span>before</span></div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span>Book until</span>
+                                <input
+                                    type="number"
+                                    className="w-12 border p-1 rounded text-center"
+                                    value={formData.bookingTimeLimit}
+                                    onChange={e => updateField('bookingTimeLimit', parseInt(e.target.value) || 0)}
+                                />
+                                <select
+                                    value={formData.bookingTimeLimitUnit}
+                                    onChange={e => updateField('bookingTimeLimitUnit', e.target.value as 'minutes' | 'hours')}
+                                    className="border p-1 rounded bg-white"
+                                >
+                                    <option value="minutes">mins</option>
+                                    <option value="hours">hours</option>
+                                </select>
+                                <span>before</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <span>Cancel until</span>
+                                <input
+                                    type="number"
+                                    className="w-12 border p-1 rounded text-center"
+                                    value={formData.cancelTimeLimit}
+                                    onChange={e => updateField('cancelTimeLimit', parseInt(e.target.value) || 0)}
+                                />
+                                <select
+                                    value={formData.cancelTimeLimitUnit}
+                                    onChange={e => updateField('cancelTimeLimitUnit', e.target.value as 'minutes' | 'hours')}
+                                    className="border p-1 rounded bg-white"
+                                >
+                                    <option value="minutes">mins</option>
+                                    <option value="hours">hours</option>
+                                </select>
+                                <span>before</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -371,7 +585,15 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                 <div className="bg-white rounded border border-gray-200 shadow-sm mb-10">
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
                         <h3 className="font-bold text-gray-800">Appointment Types for {formData.name}</h3>
-                        <div className="flex items-center gap-2"><span className="text-sm font-semibold text-gray-600">Apply Template:</span><select className="text-sm border rounded pl-2 pr-8 py-1 bg-white"><option>Copy from Practitioner</option></select></div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-600">Apply Template:</span>
+                            <select className="text-sm border rounded pl-2 pr-8 py-1 bg-white">
+                                <option value="">Copy from Practitioner</option>
+                                {teamMembers.filter(member => member.id !== formData.id && member.appointmentTypes.some(t => t.enabled)).map(member => (
+                                    <option key={member.id} value={member.id}>{member.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
@@ -388,7 +610,19 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                             <tbody className="divide-y divide-gray-100">
                                 {formData.appointmentTypes.map((app, index) => (
                                     <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4"><input type="checkbox" checked={app.enabled} readOnly className="w-5 h-5 rounded border-gray-300 text-orange-500" /></td>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={app.enabled}
+                                                onChange={(e) => {
+                                                    const updatedTypes = formData.appointmentTypes.map(t =>
+                                                        t.id === app.id ? { ...t, enabled: e.target.checked } : t
+                                                    );
+                                                    updateField('appointmentTypes', updatedTypes);
+                                                }}
+                                                className="w-5 h-5 rounded border-gray-300 text-orange-500 cursor-pointer"
+                                            />
+                                        </td>
                                         <td className="px-6 py-4 text-gray-800">{app.name}</td>
                                         <td className="px-6 py-4 text-gray-600">{app.patientType}</td>
                                         <td className="px-6 py-4 text-gray-600">{app.duration} mins</td>
