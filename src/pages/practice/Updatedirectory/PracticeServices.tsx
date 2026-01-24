@@ -1,223 +1,193 @@
 import { useState } from 'react';
-import { Briefcase, Edit2, Trash2 } from 'lucide-react';
-import { SectionHeader, InputGroup } from './SharedEditorComponents';
-import type { Clinic } from '../../../types/clinic';
+import { Edit2, Trash2, Check, X } from 'lucide-react';
 
 interface Service {
     id: string;
     name: string;
-    description?: string;
-    status: 'active' | 'inactive';
+    showInAppointment: boolean;
+    description: string;
 }
 
-export default function PracticeServices({ clinicData }: { clinicData: Clinic }) {
-    const [services, setServices] = useState<Service[]>(
-        (clinicData.services || []).map((service, i) => ({
-            id: i.toString(),
-            name: service,
-            description: '',
-            status: 'active' as 'active' | 'inactive'
-        }))
-    );
-    const [isAddingService, setIsAddingService] = useState(false);
-    const [editingService, setEditingService] = useState<string | null>(null);
-    const [formData, setFormData] = useState<{
-        name: string;
-        description: string;
-        status: 'active' | 'inactive';
-    }>({
-        name: '',
-        description: '',
-        status: 'active'
-    });
+export default function PracticeServices() {
+    const [services, setServices] = useState<Service[]>([
+        { id: '1', name: 'Dental', showInAppointment: true, description: '' },
+        { id: '2', name: 'Teeth Cleaning', showInAppointment: true, description: '' }
+    ]);
 
-    const handleAddService = () => {
-        if (formData.name) {
-            const newService: Service = {
+    const [name, setName] = useState('');
+    const [showInAppointment, setShowInAppointment] = useState(true);
+    const [description, setDescription] = useState('');
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editedName, setEditedName] = useState('');
+
+    const addService = () => {
+        if (!name.trim()) return;
+
+        setServices(prev => [
+            ...prev,
+            {
                 id: Date.now().toString(),
-                ...formData
-            };
-            setServices([...services, newService]);
-            setFormData({ name: '', description: '', status: 'active' });
-            setIsAddingService(false);
-        }
+                name,
+                showInAppointment,
+                description
+            }
+        ]);
+
+        setName('');
+        setDescription('');
+        setShowInAppointment(true);
     };
 
-    const handleEditService = (service: Service) => {
-        setEditingService(service.id);
-        setFormData({
-            name: service.name,
-            description: service.description || '',
-            status: service.status
-        });
+    const deleteService = (id: string) => {
+        setServices(prev => prev.filter(service => service.id !== id));
     };
 
-    const handleUpdateService = () => {
-        if (formData.name && editingService) {
-            setServices(services.map(service =>
-                service.id === editingService
-                    ? { ...service, ...formData }
-                    : service
-            ));
-            setEditingService(null);
-            setFormData({ name: '', description: '', status: 'active' });
-        }
+    const startEdit = (service: Service) => {
+        setEditingId(service.id);
+        setEditedName(service.name);
     };
 
-    const handleDeleteService = (id: string) => {
-        setServices(services.filter(service => service.id !== id));
-    };
-
-    const toggleServiceStatus = (id: string) => {
-        setServices(services.map(service =>
-            service.id === id
-                ? { ...service, status: service.status === 'active' ? 'inactive' : 'active' }
-                : service
-        ));
+    const saveEdit = (id: string) => {
+        setServices(prev =>
+            prev.map(service =>
+                service.id === id ? { ...service, name: editedName } : service
+            )
+        );
+        setEditingId(null);
+        setEditedName('');
     };
 
     return (
-        <div className="max-w-5xl mx-auto">
-            <SectionHeader
-                title="Medical Services"
-                desc="List the treatments and procedures provided."
-                actionLabel="Add Service"
-                onActionClick={() => setIsAddingService(true)}
-            />
+        <div className="max-w-6xl mx-auto space-y-6">
 
-            {isAddingService && (
-                <div className="mb-6 p-5 rounded-xl border border-orange-200 bg-orange-50">
-                    <h3 className="font-semibold text-gray-900 mb-4">Add New Service</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <InputGroup
-                            label="Service Name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            {/* ADD SERVICES */}
+            <div className="bg-white rounded-2xl p-6 border">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-orange-500">
+                        Add Services
+                    </h2>
+
+                    <button
+                        onClick={addService}
+                        className="px-6 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600"
+                    >
+                        Save
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="text-sm font-medium text-gray-700">
+                            Service Name
+                        </label>
+                        <input
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            placeholder="Enter Name"
+                            className="mt-1 w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-400 outline-none"
                         />
-                        <div className="space-y-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Status</label>
-                            <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition"
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">
+                            Service Show In Appointments
+                        </label>
+                        <div className="flex gap-6 mt-2">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    checked={showInAppointment}
+                                    onChange={() => setShowInAppointment(true)}
+                                />
+                                Yes
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    checked={!showInAppointment}
+                                    onChange={() => setShowInAppointment(false)}
+                                />
+                                No
+                            </label>
                         </div>
                     </div>
-                    <div className="space-y-2 mb-4">
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Description (Optional)</label>
-                        <textarea
-                            rows={3}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleAddService}
-                            className="bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-orange-600 transition"
-                        >
-                            Add Service
-                        </button>
-                        <button
-                            onClick={() => setIsAddingService(false)}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-300 transition"
-                        >
-                            Cancel
-                        </button>
-                    </div>
                 </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.map((service) => (
-                    <div key={service.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex justify-between items-center hover:bg-white hover:shadow-sm transition relative group">
-                        {editingService === service.id ? (
-                            <div className="w-full space-y-4">
-                                <InputGroup
-                                    label="Service Name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                <div className="mt-6">
+                    <label className="text-sm font-medium text-gray-700">
+                        Short Description
+                    </label>
+                    <textarea
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        placeholder="Short Information"
+                        rows={4}
+                        className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-400 outline-none resize-none"
+                    />
+                </div>
+            </div>
+
+            {/* SERVICES LIST */}
+            <div className="bg-gray-50 rounded-2xl p-6">
+                <h3 className="text-orange-500 font-semibold mb-4">
+                    Services
+                </h3>
+
+                <div className="flex flex-wrap gap-4">
+                    {services.map(service => (
+                        <div
+                            key={service.id}
+                            className="bg-white border rounded-full px-5 py-2 flex items-center gap-3"
+                        >
+                            {/* NAME / EDIT INPUT */}
+                            {editingId === service.id ? (
+                                <input
+                                    value={editedName}
+                                    onChange={e => setEditedName(e.target.value)}
+                                    className="border rounded px-2 py-1 text-sm w-40"
                                 />
-                                <div className="space-y-2">
-                                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Status</label>
-                                    <select
-                                        value={formData.status}
-                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                                <textarea
-                                    rows={2}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Description (Optional)"
-                                />
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleUpdateService}
-                                        className="bg-orange-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-600 transition"
-                                    >
-                                        Update
-                                    </button>
-                                    <button
-                                        onClick={() => setEditingService(null)}
-                                        className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
+                            ) : (
+                                <span className="font-medium">{service.name}</span>
+                            )}
+
+                            {/* ACTIONS */}
+                            <div className="flex items-center gap-2">
+                                {editingId === service.id ? (
+                                    <>
+                                        <button
+                                            onClick={() => saveEdit(service.id)}
+                                            className="text-green-600 hover:bg-green-50 p-1 rounded"
+                                        >
+                                            <Check size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => setEditingId(null)}
+                                            className="text-gray-500 hover:bg-gray-100 p-1 rounded"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => startEdit(service)}
+                                            className="text-blue-600 hover:bg-blue-50 p-1 rounded"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => deleteService(service.id)}
+                                            className="text-red-600 hover:bg-red-50 p-1 rounded"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
-                        ) : (
-                            <>
-                                <div className="flex items-start gap-4 flex-1">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${service.status === 'active'
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-gray-100 text-gray-400'
-                                        }`}>
-                                        <Briefcase className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900">{service.name}</h4>
-                                        {service.description && (
-                                            <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-                                        )}
-                                        <div className="flex gap-3 text-xs text-gray-500 mt-1">
-                                            <button
-                                                onClick={() => toggleServiceStatus(service.id)}
-                                                className={`font-medium ${service.status === 'active' ? 'text-green-600' : 'text-gray-500'
-                                                    }`}
-                                            >
-                                                {service.status === 'active' ? 'Active' : 'Inactive'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => handleEditService(service)}
-                                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteService(service.id)}
-                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                ))}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

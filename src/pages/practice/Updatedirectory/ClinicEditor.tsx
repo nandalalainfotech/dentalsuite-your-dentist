@@ -10,6 +10,7 @@ import PracticeReviews from './PracticeReviews';
 import PracticeInsurances from './PracticeInsurances';
 import PracticeFacilities from './PracticeFacilities';
 import PracticeContact from './PracticeContact';
+import PracticeMyCertificate from './PracticeMyCertificate';
 
 export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
     const [activeSection, setActiveSection] = useState('basic-info');
@@ -17,6 +18,7 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
     const menuItems = [
         { id: "basic-info", label: "Basic Info", icon: Info },
         { id: "services", label: "Services", icon: Briefcase },
+        { id: "my-certificate", label: "My Certificate", icon: Briefcase },
         { id: "team", label: "Team", icon: Users },
         { id: "gallery", label: "Gallery", icon: ImageIcon },
         { id: "achievements", label: "Achievements", icon: Trophy },
@@ -30,6 +32,7 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
         switch (activeSection) {
             case 'basic-info': return <PracticeBaseInfo clinicData={clinicData} />;
             case 'services': return <PracticeServices clinicData={clinicData} />;
+            case 'my-certificate': return <PracticeMyCertificate clinicData={clinicData} />;
             case 'team': return <PracticeTeam clinicData={clinicData} />;
             case 'gallery': return <PracticeGallery clinicData={clinicData} />;
             case 'achievements': return <PracticeAchievements clinicData={clinicData} />;

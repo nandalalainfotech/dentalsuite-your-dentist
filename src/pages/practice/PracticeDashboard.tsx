@@ -97,7 +97,7 @@ export default function PracticeDashboard() {
               {/* Profile Header */}
               <div className="p-8 pb-6">
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center shadow-md relative overflow-hidden">
+                  <div className="w-16 h-14 rounded-full bg-blue-500 flex items-center justify-center shadow-md relative overflow-hidden">
                     <User className="text-white/90 w-8 h-8" />
                   </div>
                   <div>
