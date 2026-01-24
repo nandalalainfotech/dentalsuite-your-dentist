@@ -766,7 +766,8 @@ interface RescheduleModalProps {
     isOpen: boolean;
     onClose: () => void;
     appointment: Appointment | null;
-    appointments: Appointment[]; // Added to calculate collisions
+    appointments: Appointment[]; 
+    breaks: CalendarEvent[]; // Added Breaks
     onReschedule: (appointmentId: string, newDate: Date, newStartTime: Date, newEndTime: Date, newPractitionerId: string) => void;
 }
 
@@ -775,6 +776,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
     onClose,
     appointment,
     appointments,
+    breaks, // Destructured
     onReschedule
 }) => {
     // 1. Hooks always call first
@@ -817,7 +819,8 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                 const slotStart = setTimeOnDate(dateObj, timeStr);
                 const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
 
-                const isColliding = appointments.some(appt => {
+                // Check against Appointments
+                const isCollidingAppt = appointments.some(appt => {
                     // Skip the appointment being rescheduled
                     if (appt.id === appointment.id) return false;
                     // Check only for selected practitioner
@@ -831,13 +834,25 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                     );
                 });
 
-                if (!isColliding) {
+                // Check against Breaks
+                const isCollidingBreak = breaks.some(breakEvent => {
+                    // Check only for selected practitioner
+                    if (breakEvent.practitionerId !== selectedPractitionerId) return false;
+
+                    // Check overlap
+                    // Overlap logic: (StartA < EndB) and (EndA > StartB)
+                    return (
+                        (breakEvent.startTime < slotEnd) && (breakEvent.endTime > slotStart)
+                    );
+                });
+
+                if (!isCollidingAppt && !isCollidingBreak) {
                     slots.push(timeStr);
                 }
             }
         }
         return slots;
-    }, [selectedDate, selectedPractitionerId, appointments, appointment, durationMinutes]);
+    }, [selectedDate, selectedPractitionerId, appointments, breaks, appointment, durationMinutes]);
 
     // 5. Conditional Return (Must be AFTER hooks)
     if (!isOpen || !appointment) return null;
@@ -1199,7 +1214,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                 <div
                     className="h-24 relative"
                     style={{
-                        background: `linear-gradient(135deg, ${service?.color}dd 0%, ${service?.color}99 100%)`
+                        background: `linear-gradient(135deg, ${service?.color}dd 100%, ${service?.color}99 100%)`
                     }}
                 >
                     {/* Close Button */}
@@ -1211,8 +1226,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     </button>
 
                     {/* Service Badge */}
-                    <div className="absolute mt-4 left-6">
-                        <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                    <div className="absolute mt-5 left-6">
+                        <span className="px-3 py-1 bg-black/50 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
                             {service?.name}
                         </span>
                     </div>
@@ -1696,7 +1711,6 @@ const PracticeBookingCalender = () => {
             return a;
         }));
 
-        // Immediately update selected appointment to reflect 'rescheduled' status
         if (selectedAppointment?.id === appointmentId) {
             setSelectedAppointment(prev => {
                 if (!prev) return null;
@@ -1741,13 +1755,6 @@ const PracticeBookingCalender = () => {
                                 <ChevronRight size={isMobile ? 16 : 20} />
                             </button>
                         </div>
-
-                        <button
-                            onClick={handleToday}
-                            className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
-                        >
-                            Today
-                        </button>
 
                         <div className="flex items-center gap-3 ml-0 sm:ml-4">
                             <span className="text-sm font-semibold text-gray-500 hidden sm:block">
@@ -2040,6 +2047,7 @@ const PracticeBookingCalender = () => {
                 onClose={() => setIsRescheduleModalOpen(false)}
                 appointment={rescheduleAppointment}
                 appointments={appointments}
+                breaks={breaks}
                 onReschedule={handleReschedule}
             />
         </div>
