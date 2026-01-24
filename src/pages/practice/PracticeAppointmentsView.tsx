@@ -52,6 +52,12 @@ const getRelativePastDate = (daysOffset: number): Date => {
   return date;
 };
 
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
 // Hardcoded Static Data
 const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
   {
@@ -444,24 +450,317 @@ const TableHeader = () => (
   </div>
 );
 
-// --- Simple Success Modal Component ---
-const SimpleSuccessModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+// --- Toast Notification Component ---
+const ToastNotification = ({ message, show, onClose }: { message: string; show: boolean; onClose: () => void }) => {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  if (!show) return null;
+
+  return ReactDOM.createPortal(
+    <div className="fixed bottom-4 right-4 z-[10000] animate-in slide-in-from-bottom-5 fade-in duration-300">
+      <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+          <Icons.Check className="w-4 h-4 text-white" />
+        </div>
+        <div className="text-sm font-medium">{message}</div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+// --- New 2-Column Reschedule Modal Component ---
+const RescheduleModal = ({ 
+  apt, 
+  isOpen, 
+  onClose, 
+  onConfirm,
+  practitioners 
+}: { 
+  apt: EnrichedAppointment; 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: (date: string, time: string) => void;
+  practitioners: string[];
+}) => {
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedPractitioner, setSelectedPractitioner] = useState<string>('');
+  const [reason, setReason] = useState<string>('');
+  const [isPractitionerOpen, setIsPractitionerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Default to the appointment's current date string YYYY-MM-DD
+      const currentAptDate = new Date(apt.dateTime);
+      setSelectedDate(currentAptDate.toISOString().split('T')[0]);
+      setSelectedPractitioner(apt.dentistName);
+      setSelectedTime(''); // Reset time so they have to choose a new one
+      setReason('');
+    }
+  }, [isOpen, apt]);
+
+  // Generate Slots based on date (Mock logic for UI demonstration)
+  const timeSlots = useMemo(() => {
+    if (!selectedDate) return { morning: [], afternoon: [] };
+    
+    // In a real app, you would fetch available slots from API here
+    const morning = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+    const afternoon = ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'];
+    
+    return { morning, afternoon };
+  }, [selectedDate]);
+
+  const handleConfirm = async () => {
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    onConfirm(selectedDate, selectedTime);
+    setIsLoading(false);
+  };
+
   if (!isOpen) return null;
+
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 text-center">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-           <Icons.Check className="w-6 h-6 text-green-600" />
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
+      
+      {/* 2-Column Modal Layout */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20">
+          <div>
+            <h3 className="font-bold text-gray-900 text-lg">Reschedule Appointment</h3>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+               <span className="font-medium text-gray-700">{apt.patientName}</span>
+               <span>•</span>
+               <span>{apt.treatment}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+            <Icons.X className="w-5 h-5" />
+          </button>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">The appointment is Rescheduled</h3>
-        <p className="text-sm text-gray-500 mb-6">The user has been notified via email and message.</p>
-        <button 
-          onClick={onClose}
-          className="w-full py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors"
-        >
-          OK
-        </button>
+
+        {/* Content Grid */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          
+          {/* LEFT COLUMN: Date & Practitioner (Gray Background) */}
+          <div className="w-full md:w-5/12 p-6 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto">
+            <div className="flex flex-col gap-6">
+              
+              {/* Date Selection */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <Icons.Calendar className="w-4 h-4" />
+                  Select Date
+                </label>
+                
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm font-medium shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+
+                {/* Quick Date Buttons */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {[0, 1, 2, 7].map((offset) => {
+                    const d = addDays(new Date(), offset);
+                    const dStr = d.toISOString().split('T')[0];
+                    const isSelected = selectedDate === dStr;
+                    return (
+                      <button
+                        key={offset}
+                        onClick={() => { setSelectedDate(dStr); setSelectedTime(''); }}
+                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                          isSelected 
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        {offset === 0 ? 'Today' : offset === 1 ? 'Tmrw' : formatShortDate(d)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="h-px bg-gray-200 w-full" />
+
+              {/* Practitioner Selection */}
+              <div className="space-y-3 relative">
+                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <Icons.User className="w-4 h-4" />
+                  Select Practitioner
+                </label>
+
+                <div className="relative">
+                   <button
+                     type="button"
+                     onClick={() => setIsPractitionerOpen(!isPractitionerOpen)}
+                     className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left"
+                   >
+                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                        <Icons.User className="w-5 h-5" />
+                     </div>
+                     <div className="flex-1">
+                       <p className="font-semibold text-gray-800 text-sm">{selectedPractitioner || 'Select Dentist'}</p>
+                       <p className="text-xs text-gray-500">General Dentist</p>
+                     </div>
+                     <Icons.ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isPractitionerOpen ? 'rotate-180' : ''}`} />
+                   </button>
+
+                   {/* Dropdown */}
+                   {isPractitionerOpen && (
+                     <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200">
+                       {practitioners.map((name) => (
+                         <button
+                           key={name}
+                           onClick={() => { setSelectedPractitioner(name); setIsPractitionerOpen(false); }}
+                           className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
+                             selectedPractitioner === name ? 'bg-blue-50/50' : ''
+                           }`}
+                         >
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                                <span className="text-xs font-bold">{name.charAt(4)}</span>
+                            </div>
+                           <div className="text-left flex-1">
+                             <p className={`text-sm font-medium ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p>
+                           </div>
+                           {selectedPractitioner === name && <Icons.Check className="w-4 h-4 text-blue-600" />}
+                         </button>
+                       ))}
+                     </div>
+                   )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Time Slots (White Background) */}
+          <div className="w-full md:w-7/12 p-6 bg-white flex flex-col h-full overflow-hidden">
+            
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <h4 className="font-bold text-gray-800">Available Time Slots</h4>
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                {formatDate(selectedDate)}
+              </span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+              {/* Morning Section */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  Morning
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {timeSlots.morning.map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setSelectedTime(t)}
+                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
+                        selectedTime === t
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Afternoon Section */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                  Afternoon
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {timeSlots.afternoon.map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setSelectedTime(t)}
+                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
+                        selectedTime === t
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Reason Input (Pinned to bottom of Right Col) */}
+            <div className="mt-4 pt-4 border-t border-gray-100 shrink-0">
+               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Reason for Reschedule
+               </label>
+               <input 
+                  type="text" 
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g., Patient requested later time..."
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none transition-all"
+               />
+            </div>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center z-20">
+           <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+              <Icons.Mail className="w-3.5 h-3.5" />
+              <span>Patient will be notified via Email & SMS</span>
+           </div>
+           <div className="flex gap-3 w-full sm:w-auto justify-end">
+              <button 
+                onClick={onClose} 
+                className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirm}
+                disabled={!selectedDate || !selectedTime || isLoading}
+                className={`px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 ${
+                  selectedDate && selectedTime 
+                  ? 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-xl' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Icons.Spinner className="w-4 h-4" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.Refresh className="w-4 h-4" />
+                    <span>Confirm Reschedule</span>
+                  </>
+                )}
+              </button>
+           </div>
+        </div>
       </div>
     </div>,
     document.body
@@ -493,7 +792,8 @@ const MobileBottomSheet = ({
   };
 
   const handleReschedule = () => {
-    onClose(); 
+    onClose(); // Close sheet first
+    // Small timeout to allow sheet to close before modal logic triggers
     setTimeout(() => onReschedule(apt), 100); 
   };
 
@@ -767,7 +1067,9 @@ export default function PracticeAppointmentsView() {
   const [isMobile, setIsMobile] = useState(false);
   
   // Reschedule State
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleApt, setRescheduleApt] = useState<EnrichedAppointment | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -793,7 +1095,7 @@ export default function PracticeAppointmentsView() {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpenMenuId(null);
-        setShowSuccessModal(false);
+        setShowRescheduleModal(false);
       }
     };
     document.addEventListener('keydown', handleEscape);
@@ -812,17 +1114,36 @@ export default function PracticeAppointmentsView() {
     setExpandedRowId(null);
   }, []);
 
-  // NEW: Handle Reschedule Click
+  // Opens the modal
   const handleRescheduleClick = useCallback((apt: EnrichedAppointment) => {
-    // 1. Remove the appointment from the list immediately (simulating it moving to a different status/list)
-    setAppointments(prev => prev.filter(a => a.id !== apt.id));
-    
-    // 2. Show the success popup
-    setShowSuccessModal(true);
-    
-    // 3. Close any open menus
+    setRescheduleApt(apt);
+    setShowRescheduleModal(true);
     setOpenMenuId(null);
   }, []);
+
+  // Processes the logic
+  const handleRescheduleConfirm = (newDate: string, newTime: string) => {
+    if (!rescheduleApt) return;
+
+    // Create ISO string for new date/time
+    // Note: In real app ensure proper Timezone handling
+    const newDateTime = new Date(`${newDate}T${newTime}`);
+
+    setAppointments(prev => prev.map(apt => {
+      if (apt.id === rescheduleApt.id) {
+        return {
+          ...apt,
+          dateTime: newDateTime.toISOString(),
+          lastUpdated: new Date()
+        };
+      }
+      return apt;
+    }));
+
+    setShowRescheduleModal(false);
+    setRescheduleApt(null);
+    setShowToast(true); // Show success toast
+  };
 
   const handleOpenMenu = useCallback((aptId: string) => {
     setExpandedRowId(null);
@@ -1302,10 +1623,22 @@ export default function PracticeAppointmentsView() {
         />
       )}
 
-      {/* Simple Success Modal */}
-      <SimpleSuccessModal 
-        isOpen={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)}
+      {/* Reschedule Modal */}
+      {showRescheduleModal && rescheduleApt && (
+        <RescheduleModal 
+          apt={rescheduleApt} 
+          isOpen={showRescheduleModal} 
+          onClose={() => setShowRescheduleModal(false)}
+          onConfirm={handleRescheduleConfirm}
+          practitioners={practitioners}
+        />
+      )}
+
+      {/* Success Toast */}
+      <ToastNotification 
+        message="Rescheduled! Patient notified via Email & SMS." 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
       />
     </div>
   );
