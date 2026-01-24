@@ -20,6 +20,9 @@ interface Patient {
     dateOfBirth?: string;
     address?: string;
     medicalHistory?: string;
+    // New Flags
+    isNewPatient?: boolean;
+    isDependent?: boolean;
 }
 
 interface Service {
@@ -79,7 +82,9 @@ const PATIENTS: Patient[] = [
         phone: '+1 (555) 123-4567',
         profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
         dateOfBirth: '1985-03-15',
-        address: '123 Main St, New York, NY 10001'
+        address: '123 Main St, New York, NY 10001',
+        isNewPatient: true,
+        isDependent: false
     },
     {
         id: 'pt2',
@@ -88,7 +93,9 @@ const PATIENTS: Patient[] = [
         phone: '+1 (555) 234-5678',
         profilePicture: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
         dateOfBirth: '1992-07-22',
-        address: '456 Oak Ave, Brooklyn, NY 11201'
+        address: '456 Oak Ave, Brooklyn, NY 11201',
+        isNewPatient: false,
+        isDependent: false
     },
     {
         id: 'pt3',
@@ -97,7 +104,9 @@ const PATIENTS: Patient[] = [
         phone: '+1 (555) 345-6789',
         profilePicture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
         dateOfBirth: '1978-11-08',
-        address: '789 Pine Rd, Queens, NY 11375'
+        address: '789 Pine Rd, Queens, NY 11375',
+        isNewPatient: false,
+        isDependent: true
     },
     {
         id: 'pt4',
@@ -106,7 +115,9 @@ const PATIENTS: Patient[] = [
         phone: '+1 (555) 456-7890',
         profilePicture: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
         dateOfBirth: '1990-05-30',
-        address: '321 Elm St, Manhattan, NY 10016'
+        address: '321 Elm St, Manhattan, NY 10016',
+        isNewPatient: true,
+        isDependent: false
     },
     {
         id: 'pt5',
@@ -115,7 +126,9 @@ const PATIENTS: Patient[] = [
         phone: '+1 (555) 567-8901',
         profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
         dateOfBirth: '1965-09-12',
-        address: '654 Maple Dr, Bronx, NY 10451'
+        address: '654 Maple Dr, Bronx, NY 10451',
+        isNewPatient: false,
+        isDependent: true
     },
 ];
 
@@ -427,6 +440,38 @@ const calculateAge = (dateOfBirth: string): number => {
     return age;
 };
 
+// --- Patient Tags Component ---
+const PatientTags = ({ 
+    isNewPatient, 
+    isDependent, 
+    size = 'default' 
+}: { 
+    isNewPatient?: boolean; 
+    isDependent?: boolean; 
+    size?: 'small' | 'default' 
+}) => {
+    if (!isNewPatient && !isDependent) return null;
+  
+    const sizeClasses = size === 'small'
+      ? "px-1.5 py-0.5 text-[9px]"
+      : "px-2 py-0.5 text-[10px]";
+  
+    return (
+      <div className="flex items-center gap-1">
+        {isNewPatient && (
+          <span className={`inline-flex items-center ${sizeClasses} bg-gray-900 text-white font-medium rounded leading-none`}>
+            NEW
+          </span>
+        )}
+        {isDependent && (
+          <span className={`inline-flex items-center gap-0.5 ${sizeClasses} bg-blue-600 text-white font-medium rounded leading-none`}>
+            DEPENDENT
+          </span>
+        )}
+      </div>
+    );
+};
+
 // --- Status Badge Component ---
 interface StatusBadgeProps {
     status: Appointment['status'];
@@ -676,13 +721,12 @@ const BreakModal: React.FC<BreakModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-w-auto max-h-[90vh] overflow-y-auto w-full sm:w-[400px]">
-                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex justify-between items-center bg-red-50 sticky top-0 z-10">
+            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-w-auto max-h-auto w-full sm:w-[500px]">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 rounded-t-2xl flex justify-between items-center bg-red-400 sticky top-0 z-10">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
                         <h3 className="font-bold text-gray-800 text-base sm:text-lg">{isEditMode ? 'Edit Break' : 'New Break'}</h3>
                     </div>
-                    <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                    <button onClick={onClose} className="p-1 text-gray-600 rounded-full bg-gray-100">
                         <X size={20} />
                     </button>
                 </div>
@@ -886,7 +930,10 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                 {/* Header */}
                 <div className="px-6 py-4 bg-white border-b flex justify-between items-center z-10">
                     <div>
-                        <h3 className="font-bold text-gray-800 text-lg">Reschedule Appointment</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-gray-800 text-lg">Reschedule Appointment</h3>
+                            <PatientTags isNewPatient={patient?.isNewPatient} isDependent={patient?.isDependent} size="small" />
+                        </div>
                         <p className="text-sm text-gray-500">
                             {patient?.name} • {service?.name} ({durationMinutes} mins)
                         </p>
@@ -919,9 +966,6 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                         min={toDateString(new Date())}
                                         className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-base font-medium shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                        <ChevronDown size={16} />
-                                    </div>
                                 </div>
                                 {/* Quick Dates Strip */}
                                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -1208,26 +1252,26 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden w-full sm:w-[480px]">
+            <div className="relative bg-white rounded-2xl shadow-2xl max-h-auto overflow-hidden w-full sm:w-[500px]">
 
                 {/* Colored Header Banner */}
                 <div
                     className="h-24 relative"
                     style={{
-                        background: `linear-gradient(135deg, ${service?.color}dd 100%, ${service?.color}99 100%)`
+                        background: `linear-gradient(135deg, ${service?.color}dd 0%, ${service?.color}99 100%)`
                     }}
                 >
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-3 right-3 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all backdrop-blur-sm"
+                        className="absolute top-3 right-3 p-2 bg-white/30 hover:bg-white/50 text-black rounded-full transition-all backdrop-blur-sm"
                     >
                         <X size={18} />
                     </button>
 
                     {/* Service Badge */}
                     <div className="absolute mt-5 left-6">
-                        <span className="px-3 py-1 bg-black/50 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-black/25 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
                             {service?.name}
                         </span>
                     </div>
@@ -1255,9 +1299,12 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <h4 className="font-bold text-gray-900 text-lg leading-tight truncate">
-                                            {patient?.name}
-                                        </h4>
+                                        <div className="flex items-center gap-2">
+                                            <h4 className="font-bold text-gray-900 text-lg leading-tight truncate">
+                                                {patient?.name}
+                                            </h4>
+                                            <PatientTags isNewPatient={patient?.isNewPatient} isDependent={patient?.isDependent} size="small" />
+                                        </div>
                                         {patient?.dateOfBirth && (
                                             <p className="text-sm text-gray-500">
                                                 {calculateAge(patient.dateOfBirth)} years old
@@ -1360,7 +1407,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                 <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
                                     <CalendarIcon size={16} className="text-violet-600" />
                                 </div>
-                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wider">Service</span>
+                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wider">Date</span>
                             </div>
                             <p className="text-sm font-semibold text-gray-800">
                                 {appointment.startTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -1445,58 +1492,6 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     );
 };
 
-// --- Slot Selection Modal ---
-interface SlotModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSelectBreak: () => void;
-    selectedDate: Date;
-    selectedTime: { hour: number; minutes: number };
-}
-
-const SlotModal: React.FC<SlotModalProps> = ({
-    isOpen,
-    onClose,
-    onSelectBreak,
-    selectedDate,
-    selectedTime
-}) => {
-    if (!isOpen) return null;
-
-    const timeDisplay = new Date(selectedDate);
-    timeDisplay.setHours(selectedTime.hour, selectedTime.minutes);
-
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
-            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-xl shadow-xl w-full max-w-[280px] p-4">
-                <div className="text-center mb-4">
-                    <p className="text-sm text-gray-500">
-                        {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
-                    <p className="text-lg font-bold text-gray-800">
-                        {timeDisplay.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                </div>
-                <div className="space-y-2">
-                    <button
-                        onClick={() => { onSelectBreak(); onClose(); }}
-                        className="w-full py-3 px-4 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
-                    >
-                        Add Break
-                    </button>
-                </div>
-                <button
-                    onClick={onClose}
-                    className="w-full mt-3 py-2 text-sm text-gray-500 hover:text-gray-700"
-                >
-                    Cancel
-                </button>
-            </div>
-        </div>
-    );
-};
-
 // --- Service Legend Component ---
 const ServiceLegend: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -1564,7 +1559,6 @@ const PracticeBookingCalender = () => {
 
     const [isBreakModalOpen, setIsBreakModalOpen] = useState(false);
     const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-    const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
 
     const [editingBreak, setEditingBreak] = useState<Partial<CalendarEvent> | null>(null);
@@ -1627,15 +1621,11 @@ const PracticeBookingCalender = () => {
         setSelectedDayIndex(Math.max(0, Math.min(6, dayIndex)));
     };
 
+    // --- REPLACED SLOT MODAL WITH DIRECT BREAK MODAL ---
     const handleSlotClick = (day: Date, hour: number, minutes: number) => {
-        setSelectedDayForModal(day);
-        setSelectedSlotTime({ hour, minutes });
-        setIsSlotModalOpen(true);
-    };
+        const clickedTime = new Date(day);
+        clickedTime.setHours(hour, minutes, 0, 0);
 
-    const handleAddBreak = () => {
-        const clickedTime = new Date(selectedDayForModal);
-        clickedTime.setHours(selectedSlotTime.hour, selectedSlotTime.minutes, 0, 0);
         const endTime = new Date(clickedTime);
         endTime.setMinutes(endTime.getMinutes() + 30);
 
@@ -1646,6 +1636,8 @@ const PracticeBookingCalender = () => {
             practitionerId: activePractitionerId,
             color: BREAK_COLOR.value
         });
+        
+        setSelectedDayForModal(clickedTime);
         setIsBreakModalOpen(true);
     };
 
@@ -1755,6 +1747,13 @@ const PracticeBookingCalender = () => {
                                 <ChevronRight size={isMobile ? 16 : 20} />
                             </button>
                         </div>
+
+                        <button
+                            onClick={handleToday}
+                            className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                        >
+                            Today
+                        </button>
 
                         <div className="flex items-center gap-3 ml-0 sm:ml-4">
                             <span className="text-sm font-semibold text-gray-500 hidden sm:block">
@@ -1931,9 +1930,19 @@ const PracticeBookingCalender = () => {
                                                             <div className="flex items-center gap-1.5 mb-1">
                                                                 {isRescheduled && <RefreshCw size={12} className="flex-shrink-0" />}
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-[10px] sm:text-xs font-bold truncate">
-                                                                        {patient?.name}
-                                                                    </p>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <p className="text-[10px] sm:text-sm font-bold truncate">
+                                                                            {patient?.name}
+                                                                        </p>
+                                                                        {/* Only show tags if height allows */}
+                                                                        {height > 60 && (
+                                                                            <PatientTags 
+                                                                                isNewPatient={patient?.isNewPatient} 
+                                                                                isDependent={patient?.isDependent} 
+                                                                                size="small" 
+                                                                            />
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-semibold opacity-80">
@@ -2016,14 +2025,6 @@ const PracticeBookingCalender = () => {
             </div>
 
             {/* Modals */}
-            <SlotModal
-                isOpen={isSlotModalOpen}
-                onClose={() => setIsSlotModalOpen(false)}
-                onSelectBreak={handleAddBreak}
-                selectedDate={selectedDayForModal}
-                selectedTime={selectedSlotTime}
-            />
-
             <BreakModal
                 isOpen={isBreakModalOpen}
                 onClose={() => setIsBreakModalOpen(false)}

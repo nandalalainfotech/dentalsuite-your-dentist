@@ -1375,7 +1375,7 @@ export default function PracticeAppointmentsView() {
             </div>
             
             {showFilters && (
-              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
                 <div>
                   <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wide">Practitioner</label>
                   <select value={filters.practitioner} onChange={(e) => handleFilterChange('practitioner', e.target.value)} className="w-full px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200">
