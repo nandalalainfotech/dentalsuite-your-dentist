@@ -59,7 +59,7 @@ export default function DirectoryView() {
     const clinicData = getClinicData();
 
     return (
-        <div className="flex flex-col w-full animate-in fade-in duration-500 font-sans text-gray-800 bg-white min-h-screen">
+        <div className="flex flex-col w-full max-w-full overflow-x-hidden animate-in fade-in duration-500 font-sans text-gray-800 bg-white min-h-screen">
             {/* Top Bar Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-30 shadow-sm gap-4">
                 <div>
@@ -99,7 +99,7 @@ export default function DirectoryView() {
             </div>
 
             {/* Main Content Switcher */}
-            <div className="w-full relative">
+            <div className="w-full max-w-full relative">
                 {isEditing ? (
                     <ClinicEditor clinicData={clinicData} />
                 ) : (
