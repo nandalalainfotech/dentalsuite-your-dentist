@@ -44,7 +44,7 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
     return (
         <div className="flex flex-col bg-gray-50/50 pb-10 min-h-screen">
             {/* Editor Tabs */}
-            <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 pt-2 shadow-sm z-20 sticky top-[81px]">
+            <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 pt-2 shadow-sm z-20 sticky top-[50px]">
                 <div className="flex items-center gap-4 overflow-x-auto pb-0 scrollbar-hide">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
