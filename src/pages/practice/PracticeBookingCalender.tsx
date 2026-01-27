@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
     ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon, 
-    Check, ChevronDown, Activity, Mail, Phone, MapPin, Clock, RefreshCw, AlertCircle 
+    Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle 
 } from 'lucide-react';
 
 // --- Types ---
@@ -20,7 +20,6 @@ interface Patient {
     dateOfBirth?: string;
     address?: string;
     medicalHistory?: string;
-    // New Flags
     isNewPatient?: boolean;
     isDependent?: boolean;
 }
@@ -440,6 +439,16 @@ const calculateAge = (dateOfBirth: string): number => {
     return age;
 };
 
+// --- Check for time overlap ---
+const checkTimeOverlap = (
+    start1: Date,
+    end1: Date,
+    start2: Date,
+    end2: Date
+): boolean => {
+    return (start1 < end2) && (end1 > start2);
+};
+
 // --- Patient Tags Component ---
 const PatientTags = ({ 
     isNewPatient, 
@@ -549,13 +558,15 @@ interface TimePickerProps {
     endTime: string;
     onStartTimeChange: (time: string) => void;
     onEndTimeChange: (time: string) => void;
+    hasConflict?: boolean;
 }
 
 const TimePicker: React.FC<TimePickerProps> = ({
     startTime,
     endTime,
     onStartTimeChange,
-    onEndTimeChange
+    onEndTimeChange,
+    hasConflict = false
 }) => {
     const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
 
@@ -583,6 +594,10 @@ const TimePicker: React.FC<TimePickerProps> = ({
         setSelectedDuration(matching ? matching.value : null);
     };
 
+    const inputBorderClass = hasConflict 
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' 
+        : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/20';
+
     return (
         <div className="space-y-3">
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
@@ -597,7 +612,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
                             type="time"
                             value={startTime}
                             onChange={(e) => handleStartTimeChange(e.target.value)}
-                            className="w-full pl-4 pr-3 py-2 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                            className={`w-full pl-4 pr-3 py-2 sm:py-2 bg-gray-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${inputBorderClass}`}
                         />
                     </div>
                 </div>
@@ -608,7 +623,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
                             type="time"
                             value={endTime}
                             onChange={(e) => handleEndTimeChange(e.target.value)}
-                            className="w-full pl-4 pr-3 py-2 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                            className={`w-full pl-4 pr-3 py-2 sm:py-2 bg-gray-50 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-all ${inputBorderClass}`}
                         />
                     </div>
                 </div>
@@ -617,7 +632,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
             {currentDuration > 0 && (
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="font-medium">Duration:</span>
-                    <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full font-semibold">
+                    <span className={`px-2 py-0.5 rounded-full font-semibold ${hasConflict ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
                         {currentDuration >= 60
                             ? `${Math.floor(currentDuration / 60)}h ${currentDuration % 60 > 0 ? `${currentDuration % 60}m` : ''}`
                             : `${currentDuration} mins`
@@ -655,7 +670,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
     );
 };
 
-// --- Break Modal Component ---
+// --- Break Modal Component (Updated with Conflict Detection) ---
 interface BreakModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -664,6 +679,8 @@ interface BreakModalProps {
     initialData: Partial<CalendarEvent> | null;
     selectedDate: Date;
     activePractitionerId: string;
+    appointments: Appointment[]; // Added appointments prop
+    existingBreaks: CalendarEvent[]; // Added existing breaks prop
 }
 
 const BreakModal: React.FC<BreakModalProps> = ({
@@ -673,7 +690,9 @@ const BreakModal: React.FC<BreakModalProps> = ({
     onDelete,
     initialData,
     selectedDate,
-    activePractitionerId
+    activePractitionerId,
+    appointments,
+    existingBreaks
 }) => {
     const isEditMode = !!initialData?.id;
     const activePractitioner = PRACTITIONERS.find(p => p.id === activePractitionerId);
@@ -696,10 +715,56 @@ const BreakModal: React.FC<BreakModalProps> = ({
         }
     }, [isOpen, initialData]);
 
+    // Get appointments for the selected day and practitioner
+    const dayAppointments = useMemo(() => {
+        return appointments.filter(a => 
+            a.practitionerId === activePractitionerId && 
+            isSameDay(a.startTime, selectedDate) &&
+            a.status !== 'cancelled' // Don't consider cancelled appointments
+        ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    }, [appointments, activePractitionerId, selectedDate]);
+
+    // Get existing breaks for the selected day and practitioner (excluding current break if editing)
+    const dayBreaks = useMemo(() => {
+        return existingBreaks.filter(b => 
+            b.practitionerId === activePractitionerId && 
+            isSameDay(b.startTime, selectedDate) &&
+            b.id !== initialData?.id // Exclude current break when editing
+        ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    }, [existingBreaks, activePractitionerId, selectedDate, initialData?.id]);
+
+    // Check for conflicts with appointments
+    const conflictingAppointments = useMemo(() => {
+        const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
+        const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
+
+        return dayAppointments.filter(appt => 
+            checkTimeOverlap(proposedStart, proposedEnd, appt.startTime, appt.endTime)
+        );
+    }, [dayAppointments, selectedDate, startTimeStr, endTimeStr]);
+
+    // Check for conflicts with other breaks
+    const conflictingBreaks = useMemo(() => {
+        const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
+        const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
+
+        return dayBreaks.filter(breakEvent => 
+            checkTimeOverlap(proposedStart, proposedEnd, breakEvent.startTime, breakEvent.endTime)
+        );
+    }, [dayBreaks, selectedDate, startTimeStr, endTimeStr]);
+
+    const hasConflict = conflictingAppointments.length > 0 || conflictingBreaks.length > 0;
+    const hasValidDuration = calculateDuration(startTimeStr, endTimeStr) > 0;
+
     if (!isOpen) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (hasConflict) {
+            return; // Don't submit if there's a conflict
+        }
+
         const start = setTimeOnDate(selectedDate, startTimeStr);
         const end = setTimeOnDate(selectedDate, endTimeStr);
 
@@ -721,85 +786,233 @@ const BreakModal: React.FC<BreakModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-w-auto max-h-auto w-full sm:w-[500px]">
-                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 rounded-t-2xl flex justify-between items-center bg-red-400 sticky top-0 z-10">
+            <div className="relative bg-white rounded-2xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-hidden w-full sm:w-[600px] flex flex-col">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 rounded-t-2xl flex justify-between items-center bg-red-500 sticky top-0 z-10">
                     <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-gray-800 text-base sm:text-lg">{isEditMode ? 'Edit Break' : 'New Break'}</h3>
+                        <h3 className="font-bold text-white text-base sm:text-lg">{isEditMode ? 'Edit Break' : 'New Break'}</h3>
                     </div>
-                    <button onClick={onClose} className="p-1 text-gray-600 rounded-full bg-gray-100">
+                    <button onClick={onClose} className="p-1 text-white rounded-full bg-white/20 hover:bg-white/30 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                            Title
-                        </label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="e.g., Lunch Break, Meeting..."
-                            className="w-full px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                            Practitioner
-                        </label>
-                        <div className="w-full px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 flex items-center gap-2 cursor-not-allowed select-none">
-                            <User size={16} className="text-gray-400" />
-                            <span className="font-medium text-gray-700">{activePractitioner?.name || 'Unknown Practitioner'}</span>
+                <div className="flex-1 overflow-y-auto">
+                    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                                Title
+                            </label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="e.g., Lunch Break, Meeting..."
+                                className="w-full px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
+                            />
                         </div>
-                    </div>
 
-                    <TimePicker
-                        startTime={startTimeStr}
-                        endTime={endTimeStr}
-                        onStartTimeChange={setStartTimeStr}
-                        onEndTimeChange={setEndTimeStr}
-                    />
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                                Practitioner
+                            </label>
+                            <div className="w-full px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 flex items-center gap-2 cursor-not-allowed select-none">
+                                <User size={16} className="text-gray-400" />
+                                <span className="font-medium text-gray-700">{activePractitioner?.name || 'Unknown Practitioner'}</span>
+                            </div>
+                        </div>
 
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
-                            Notes
-                        </label>
-                        <textarea
-                            rows={3}
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Add any additional notes..."
-                            className="w-full px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm resize-none focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
+                        <TimePicker
+                            startTime={startTimeStr}
+                            endTime={endTimeStr}
+                            onStartTimeChange={setStartTimeStr}
+                            onEndTimeChange={setEndTimeStr}
+                            hasConflict={hasConflict}
                         />
-                    </div>
 
-                    <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100">
-                        {isEditMode && (
+                        {/* Conflict Warning */}
+                        {hasConflict && (
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <AlertCircle size={18} className="text-red-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-red-700 mb-2">Time Conflict Detected</p>
+                                        <p className="text-xs text-red-600 mb-3">
+                                            The selected time overlaps with existing appointments or breaks. Please choose a different time slot.
+                                        </p>
+                                        
+                                        {conflictingAppointments.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-semibold text-red-700">Conflicting Appointments:</p>
+                                                {conflictingAppointments.map(appt => {
+                                                    const patient = PATIENTS.find(p => p.id === appt.patientId);
+                                                    const service = SERVICES.find(s => s.id === appt.serviceId);
+                                                    return (
+                                                        <div key={appt.id} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
+                                                            <div 
+                                                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                                                style={{ backgroundColor: service?.color }}
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-medium text-gray-800 truncate">{patient?.name}</p>
+                                                                <p className="text-[10px] text-gray-500">
+                                                                    {formatTime(appt.startTime)} - {formatTime(appt.endTime)} • {service?.name}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {conflictingBreaks.length > 0 && (
+                                            <div className="space-y-2 mt-2">
+                                                <p className="text-xs font-semibold text-red-700">Conflicting Breaks:</p>
+                                                {conflictingBreaks.map(breakEvent => (
+                                                    <div key={breakEvent.id} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
+                                                        <div className="w-2 h-2 rounded-full flex-shrink-0 bg-red-500" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-medium text-gray-800 truncate">{breakEvent.title}</p>
+                                                            <p className="text-[10px] text-gray-500">
+                                                                {formatTime(breakEvent.startTime)} - {formatTime(breakEvent.endTime)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Existing Appointments Timeline */}
+                        {dayAppointments.length > 0 && !hasConflict && (
+                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <CalendarIcon size={16} className="text-blue-600" />
+                                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+                                        Today's Appointments ({dayAppointments.length})
+                                    </p>
+                                </div>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {dayAppointments.map(appt => {
+                                        const patient = PATIENTS.find(p => p.id === appt.patientId);
+                                        const service = SERVICES.find(s => s.id === appt.serviceId);
+                                        return (
+                                            <div 
+                                                key={appt.id} 
+                                                className="flex items-center gap-2 p-2 bg-white rounded-lg border border-blue-100"
+                                            >
+                                                <div 
+                                                    className="w-1 h-8 rounded-full flex-shrink-0"
+                                                    style={{ backgroundColor: service?.color }}
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-xs font-medium text-gray-800 truncate">{patient?.name}</p>
+                                                        <StatusBadge status={appt.status} size="sm" />
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-500">
+                                                        {formatTime(appt.startTime)} - {formatTime(appt.endTime)} • {service?.name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Existing Breaks */}
+                        {dayBreaks.length > 0 && !hasConflict && (
+                            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Clock size={16} className="text-amber-600" />
+                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
+                                        Existing Breaks ({dayBreaks.length})
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    {dayBreaks.map(breakEvent => (
+                                        <div 
+                                            key={breakEvent.id} 
+                                            className="flex items-center gap-2 p-2 bg-white rounded-lg border border-amber-100"
+                                        >
+                                            <div className="w-1 h-8 rounded-full flex-shrink-0 bg-red-500" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium text-gray-800 truncate">{breakEvent.title}</p>
+                                                <p className="text-[10px] text-gray-500">
+                                                    {formatTime(breakEvent.startTime)} - {formatTime(breakEvent.endTime)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* No appointments message */}
+                        {dayAppointments.length === 0 && dayBreaks.length === 0 && (
+                            <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <Check size={18} className="text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-green-700">No conflicts</p>
+                                        <p className="text-xs text-green-600">This day is free - you can add a break at any time.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                                Notes
+                            </label>
+                            <textarea
+                                rows={3}
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Add any additional notes..."
+                                className="w-full px-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm resize-none focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
+                            />
+                        </div>
+
+                        <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-100">
+                            {isEditMode && (
+                                <button
+                                    type="button"
+                                    onClick={() => { onDelete(initialData!.id!); onClose(); }}
+                                    className="p-2 sm:p-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
                             <button
                                 type="button"
-                                onClick={() => { onDelete(initialData!.id!); onClose(); }}
-                                className="p-2 sm:p-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                onClick={onClose}
+                                className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm"
                             >
-                                <Trash2 size={18} />
+                                Cancel
                             </button>
-                        )}
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg shadow-md transition-all text-sm"
-                        >
-                            {isEditMode ? 'Update' : 'Save'}
-                        </button>
-                    </div>
-                </form>
+                            <button
+                                type="submit"
+                                disabled={hasConflict || !hasValidDuration}
+                                className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 font-medium rounded-lg shadow-md transition-all text-sm flex items-center justify-center gap-2 ${
+                                    hasConflict || !hasValidDuration
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                        : 'bg-red-500 hover:bg-red-600 text-white'
+                                }`}
+                            >
+                                {hasConflict && <AlertCircle size={16} />}
+                                {isEditMode ? 'Update' : 'Save'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
@@ -811,7 +1024,7 @@ interface RescheduleModalProps {
     onClose: () => void;
     appointment: Appointment | null;
     appointments: Appointment[]; 
-    breaks: CalendarEvent[]; // Added Breaks
+    breaks: CalendarEvent[];
     onReschedule: (appointmentId: string, newDate: Date, newStartTime: Date, newEndTime: Date, newPractitionerId: string) => void;
 }
 
@@ -820,7 +1033,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
     onClose,
     appointment,
     appointments,
-    breaks, // Destructured
+    breaks,
     onReschedule
 }) => {
     // 1. Hooks always call first
@@ -863,31 +1076,18 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                 const slotStart = setTimeOnDate(dateObj, timeStr);
                 const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
 
-                // Check against Appointments
                 const isCollidingAppt = appointments.some(appt => {
-                    // Skip the appointment being rescheduled
                     if (appt.id === appointment.id) return false;
-                    // Check only for selected practitioner
                     if (appt.practitionerId !== selectedPractitionerId) return false;
                     
-                    // Check overlap
-                    return (
-                        (slotStart >= appt.startTime && slotStart < appt.endTime) ||
-                        (slotEnd > appt.startTime && slotEnd <= appt.endTime) ||
-                        (slotStart <= appt.startTime && slotEnd >= appt.endTime)
-                    );
+                    return checkTimeOverlap(slotStart, slotEnd, appt.startTime, appt.endTime);
                 });
 
                 // Check against Breaks
                 const isCollidingBreak = breaks.some(breakEvent => {
                     // Check only for selected practitioner
                     if (breakEvent.practitionerId !== selectedPractitionerId) return false;
-
-                    // Check overlap
-                    // Overlap logic: (StartA < EndB) and (EndA > StartB)
-                    return (
-                        (breakEvent.startTime < slotEnd) && (breakEvent.endTime > slotStart)
-                    );
+                    return checkTimeOverlap(slotStart, slotEnd, breakEvent.startTime, breakEvent.endTime);
                 });
 
                 if (!isCollidingAppt && !isCollidingBreak) {
@@ -961,7 +1161,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                         value={selectedDate}
                                         onChange={(e) => {
                                             setSelectedDate(e.target.value);
-                                            setSelectedTimeSlot(''); // Reset time when date changes
+                                            setSelectedTimeSlot('');
                                         }}
                                         min={toDateString(new Date())}
                                         className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-base font-medium shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
@@ -1341,7 +1541,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                             <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                                                 <div className="p-2 bg-gray-50 border-b border-gray-100">
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2">
-                                                        Change Status
+                                                        Update Status
                                                     </p>
                                                 </div>
                                                 <div className="p-2 space-y-1">
@@ -1432,7 +1632,6 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-100">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Practitioner</p>
                         <div className="flex items-center gap-3">
-                            
                             <div>
                                 <p className="font-semibold text-gray-800">{practitioner?.name}</p>
                                 <p className="text-xs text-gray-500">{practitioner?.role}</p>
@@ -1537,7 +1736,6 @@ const ServiceLegend: React.FC = () => {
                                     <div className="w-4 h-4 rounded-full flex-shrink-0 bg-red-500" />
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-gray-700">Break</p>
-                                        <p className="text-xs text-gray-500">Blocked time</p>
                                     </div>
                                 </div>
                             </div>
@@ -1747,13 +1945,6 @@ const PracticeBookingCalender = () => {
                                 <ChevronRight size={isMobile ? 16 : 20} />
                             </button>
                         </div>
-
-                        <button
-                            onClick={handleToday}
-                            className="px-3 py-1.5 text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
-                        >
-                            Today
-                        </button>
 
                         <div className="flex items-center gap-3 ml-0 sm:ml-4">
                             <span className="text-sm font-semibold text-gray-500 hidden sm:block">
@@ -2033,6 +2224,8 @@ const PracticeBookingCalender = () => {
                 initialData={editingBreak}
                 selectedDate={selectedDayForModal}
                 activePractitionerId={activePractitionerId}
+                appointments={appointments}
+                existingBreaks={breaks}
             />
 
             <AppointmentDetailsModal
