@@ -172,22 +172,6 @@ const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
     bookedBy: 'Reception',
     lastUpdated: getRelativePastDate(0),
   },
-  {
-    id: 'apt-8',
-    patientName: 'Sophia Martinez',
-    treatment: 'Consultation',
-    dentistName: 'Unassigned',
-    dateTime: getRelativeDate(1, 15, 0),
-    bookedAt: getRelativePastDate(1),
-    isNewPatient: true,
-    isDependent: false,
-    status: 'dismissed',
-    mobile: '0477 888 999',
-    dob: '03 Jun 1998',
-    patientNotes: 'Spam request.',
-    bookedBy: 'System',
-    lastUpdated: getRelativePastDate(0),
-  },
 ];
 
 const STATUS_LABELS: Record<ValidStatus, string> = {
