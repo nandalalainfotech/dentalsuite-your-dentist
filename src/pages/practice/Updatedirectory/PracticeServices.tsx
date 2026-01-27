@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit2, Trash2, Check, X } from 'lucide-react';
+import type { Clinic } from '../../../types';
 
 interface Service {
     id: string;
@@ -8,11 +9,26 @@ interface Service {
     description: string;
 }
 
-export default function PracticeServices() {
-    const [services, setServices] = useState<Service[]>([
-        { id: '1', name: 'Dental', showInAppointment: true, description: '' },
-        { id: '2', name: 'Teeth Cleaning', showInAppointment: true, description: '' }
-    ]);
+export default function PracticeServices({ clinicData }: { clinicData: Clinic }) {
+    const [services, setServices] = useState<Service[]>([]);
+
+    useEffect(() => {
+        if (clinicData?.services && Array.isArray(clinicData.services)) {
+            const formattedServices = clinicData.services.map((serviceName, index) => ({
+                id: (index + 1).toString(),
+                name: serviceName,
+                showInAppointment: true,
+                description: ''
+            }));
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setServices(formattedServices);
+        } else {
+            setServices([
+                { id: '1', name: 'Dental', showInAppointment: true, description: '' },
+                { id: '2', name: 'Teeth Cleaning', showInAppointment: true, description: '' }
+            ]);
+        }
+    }, [clinicData]);
 
     const [name, setName] = useState('');
     const [showInAppointment, setShowInAppointment] = useState(true);
@@ -24,23 +40,28 @@ export default function PracticeServices() {
     const addService = () => {
         if (!name.trim()) return;
 
-        setServices(prev => [
-            ...prev,
-            {
-                id: Date.now().toString(),
-                name,
-                showInAppointment,
-                description
-            }
-        ]);
+        const newService: Service = {
+            id: Date.now().toString(),
+            name,
+            showInAppointment,
+            description
+        };
+
+        setServices(prev => [...prev, newService]);
 
         setName('');
         setDescription('');
         setShowInAppointment(true);
+
+        // Here you would typically update the clinicData or save to backend
+        console.log('New service added:', newService);
     };
 
     const deleteService = (id: string) => {
         setServices(prev => prev.filter(service => service.id !== id));
+
+        // Here you would typically update the clinicData or save to backend
+        console.log('Service deleted:', id);
     };
 
     const startEdit = (service: Service) => {
