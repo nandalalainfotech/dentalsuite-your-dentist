@@ -1,199 +1,298 @@
-import { useState } from 'react';
-import { Upload, Image, Save } from 'lucide-react';
-import { InputGroup } from './SharedEditorComponents';
+import React, { useState } from 'react';
+import {
+    X, ChevronUp, CloudUpload,
+    Bold, Italic, Underline, List, AlignLeft,
+    AlignCenter, AlignRight, Link as LinkIcon,
+    Image as Undo, Redo
+} from 'lucide-react';
 import type { Clinic } from '../../../types/clinic';
 
 interface PracticeFormData {
-    name: string;
-    specialization: string;
-    tagline: string;
-    establishmentDate: string;
-    description: string;
-    logo: string;
+    professionType: string;
+    companyName: string;
+    email: string;
+    abnNumber: string;
+    contactName: string;
+    address: string;
+    phoneNumber: string;
+    altPhoneNumber: string;
     bannerImage: string;
+    logo: string;
+    description: string;
 }
 
 export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic }) {
     const [formData, setFormData] = useState<PracticeFormData>({
-        name: clinicData.name || '',
-        specialization: clinicData.specialities?.[0] || 'Dentistry',
-        tagline: clinicData.tagline || '',
-        establishmentDate: clinicData.establishedYear ? `${clinicData.establishedYear}-01-01` : '',
-        description: clinicData.description || '',
+        professionType: 'Dental Specialist Practice',
+        companyName: clinicData.name || '',
+        email: clinicData.email || '',
+        abnNumber: '',
+        contactName: '',
+        address: clinicData.address || '',
+        phoneNumber: clinicData.phone || '',
+        altPhoneNumber: '',
+        bannerImage: '',
         logo: clinicData.logo || '',
-        bannerImage: ''
+        description: clinicData.description || ''
     });
 
-    const [hasChanges, setHasChanges] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isSaving, setIsSaving] = useState(false);
 
-    // Update form values
     const handleInputChange = (field: keyof PracticeFormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        setHasChanges(true);
     };
 
-    // Handle save
-    const handleSave = async () => {
-        setIsSaving(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setHasChanges(false);
-        setIsSaving(false);
-        console.log('Saved data:', formData);
-    };
-
-    // Handle image uploads
-    const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (field: 'logo' | 'bannerImage', event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => handleInputChange('logo', reader.result as string);
+        reader.onload = () => handleInputChange(field, reader.result as string);
         reader.readAsDataURL(file);
     };
 
-    const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => handleInputChange('bannerImage', reader.result as string);
-        reader.readAsDataURL(file);
+    const removeImage = (field: 'logo' | 'bannerImage') => {
+        handleInputChange(field, '');
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-100">
-                <div>
-                    <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
-                    <p className="text-sm text-gray-500 mt-1">Manage your clinic's identity and primary details.</p>
-                </div>
-                {hasChanges && (
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="bg-orange-500 text-white hover:bg-orange-600 disabled:bg-gray-300 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 active:scale-95"
-                    >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                )}
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-bold text-orange-500">Basic Info</h2>
+                <ChevronUp className="w-6 h-6 text-gray-400 cursor-pointer" />
             </div>
 
-            {/* Logo & Banner Upload */}
-            <div className="flex flex-col md:flex-row gap-8 mb-8">
-                {/* Logo Upload */}
-                <div className="flex-shrink-0 relative">
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id="logoUpload"
-                        onChange={handleLogoUpload}
-                    />
-                    <div
-                        onClick={() => document.getElementById('logoUpload')?.click()}
-                        className="w-32 h-32 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100 hover:border-orange-400 transition overflow-hidden relative"
-                    >
-                        {formData.logo ? (
-                            <img
-                                src={formData.logo}
-                                alt="Logo"
-                                className="w-full h-full object-cover rounded-2xl"
-                            />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center">
-                                <Upload className="w-6 h-6 mb-2 group-hover:text-orange-500" />
-                                <span className="text-xs font-medium">Upload Logo</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-
-                {/* Banner */}
-                <div className="flex-shrink-0 relative">
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id="bannerUpload"
-                        onChange={handleBannerUpload}
-                    />
-                    <div
-                        onClick={() => document.getElementById('bannerUpload')?.click()}
-                        className="w-full md:w-64 h-32 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100 hover:border-orange-400 transition group relative"
-                    >
-                        {formData.bannerImage ? (
-                            <img src={formData.bannerImage} alt="Banner" className="w-full h-full object-cover rounded-2xl" />
-                        ) : (
-                            <>
-                                <Image className="w-6 h-6 mb-2 group-hover:text-orange-500" />
-                                <span className="text-xs font-medium">Upload Banner Image</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Form Inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup
-                    label="Practice Name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+            {/* Form Fields Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
+                <FormInput
+                    label="Profession Type"
+                    required
+                    isSelect
+                    value={formData.professionType}
+                    onChange={(val) => handleInputChange('professionType', val)}
+                    options={['Dental Specialist Practice', 'General Dentistry', 'Orthodontics']}
                 />
-                <div className="space-y-2">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">Specialization</label>
+                <FormInput
+                    label="Company Name"
+                    required
+                    value={formData.companyName}
+                    placeholder="Practice Your dentist"
+                    onChange={(val) => handleInputChange('companyName', val)}
+                />
+                <FormInput
+                    label="Email ID"
+                    required
+                    value={formData.email}
+                    placeholder="example@yopmail.com"
+                    onChange={(val) => handleInputChange('email', val)}
+                />
+                <FormInput
+                    label="ABN/ACN Number"
+                    required
+                    value={formData.abnNumber}
+                    placeholder="1234567895"
+                    onChange={(val) => handleInputChange('abnNumber', val)}
+                />
+                <FormInput
+                    label="Name"
+                    required
+                    value={formData.contactName}
+                    placeholder="Surender"
+                    onChange={(val) => handleInputChange('contactName', val)}
+                />
+                <FormInput
+                    label="Address"
+                    required
+                    value={formData.address}
+                    placeholder="Madrid, Spain"
+                    onChange={(val) => handleInputChange('address', val)}
+                />
+                <FormInput
+                    label="Phone Number"
+                    required
+                    value={formData.phoneNumber}
+                    placeholder="8776654322"
+                    onChange={(val) => handleInputChange('phoneNumber', val)}
+                />
+                <FormInput
+                    label="Alternate Phone Number"
+                    value={formData.altPhoneNumber}
+                    placeholder="Enter Alternate Phone Number"
+                    onChange={(val) => handleInputChange('altPhoneNumber', val)}
+                />
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <ImageUploader
+                    label="Banner Image"
+                    required
+                    image={formData.bannerImage}
+                    onUpload={(e) => handleImageUpload('bannerImage', e)}
+                    onRemove={() => removeImage('bannerImage')}
+                    id="banner-upload"
+                />
+                <ImageUploader
+                    label="Logo"
+                    required
+                    image={formData.logo}
+                    onUpload={(e) => handleImageUpload('logo', e)}
+                    onRemove={() => removeImage('logo')}
+                    id="logo-upload"
+                />
+            </div>
+
+            {/* Description (Rich Text Editor Mock) */}
+            <div className="mb-10">
+                <label className="block text-sm text-gray-600 mb-2">
+                    Description <span className="text-red-500">*</span>
+                </label>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Toolbar Mock */}
+                    <div className="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-1">
+                        <ToolbarBtn icon={<Undo size={14} />} />
+                        <ToolbarBtn icon={<Redo size={14} />} />
+                        <div className="w-px h-6 bg-gray-300 mx-1" />
+                        <ToolbarBtn icon={<Bold size={14} />} />
+                        <ToolbarBtn icon={<Italic size={14} />} />
+                        <ToolbarBtn icon={<Underline size={14} />} />
+                        <div className="w-px h-6 bg-gray-300 mx-1" />
+                        <ToolbarBtn icon={<AlignLeft size={14} />} />
+                        <ToolbarBtn icon={<AlignCenter size={14} />} />
+                        <ToolbarBtn icon={<AlignRight size={14} />} />
+                        <div className="w-px h-6 bg-gray-300 mx-1" />
+                        <ToolbarBtn icon={<List size={14} />} />
+                        <ToolbarBtn icon={<LinkIcon size={14} />} />
+                    </div>
+
+                    {/* Text Area */}
+                    <textarea
+                        rows={6}
+                        className="w-full p-4 outline-none text-gray-700 resize-y"
+                        value={formData.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        placeholder="Start typing here..."
+                    />
+                </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
+                <button
+                    type="button"
+                    className="px-8 py-3 bg-orange-50 text-orange-400 font-medium rounded-full hover:bg-orange-100 transition"
+                >
+                    Skip
+                </button>
+                <button
+                    onClick={() => console.log(formData)}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                >
+                    Save & Next
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function FormInput({
+    label, required, value, onChange, placeholder, isSelect, options
+}: {
+    label: string, required?: boolean, value: string, onChange: (v: string) => void, placeholder?: string, isSelect?: boolean, options?: string[]
+}) {
+    return (
+        <div className="w-full">
+            <label className="block text-sm text-gray-600 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            {isSelect ? (
+                <div className="relative">
                     <select
-                        value={formData.specialization}
-                        onChange={(e) => handleInputChange('specialization', e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition"
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none appearance-none transition"
                     >
-                        <option>Dentistry</option>
-                        <option>General Practice</option>
-                        <option>Orthodontics</option>
-                        <option>Pediatrics</option>
-                        <option>Oral Surgery</option>
+                        {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                        <ChevronUp className="w-4 h-4 rotate-180" />
+                    </div>
                 </div>
-                <InputGroup
-                    label="Tagline"
-                    value={formData.tagline}
-                    onChange={(e) => handleInputChange('tagline', e.target.value)}
+            ) : (
+                <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-700 placeholder-gray-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none transition"
                 />
-                <InputGroup
-                    label="Establishment Date"
-                    type="date"
-                    value={formData.establishmentDate}
-                    onChange={(e) => handleInputChange('establishmentDate', e.target.value)}
+            )}
+        </div>
+    );
+}
+
+function ImageUploader({
+    label, required, image, onUpload, onRemove, id
+}: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    label: string, required?: boolean, image: string, onUpload: (e: any) => void, onRemove: () => void, id: string
+}) {
+    return (
+        <div>
+            <label className="block text-sm text-gray-600 mb-2">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+
+            {/* Dashed Area */}
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 bg-white flex flex-col items-center justify-center text-center hover:bg-gray-50 transition relative">
+                <input
+                    type="file"
+                    id={id}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={onUpload}
                 />
+
+                <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-4">
+                    <CloudUpload className="w-6 h-6" />
+                </div>
+
+                <h3 className="text-gray-900 font-medium mb-1">Choose a file or drag & drop it here.</h3>
+                <p className="text-xs text-gray-400 mb-4">JPEG, PNG formats, up to 5 MB</p>
+
+                <button
+                    onClick={() => document.getElementById(id)?.click()}
+                    className="px-4 py-2 border border-orange-400 text-orange-500 text-sm font-medium rounded-lg hover:bg-orange-50 transition"
+                >
+                    Browse File
+                </button>
             </div>
 
-            {/* Description */}
-            <div className="space-y-2 mt-6">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide ml-1">About the Practice</label>
-                <textarea
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none resize-none transition"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                />
-            </div>
-
-            {/* Save Button at Bottom */}
-            {hasChanges && (
-                <div className="mt-6 flex justify-end">
+            {/* Preview Area (Matches Screenshot) */}
+            {image && (
+                <div className="mt-4 relative inline-block group">
+                    <img
+                        src={image}
+                        alt="Preview"
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                    />
                     <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="bg-orange-500 text-white hover:bg-orange-600 disabled:bg-gray-300 px-6 py-3 rounded-xl text-sm font-medium transition flex items-center gap-2 active:scale-95"
+                        onClick={onRemove}
+                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-gray-100 hover:text-red-500 transition"
                     >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        <X className="w-3 h-3" />
                     </button>
                 </div>
             )}
         </div>
+    );
+}
+
+function ToolbarBtn({ icon }: { icon: React.ReactNode }) {
+    return (
+        <button className="p-1.5 text-gray-600 hover:bg-gray-200 rounded transition">
+            {icon}
+        </button>
     );
 }
