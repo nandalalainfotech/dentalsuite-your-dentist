@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { 
-    ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon, 
-    Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle 
+import {
+    ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon,
+    Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle,
+    MapPin,
+    Phone,
+    Mail
 } from 'lucide-react';
 
 // --- Types ---
@@ -450,34 +453,34 @@ const checkTimeOverlap = (
 };
 
 // --- Patient Tags Component ---
-const PatientTags = ({ 
-    isNewPatient, 
-    isDependent, 
-    size = 'default' 
-}: { 
-    isNewPatient?: boolean; 
-    isDependent?: boolean; 
-    size?: 'small' | 'default' 
+const PatientTags = ({
+    isNewPatient,
+    isDependent,
+    size = 'default'
+}: {
+    isNewPatient?: boolean;
+    isDependent?: boolean;
+    size?: 'small' | 'default'
 }) => {
     if (!isNewPatient && !isDependent) return null;
-  
+
     const sizeClasses = size === 'small'
-      ? "px-1.5 py-0.5 text-[9px]"
-      : "px-2 py-0.5 text-[10px]";
-  
+        ? "px-1.5 py-0.5 text-[9px]"
+        : "px-2 py-0.5 text-[10px]";
+
     return (
-      <div className="flex items-center gap-1">
-        {isNewPatient && (
-          <span className={`inline-flex items-center ${sizeClasses} bg-gray-900 text-white font-medium rounded leading-none`}>
-            NEW
-          </span>
-        )}
-        {isDependent && (
-          <span className={`inline-flex items-center gap-0.5 ${sizeClasses} bg-blue-600 text-white font-medium rounded leading-none`}>
-            DEPENDENT
-          </span>
-        )}
-      </div>
+        <div className="flex items-center gap-1">
+            {isNewPatient && (
+                <span className={`inline-flex items-center ${sizeClasses} bg-gray-900 text-white font-medium rounded leading-none`}>
+                    NEW
+                </span>
+            )}
+            {isDependent && (
+                <span className={`inline-flex items-center gap-0.5 ${sizeClasses} bg-blue-600 text-white font-medium rounded leading-none`}>
+                    DEPENDENT
+                </span>
+            )}
+        </div>
     );
 };
 
@@ -594,8 +597,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
         setSelectedDuration(matching ? matching.value : null);
     };
 
-    const inputBorderClass = hasConflict 
-        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' 
+    const inputBorderClass = hasConflict
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
         : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/20';
 
     return (
@@ -717,8 +720,8 @@ const BreakModal: React.FC<BreakModalProps> = ({
 
     // Get appointments for the selected day and practitioner
     const dayAppointments = useMemo(() => {
-        return appointments.filter(a => 
-            a.practitionerId === activePractitionerId && 
+        return appointments.filter(a =>
+            a.practitionerId === activePractitionerId &&
             isSameDay(a.startTime, selectedDate) &&
             a.status !== 'cancelled' // Don't consider cancelled appointments
         ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
@@ -726,8 +729,8 @@ const BreakModal: React.FC<BreakModalProps> = ({
 
     // Get existing breaks for the selected day and practitioner (excluding current break if editing)
     const dayBreaks = useMemo(() => {
-        return existingBreaks.filter(b => 
-            b.practitionerId === activePractitionerId && 
+        return existingBreaks.filter(b =>
+            b.practitionerId === activePractitionerId &&
             isSameDay(b.startTime, selectedDate) &&
             b.id !== initialData?.id // Exclude current break when editing
         ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
@@ -738,7 +741,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
         const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
         const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
 
-        return dayAppointments.filter(appt => 
+        return dayAppointments.filter(appt =>
             checkTimeOverlap(proposedStart, proposedEnd, appt.startTime, appt.endTime)
         );
     }, [dayAppointments, selectedDate, startTimeStr, endTimeStr]);
@@ -748,7 +751,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
         const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
         const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
 
-        return dayBreaks.filter(breakEvent => 
+        return dayBreaks.filter(breakEvent =>
             checkTimeOverlap(proposedStart, proposedEnd, breakEvent.startTime, breakEvent.endTime)
         );
     }, [dayBreaks, selectedDate, startTimeStr, endTimeStr]);
@@ -760,7 +763,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (hasConflict) {
             return; // Don't submit if there's a conflict
         }
@@ -841,7 +844,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                         <p className="text-xs text-red-600 mb-3">
                                             The selected time overlaps with existing appointments or breaks. Please choose a different time slot.
                                         </p>
-                                        
+
                                         {conflictingAppointments.length > 0 && (
                                             <div className="space-y-2">
                                                 <p className="text-xs font-semibold text-red-700">Conflicting Appointments:</p>
@@ -850,7 +853,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                                     const service = SERVICES.find(s => s.id === appt.serviceId);
                                                     return (
                                                         <div key={appt.id} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
-                                                            <div 
+                                                            <div
                                                                 className="w-2 h-2 rounded-full flex-shrink-0"
                                                                 style={{ backgroundColor: service?.color }}
                                                             />
@@ -901,11 +904,11 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                         const patient = PATIENTS.find(p => p.id === appt.patientId);
                                         const service = SERVICES.find(s => s.id === appt.serviceId);
                                         return (
-                                            <div 
-                                                key={appt.id} 
+                                            <div
+                                                key={appt.id}
                                                 className="flex items-center gap-2 p-2 bg-white rounded-lg border border-blue-100"
                                             >
-                                                <div 
+                                                <div
                                                     className="w-1 h-8 rounded-full flex-shrink-0"
                                                     style={{ backgroundColor: service?.color }}
                                                 />
@@ -936,8 +939,8 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                 </div>
                                 <div className="space-y-2">
                                     {dayBreaks.map(breakEvent => (
-                                        <div 
-                                            key={breakEvent.id} 
+                                        <div
+                                            key={breakEvent.id}
                                             className="flex items-center gap-2 p-2 bg-white rounded-lg border border-amber-100"
                                         >
                                             <div className="w-1 h-8 rounded-full flex-shrink-0 bg-red-500" />
@@ -1001,13 +1004,12 @@ const BreakModal: React.FC<BreakModalProps> = ({
                             <button
                                 type="submit"
                                 disabled={hasConflict || !hasValidDuration}
-                                className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 font-medium rounded-lg shadow-md transition-all text-sm flex items-center justify-center gap-2 ${
-                                    hasConflict || !hasValidDuration
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                                        : 'bg-red-500 hover:bg-red-600 text-white'
-                                }`}
+                                className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 font-medium rounded-lg shadow-md transition-all text-sm flex items-center justify-center gap-2 ${hasConflict || !hasValidDuration
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                    : 'bg-red-500 hover:bg-red-600 text-white'
+                                    }`}
                             >
-                                {hasConflict && <AlertCircle size={16} />}
+                                {hasConflict}
                                 {isEditMode ? 'Update' : 'Save'}
                             </button>
                         </div>
@@ -1023,7 +1025,7 @@ interface RescheduleModalProps {
     isOpen: boolean;
     onClose: () => void;
     appointment: Appointment | null;
-    appointments: Appointment[]; 
+    appointments: Appointment[];
     breaks: CalendarEvent[];
     onReschedule: (appointmentId: string, newDate: Date, newStartTime: Date, newEndTime: Date, newPractitionerId: string) => void;
 }
@@ -1042,14 +1044,16 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
     const [selectedPractitionerId, setSelectedPractitionerId] = useState<string>('');
     const [reason, setReason] = useState<string>('');
     const [isPractitionerDropdownOpen, setIsPractitionerDropdownOpen] = useState(false);
+    const [calendarViewDate, setCalendarViewDate] = useState<Date>(new Date());
 
     // 2. Effects
     useEffect(() => {
         if (isOpen && appointment) {
             setSelectedDate(toDateString(appointment.startTime));
-            setSelectedTimeSlot(toTimeString(appointment.startTime));
+            setSelectedTimeSlot('');
             setSelectedPractitionerId(appointment.practitionerId);
             setReason('');
+            setCalendarViewDate(new Date(appointment.startTime));
         }
     }, [isOpen, appointment]);
 
@@ -1059,44 +1063,99 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
         return calculateDuration(toTimeString(appointment.startTime), toTimeString(appointment.endTime));
     }, [appointment]);
 
-    // 4. Generate Available Slots Logic (Hooks)
-    const availableSlots = useMemo(() => {
-        // Safe check inside the hook
-        if (!appointment || !selectedDate || !selectedPractitionerId) return [];
+    // Calendar helpers
+    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
-        const slots: string[] = [];
-        const dateObj = new Date(selectedDate);
-        
-        // Generate slots every 30 minutes from start to end hour
-        for (let hour = START_HOUR; hour < END_HOUR; hour++) {
-            for (let min = 0; min < 60; min += 30) {
-                const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-                
-                // Check for collisions
-                const slotStart = setTimeOnDate(dateObj, timeStr);
-                const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
+    const changeMonth = (offset: number) => {
+        const newDate = new Date(calendarViewDate);
+        newDate.setMonth(newDate.getMonth() + offset);
+        setCalendarViewDate(newDate);
+    };
 
-                const isCollidingAppt = appointments.some(appt => {
-                    if (appt.id === appointment.id) return false;
-                    if (appt.practitionerId !== selectedPractitionerId) return false;
-                    
-                    return checkTimeOverlap(slotStart, slotEnd, appt.startTime, appt.endTime);
-                });
+    const isDateDisabled = (date: Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        // Disable past dates
+        if (date < today) return true;
+        // Optionally disable Sundays
+        // if (date.getDay() === 0) return true;
+        return false;
+    };
 
-                // Check against Breaks
-                const isCollidingBreak = breaks.some(breakEvent => {
-                    // Check only for selected practitioner
-                    if (breakEvent.practitionerId !== selectedPractitionerId) return false;
-                    return checkTimeOverlap(slotStart, slotEnd, breakEvent.startTime, breakEvent.endTime);
-                });
+    // Generate available slots for a specific date
+    const getAvailableSlotsForDate = useMemo(() => {
+        return (dateStr: string): string[] => {
+            if (!appointment || !dateStr || !selectedPractitionerId) return [];
 
-                if (!isCollidingAppt && !isCollidingBreak) {
-                    slots.push(timeStr);
+            const slots: string[] = [];
+            const dateObj = new Date(dateStr);
+            const today = new Date();
+
+            // Generate slots every 30 minutes from start to end hour
+            for (let hour = START_HOUR; hour < END_HOUR; hour++) {
+                for (let min = 0; min < 60; min += 30) {
+                    const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+
+                    // Check for collisions
+                    const slotStart = setTimeOnDate(dateObj, timeStr);
+                    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
+
+                    // Skip past time slots for today
+                    if (isSameDay(dateObj, today) && slotStart <= today) {
+                        continue;
+                    }
+
+                    const isCollidingAppt = appointments.some(appt => {
+                        if (appt.id === appointment.id) return false;
+                        if (appt.practitionerId !== selectedPractitionerId) return false;
+                        if (!isSameDay(appt.startTime, dateObj)) return false;
+
+                        return checkTimeOverlap(slotStart, slotEnd, appt.startTime, appt.endTime);
+                    });
+
+                    // Check against Breaks
+                    const isCollidingBreak = breaks.some(breakEvent => {
+                        if (breakEvent.practitionerId !== selectedPractitionerId) return false;
+                        if (!isSameDay(breakEvent.startTime, dateObj)) return false;
+                        return checkTimeOverlap(slotStart, slotEnd, breakEvent.startTime, breakEvent.endTime);
+                    });
+
+                    if (!isCollidingAppt && !isCollidingBreak) {
+                        slots.push(timeStr);
+                    }
                 }
             }
+            return slots;
+        };
+    }, [appointments, breaks, appointment, durationMinutes, selectedPractitionerId]);
+
+    // Generate 7 days of availability starting from selected date
+    const weekAvailability = useMemo(() => {
+        if (!selectedDate) return [];
+
+        const startDate = new Date(selectedDate);
+        const days: { date: Date; dateStr: string; slots: string[] }[] = [];
+
+        for (let i = 0; i < 7; i++) {
+            const currentDate = addDays(startDate, i);
+            const dateStr = toDateString(currentDate);
+
+            // Skip past dates
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (currentDate < today) continue;
+
+            const slots = getAvailableSlotsForDate(dateStr);
+            days.push({
+                date: currentDate,
+                dateStr,
+                slots
+            });
         }
-        return slots;
-    }, [selectedDate, selectedPractitionerId, appointments, breaks, appointment, durationMinutes]);
+
+        return days;
+    }, [selectedDate, getAvailableSlotsForDate]);
 
     // 5. Conditional Return (Must be AFTER hooks)
     if (!isOpen || !appointment) return null;
@@ -1108,7 +1167,7 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedTimeSlot) return alert("Please select a time slot");
+        if (!selectedTimeSlot || !selectedDate) return alert("Please select a time slot");
 
         const newDate = new Date(selectedDate);
         const newStartTime = setTimeOnDate(newDate, selectedTimeSlot);
@@ -1118,19 +1177,80 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
         onClose();
     };
 
-    // Split slots into morning and afternoon
-    const morningSlots = availableSlots.filter(t => parseInt(t.split(':')[0]) < 12);
-    const afternoonSlots = availableSlots.filter(t => parseInt(t.split(':')[0]) >= 12);
+    const handleSlotSelect = (dateStr: string, time: string) => {
+        setSelectedDate(dateStr);
+        setSelectedTimeSlot(time);
+    };
+
+    // Generate Calendar Grid
+    const renderCalendar = () => {
+        const year = calendarViewDate.getFullYear();
+        const month = calendarViewDate.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+
+        const days = [];
+
+        // Empty cells for days before the first day of month
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} className="h-9 w-9" />);
+        }
+
+        // Days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateObj = new Date(year, month, day);
+            const dateStr = toDateString(dateObj);
+            const isSelected = selectedDate === dateStr;
+            const isToday = new Date().toDateString() === dateObj.toDateString();
+            const disabled = isDateDisabled(dateObj);
+            const hasSlots = !disabled && getAvailableSlotsForDate(dateStr).length > 0;
+
+            days.push(
+                <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                        if (!disabled) {
+                            setSelectedDate(dateStr);
+                            setSelectedTimeSlot('');
+                        }
+                    }}
+                    disabled={disabled}
+                    className={`
+                        h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
+                        ${disabled ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
+                        ${isSelected && !disabled
+                            ? 'bg-blue-600 text-white font-bold shadow-md'
+                            : !disabled ? 'hover:bg-gray-100 text-gray-700' : ''
+                        }
+                        ${isToday && !isSelected && !disabled ? 'text-blue-600 font-bold ring-2 ring-blue-200' : ''}
+                    `}
+                >
+                    {day}
+                </button>
+            );
+        }
+
+        return days;
+    };
+
+    // Format time for display
+    const formatTimeDisplay = (time: string) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-hidden w-full max-w-4xl flex flex-col">
-                
+            <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-hidden w-full max-w-5xl flex flex-col">
+
                 {/* Header */}
-                <div className="px-6 py-4 bg-white border-b flex justify-between items-center z-10">
+                <div className="px-4 sm:px-6 py-4 bg-white border-b flex justify-between items-center z-10 flex-shrink-0">
                     <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-bold text-gray-800 text-lg">Reschedule Appointment</h3>
                             <PatientTags isNewPatient={patient?.isNewPatient} isDependent={patient?.isDependent} size="small" />
                         </div>
@@ -1143,87 +1263,82 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
-                    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row h-full">
-                        
-                        {/* LEFT COLUMN: Date & Practitioner */}
-                        <div className="w-full md:w-5/12 p-6 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col gap-6">
-                            
-                            {/* Calendar Section */}
-                            <div className="space-y-3">
-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    <CalendarIcon size={14} />
-                                    Select Date
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        value={selectedDate}
-                                        onChange={(e) => {
-                                            setSelectedDate(e.target.value);
-                                            setSelectedTimeSlot('');
-                                        }}
-                                        min={toDateString(new Date())}
-                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-base font-medium shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer"
-                                    />
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row flex-1 overflow-hidden">
+
+                        {/* LEFT COLUMN: Calendar & Practitioner */}
+                        <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-b from-gray-50 to-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
+
+                            {/* Full Calendar */}
+                            <div className="mb-6">
+                                {/* Calendar Header */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="font-bold text-gray-800 text-base">
+                                        {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                    </h4>
+                                    <div className="flex gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => changeMonth(-1)}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                                        >
+                                            <ChevronLeft size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => changeMonth(1)}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                                        >
+                                            <ChevronRight size={18} />
+                                        </button>
+                                    </div>
                                 </div>
-                                {/* Quick Dates Strip */}
-                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                                    {[0, 1, 2, 3, 7].map((offset) => {
-                                        const d = addDays(new Date(), offset);
-                                        const dStr = toDateString(d);
-                                        const isSelected = selectedDate === dStr;
-                                        return (
-                                            <button
-                                                key={offset}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedDate(dStr);
-                                                    setSelectedTimeSlot('');
-                                                }}
-                                                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                                                    isSelected 
-                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+
+                                {/* Day Headers */}
+                                <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
+                                        <span
+                                            key={i}
+                                            className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-400' : 'text-gray-400'
                                                 }`}
-                                            >
-                                                {offset === 0 ? 'Today' : offset === 1 ? 'Tmrw' : formatDate(d).split(',')[0]}
-                                            </button>
-                                        )
-                                    })}
+                                        >
+                                            {d}
+                                        </span>
+                                    ))}
                                 </div>
+
+                                {/* Calendar Grid */}
+                                <div className="grid grid-cols-7 gap-1">
+                                    {renderCalendar()}
+                                </div>
+
                             </div>
 
-                            {/* Spacer */}
-                            <div className="flex-1 md:min-h-[40px]"></div>
-
-                            {/* Practitioner Section (Bottom of Left) */}
-                            <div className="space-y-3 relative">
-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            {/* Practitioner Section */}
+                            <div className="mt-auto">
+                                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                     <User size={14} />
-                                    Select Practitioner
+                                    Practitioner
                                 </label>
-                                
+
                                 <div className="relative">
                                     <button
                                         type="button"
                                         onClick={() => setIsPractitionerDropdownOpen(!isPractitionerDropdownOpen)}
                                         className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left group"
                                     >
-                                        {/* Avatar replaced with generic icon */}
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-blue-100">
-                                            <User size={20} className="text-gray-500" />
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-blue-100">
+                                            <User size={20} className="text-blue-600" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-800">{selectedPractitioner?.name}</p>
-                                            <p className="text-xs text-gray-500">{selectedPractitioner?.role}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-gray-800 truncate">{selectedPractitioner?.name}</p>
                                         </div>
-                                        <ChevronDown size={18} className="text-gray-400" />
+                                        <ChevronDown size={18} className={`text-gray-400 transition-transform ${isPractitionerDropdownOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     {/* Dropdown Menu */}
                                     {isPractitionerDropdownOpen && (
-                                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200 max-h-48 overflow-y-auto">
                                             {PRACTITIONERS.map((p) => (
                                                 <button
                                                     key={p.id}
@@ -1233,19 +1348,17 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                                                         setIsPractitionerDropdownOpen(false);
                                                         setSelectedTimeSlot('');
                                                     }}
-                                                    className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
-                                                        selectedPractitionerId === p.id ? 'bg-blue-50/50' : ''
-                                                    }`}
+                                                    className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitionerId === p.id ? 'bg-blue-50/50' : ''
+                                                        }`}
                                                 >
-                                                    {/* Avatar replaced with generic icon */}
                                                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                                                         <User size={16} className="text-gray-500" />
                                                     </div>
-                                                    <div className="text-left">
-                                                        <p className={`text-sm font-medium ${selectedPractitionerId === p.id ? 'text-blue-700' : 'text-gray-700'}`}>{p.name}</p>
+                                                    <div className="text-left flex-1 min-w-0">
+                                                        <p className={`text-sm font-medium truncate ${selectedPractitionerId === p.id ? 'text-blue-700' : 'text-gray-700'}`}>{p.name}</p>
                                                         <p className="text-xs text-gray-500">{p.role}</p>
                                                     </div>
-                                                    {selectedPractitionerId === p.id && <Check size={16} className="ml-auto text-blue-600" />}
+                                                    {selectedPractitionerId === p.id && <Check size={16} className="text-blue-600 flex-shrink-0" />}
                                                 </button>
                                             ))}
                                         </div>
@@ -1254,116 +1367,183 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
                             </div>
                         </div>
 
-                        {/* RIGHT COLUMN: Available Slots */}
-                        <div className="w-full md:w-7/12 p-6 flex flex-col h-full bg-white">
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className="font-bold text-gray-800">Available Time Slots</h4>
-                                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
-                                    {formatDate(new Date(selectedDate))}
-                                </span>
+                        {/* RIGHT COLUMN: 7-Day Time Slots */}
+                        <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
+                            {/* Header */}
+                            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-bold text-gray-800">Available Time Slots</h4>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            Showing 7 days from {selectedDate ? formatDate(new Date(selectedDate)) : 'selected date'}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-                                {availableSlots.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-48 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
-                                        <Clock size={32} className="mb-2 opacity-50" />
-                                        <p className="text-sm">No available slots for this date.</p>
+                            {/* Slots Grid - 7 Days View */}
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                                {weekAvailability.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                                        <CalendarIcon size={48} className="mb-4 opacity-50" />
+                                        <p className="font-medium">Select a date to view availability</p>
+                                        <p className="text-sm mt-1">Choose a date from the calendar</p>
                                     </div>
                                 ) : (
-                                    <>
-                                        {/* Morning Slots */}
-                                        {morningSlots.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                                    Morning
-                                                </p>
-                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                                    {morningSlots.map(time => (
-                                                        <button
-                                                            key={time}
-                                                            type="button"
-                                                            onClick={() => setSelectedTimeSlot(time)}
-                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
-                                                                selectedTimeSlot === time
-                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
-                                                                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                                                            }`}
-                                                        >
-                                                            {time}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="space-y-6">
+                                        {weekAvailability.map((dayData) => {
+                                            const isSelectedDay = selectedDate === dayData.dateStr;
+                                            const isToday = isSameDay(dayData.date, new Date());
 
-                                        {/* Afternoon Slots */}
-                                        {afternoonSlots.length > 0 && (
-                                            <div>
-                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                                    Afternoon
-                                                </p>
-                                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                                                    {afternoonSlots.map(time => (
-                                                        <button
-                                                            key={time}
-                                                            type="button"
-                                                            onClick={() => setSelectedTimeSlot(time)}
-                                                            className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
-                                                                selectedTimeSlot === time
-                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
-                                                                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                                                            }`}
-                                                        >
-                                                            {time} {parseInt(time.split(':')[0]) >= 12 ? 'PM' : 'AM'}
-                                                        </button>
-                                                    ))}
+                                            return (
+                                                <div
+                                                    key={dayData.dateStr}
+                                                    className={`rounded-xl border transition-all ${isSelectedDay
+                                                        ? 'border-blue-200 bg-blue-50/30'
+                                                        : 'border-gray-100 bg-white hover:border-gray-200'
+                                                        }`}
+                                                >
+                                                    {/* Day Header */}
+                                                    <div className={`px-4 py-3 border-b flex items-center justify-between ${isSelectedDay ? 'border-blue-100' : 'border-gray-100'
+                                                        }`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${isToday
+                                                                ? 'bg-blue-600 text-white'
+                                                                : isSelectedDay
+                                                                    ? 'bg-blue-100 text-blue-700'
+                                                                    : 'bg-gray-100 text-gray-700'
+                                                                }`}>
+                                                                <span className="text-[10px] font-bold uppercase leading-none">
+                                                                    {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                                                                </span>
+                                                                <span className="text-sm font-bold leading-none mt-0.5">
+                                                                    {dayData.date.getDate()}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-gray-800 text-sm">
+                                                                    {dayData.date.toLocaleDateString('en-US', { weekday: 'long' })}
+                                                                    {isToday && (
+                                                                        <span className="ml-2 text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                                                                            Today
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+                                                                <p className="text-xs text-gray-500">
+                                                                    {dayData.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${dayData.slots.length > 0
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-gray-100 text-gray-500'
+                                                                }`}>
+                                                                {dayData.slots.length} {dayData.slots.length === 1 ? 'slot' : 'slots'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Time Slots */}
+                                                    <div className="p-4">
+                                                        {dayData.slots.length === 0 ? (
+                                                            <div className="flex items-center justify-center py-4 text-gray-400">
+                                                                <Clock size={16} className="mr-2 opacity-50" />
+                                                                <span className="text-sm">No available slots</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {dayData.slots.map((time) => {
+                                                                    const isSelected = selectedDate === dayData.dateStr && selectedTimeSlot === time;
+
+                                                                    return (
+                                                                        <button
+                                                                            key={`${dayData.dateStr}-${time}`}
+                                                                            type="button"
+                                                                            onClick={() => handleSlotSelect(dayData.dateStr, time)}
+                                                                            className={`
+                                                                                px-3 py-2 rounded-lg text-sm font-medium transition-all border
+                                                                                ${isSelected
+                                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
+                                                                                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+                                                                                }
+                                                                            `}
+                                                                        >
+                                                                            {formatTimeDisplay(time)}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </>
+                                            );
+                                        })}
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Reason Textarea (Bottom of Right) */}
-                            <div className="pt-4 mt-4 border-t border-gray-100">
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                    Reason (Optional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={reason}
-                                    onChange={(e) => setReason(e.target.value)}
-                                    placeholder="Reason for change..."
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none transition-all"
-                                />
+                            {/* Footer */}
+                            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                                {/* Reason Input */}
+                                <div className="mb-4">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                        Reason for Reschedule (Optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={reason}
+                                        onChange={(e) => setReason(e.target.value)}
+                                        placeholder="e.g., Schedule conflict, personal reasons..."
+                                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+                                    {/* Selected Time Summary */}
+                                    <div className="text-sm">
+                                        {selectedTimeSlot && selectedDate ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                    <Check size={16} className="text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">New Time</p>
+                                                    <p className="font-semibold text-gray-900">
+                                                        {formatDate(new Date(selectedDate))} at {formatTimeDisplay(selectedTimeSlot)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400 text-sm">Select a time slot to continue</span>
+                                        )}
+                                    </div>
+
+                                    {/* Buttons */}
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={onClose}
+                                            className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!selectedTimeSlot || !selectedDate}
+                                            className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${selectedTimeSlot && selectedDate
+                                                ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
+                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                                                }`}
+                                        >
+                                            Confirm Reschedule
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
-                </div>
-
-                {/* Footer */}
-                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!selectedTimeSlot}
-                        className={`px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 ${
-                            selectedTimeSlot 
-                            ? 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-xl' 
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                        }`}
-                    >
-                        <RefreshCw size={16} />
-                        Confirm Reschedule
-                    </button>
                 </div>
             </div>
         </div>
@@ -1430,7 +1610,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
 
     // --- DYNAMIC STATUS LOGIC ---
     let availableStatuses: Appointment['status'][] = [];
-    
+
     if (appointment.status === 'pending') {
         availableStatuses = ['confirmed', 'rescheduled', 'cancelled'];
     } else if (appointment.status === 'confirmed') {
@@ -1458,7 +1638,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                 <div
                     className="h-24 relative"
                     style={{
-                        background: `linear-gradient(135deg, ${service?.color}dd 0%, ${service?.color}99 100%)`
+                        background: `linear-gradient(135deg, ${service?.color}dd 100%, ${service?.color}99 100%)`
                     }}
                 >
                     {/* Close Button */}
@@ -1834,7 +2014,7 @@ const PracticeBookingCalender = () => {
             practitionerId: activePractitionerId,
             color: BREAK_COLOR.value
         });
-        
+
         setSelectedDayForModal(clickedTime);
         setIsBreakModalOpen(true);
     };
@@ -2088,6 +2268,7 @@ const PracticeBookingCalender = () => {
                                             const isCompact = durationMinutes <= 20;
                                             const isCancelled = appointment.status === 'cancelled';
                                             const isRescheduled = appointment.status === 'rescheduled';
+                                            const isCompleted = appointment.status === 'completed';
 
                                             return (
                                                 <div
@@ -2098,6 +2279,7 @@ const PracticeBookingCalender = () => {
                                                         transition-all hover:brightness-95 hover:z-30 z-10 overflow-hidden
                                                         ${service?.bgColor} ${service?.textColor}
                                                         ${isCancelled ? 'opacity-50' : ''}
+                                                        ${isCompleted ? 'opacity-50' : ''}
                                                         ${isRescheduled ? 'ring-2 ring-blue-400 ring-offset-1' : ''}
                                                     `}
                                                     style={{
@@ -2127,10 +2309,10 @@ const PracticeBookingCalender = () => {
                                                                         </p>
                                                                         {/* Only show tags if height allows */}
                                                                         {height > 60 && (
-                                                                            <PatientTags 
-                                                                                isNewPatient={patient?.isNewPatient} 
-                                                                                isDependent={patient?.isDependent} 
-                                                                                size="small" 
+                                                                            <PatientTags
+                                                                                isNewPatient={patient?.isNewPatient}
+                                                                                isDependent={patient?.isDependent}
+                                                                                size="small"
                                                                             />
                                                                         )}
                                                                     </div>

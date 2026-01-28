@@ -12,11 +12,32 @@ import PracticeBookingCalender from './PracticeBookingCalender';
 import PracticeNewsFeeds from './PracticeNewsFeeds';
 import PractiveViewProfile from './PractiveViewProfile';
 import ConfirmLogoutModal from '../../components/layout/ConfirmLogoutModal';
+import PracticeAppointmentType from './PracticeAppointmentType';
 
-type ActiveViewType = 'directory' | 'appointments' | 'bookingcalender' | 'newsfeeds' | 'viewprofile' | 'mylearningHub' | 'payments' | 'accountpayrequests' | 'supportrequest';
+type ActiveViewType = 
+  | 'directory' 
+  | 'appointments' 
+  | 'appointmenttype'  // Added new type
+  | 'bookingcalender' 
+  | 'newsfeeds' 
+  | 'viewprofile' 
+  | 'mylearningHub' 
+  | 'payments' 
+  | 'accountpayrequests' 
+  | 'supportrequest';
 
 const isValidView = (v: any): v is ActiveViewType =>
-  ['directory', 'appointments', 'bookingcalender', 'newsfeeds', 'viewprofile', 'mylearningHub', 'accountpayrequests', 'supportrequest'].includes(v);
+  [
+    'directory', 
+    'appointments', 
+    'appointmenttype',  // Added to validation
+    'bookingcalender', 
+    'newsfeeds', 
+    'viewprofile', 
+    'mylearningHub', 
+    'accountpayrequests', 
+    'supportrequest'
+  ].includes(v);
 
 interface SidebarLinkProps {
   icon: React.ReactNode;
@@ -26,7 +47,10 @@ interface SidebarLinkProps {
 }
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active = false, onClick }) => (
-  <button onClick={onClick} className={`w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${active ? 'border-orange-500 text-gray-900 bg-orange-50/30' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+  <button 
+    onClick={onClick} 
+    className={`w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${active ? 'border-orange-500 text-gray-900 bg-orange-50/30' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+  >
     <div className={`${active ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-600'}`}>{icon}</div>
     <span className={`text-sm font-medium ${active ? 'font-semibold' : ''}`}>{label}</span>
   </button>
@@ -40,8 +64,18 @@ interface ContentTabProps {
 }
 
 const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }) => (
-  <button onClick={onClick} className={`relative pb-4 px-1 text-sm font-medium transition-all duration-200 ${active ? 'text-gray-800 border-b-2 border-orange-500' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}>
-    <div className="flex items-center gap-2">{label}{count !== undefined && (<span className={`text-xs px-2 py-0.5 rounded-full border ${active ? 'border-orange-500 text-orange-500' : 'border-gray-200 text-gray-400'}`}>{count}</span>)}</div>
+  <button 
+    onClick={onClick} 
+    className={`relative pb-4 px-1 text-sm font-medium transition-all duration-200 ${active ? 'text-gray-800 border-b-2 border-orange-500' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}
+  >
+    <div className="flex items-center gap-2">
+      {label}
+      {count !== undefined && (
+        <span className={`text-xs px-2 py-0.5 rounded-full border ${active ? 'border-orange-500 text-orange-500' : 'border-gray-200 text-gray-400'}`}>
+          {count}
+        </span>
+      )}
+    </div>
   </button>
 );
 
@@ -69,6 +103,7 @@ export default function PracticeDashboard() {
   const renderContent = () => {
     switch (activeView) {
       case 'appointments': return <PracticeAppointmentsView />;
+      case 'appointmenttype': return <PracticeAppointmentType />;  // Added new case
       case 'bookingcalender': return <PracticeBookingCalender />;
       case 'newsfeeds': return <PracticeNewsFeeds />;
       case 'mylearningHub': return <PracticeNewsFeeds />;
@@ -133,6 +168,13 @@ export default function PracticeDashboard() {
                     label="My Appointment"
                     active={activeView === 'appointments'}
                     onClick={() => handleNavClick('appointments')}
+                  />
+                  {/* New Appointment Type Link */}
+                  <SidebarLink
+                    icon={<Icons.AppointmentType />}
+                    label="Appointment Type"
+                    active={activeView === 'appointmenttype'}
+                    onClick={() => handleNavClick('appointmenttype')}
                   />
                   <SidebarLink
                     icon={<Icons.Calendar />}

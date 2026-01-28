@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import {  MapPin, Globe, Facebook, Instagram, Twitter, Youtube, Save, 
-    Info, Plus, Trash2, Minus, X } from 'lucide-react';
+import {
+    MapPin, Globe, Facebook, Instagram, Twitter, Youtube, Save,
+    Info, Plus, Trash2, Minus, X
+} from 'lucide-react';
 import type { Clinic } from '../../../types/clinic';
 
 // ----------------------------------------------------------------------
@@ -35,7 +37,7 @@ interface ContactFormData {
     suburb: string;
     postalCode: string;
     directions: string;
-    
+
     // Contact
     phone: string;
     email: string;
@@ -49,7 +51,7 @@ interface ContactFormData {
     friday: DayHours;
     saturday: DayHours;
     sunday: DayHours;
-    
+
     // Exceptions & Alerts
     exceptions: Exception[];
     alertMessage: string;
@@ -66,14 +68,14 @@ const parseTimeString = (timeStr: string): DayHours => {
     if (!timeStr || timeStr === 'Closed') {
         return { isOpen: false, slots: [{ id: generateId(), start: '09:00', end: '17:00' }] };
     }
-    
+
     // Handle multiple time ranges separated by comma
     const ranges = timeStr.split(',').map(r => r.trim());
     const slots = ranges.map(range => {
         const [start, end] = range.split('-');
         return { id: generateId(), start: start || '09:00', end: end || '17:00' };
     });
-    
+
     return { isOpen: true, slots };
 };
 
@@ -100,7 +102,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
         phone: clinicData.phone || '',
         email: clinicData.email || '',
         website: clinicData.website || '',
-        
+
         // Hours - Using new structure
         monday: parseTimeString(clinicData.time?.monday || '09:00-17:00'),
         tuesday: parseTimeString(clinicData.time?.tuesday || '09:00-17:00'),
@@ -139,7 +141,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
         setIsSaving(true);
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Log the formatted data for debugging
         console.log('Saving hours:', {
             monday: formatDayHours(formData.monday),
@@ -150,7 +152,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
             saturday: formatDayHours(formData.saturday),
             sunday: formatDayHours(formData.sunday),
         });
-        
+
         setHasChanges(false);
         setIsSaving(false);
     };
@@ -200,23 +202,6 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
                 {/* Left Col: Inputs */}
                 <div className="space-y-6">
-                    {/* Practice Type */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Type of Practice</label>
-                        <div className="flex items-center gap-6">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    name="practiceType"
-                                    checked={formData.practiceType === 'in-person'}
-                                    onChange={() => handleInputChange('practiceType', 'in-person')}
-                                    className="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"
-                                />
-                                <span className="text-sm text-gray-700">In person (including telehealth)</span>
-                            </label>
-                        </div>
-                    </div>
-
                     {/* Address Fields */}
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">Street Address</label>
@@ -264,7 +249,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
                         <p className="text-sm text-gray-500 mt-1 mb-3">
                             This map will display on your bookings page. Search for your location and then select an address from the dropdown.
                         </p>
-                        
+
                         <div className="relative mb-3">
                             <input
                                 type="text"
@@ -272,7 +257,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
                                 className="w-full px-3 py-2.5 pl-4 rounded border border-gray-300 text-sm focus:border-orange-500 outline-none"
                             />
                         </div>
-                        
+
                         <button className="text-sm font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1 mb-3">
                             Use my Street Address <Info className="w-4 h-4" />
                         </button>
@@ -298,43 +283,43 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
                 </div>
             </div>
             <div className="space-y-3">
-                <DayRow 
-                    day="Monday" 
-                    dayHours={formData.monday} 
-                    onChange={(newHours) => handleDayChange('monday', newHours)} 
+                <DayRow
+                    day="Monday"
+                    dayHours={formData.monday}
+                    onChange={(newHours) => handleDayChange('monday', newHours)}
                 />
-                <DayRow 
-                    day="Tuesday" 
-                    dayHours={formData.tuesday} 
-                    onChange={(newHours) => handleDayChange('tuesday', newHours)} 
+                <DayRow
+                    day="Tuesday"
+                    dayHours={formData.tuesday}
+                    onChange={(newHours) => handleDayChange('tuesday', newHours)}
                 />
-                <DayRow 
-                    day="Wednesday" 
-                    dayHours={formData.wednesday} 
-                    onChange={(newHours) => handleDayChange('wednesday', newHours)} 
+                <DayRow
+                    day="Wednesday"
+                    dayHours={formData.wednesday}
+                    onChange={(newHours) => handleDayChange('wednesday', newHours)}
                 />
-                <DayRow 
-                    day="Thursday" 
-                    dayHours={formData.thursday} 
-                    onChange={(newHours) => handleDayChange('thursday', newHours)} 
+                <DayRow
+                    day="Thursday"
+                    dayHours={formData.thursday}
+                    onChange={(newHours) => handleDayChange('thursday', newHours)}
                 />
-                <DayRow 
-                    day="Friday" 
-                    dayHours={formData.friday} 
-                    onChange={(newHours) => handleDayChange('friday', newHours)} 
+                <DayRow
+                    day="Friday"
+                    dayHours={formData.friday}
+                    onChange={(newHours) => handleDayChange('friday', newHours)}
                 />
-                <DayRow 
-                    day="Saturday" 
-                    dayHours={formData.saturday} 
-                    onChange={(newHours) => handleDayChange('saturday', newHours)} 
+                <DayRow
+                    day="Saturday"
+                    dayHours={formData.saturday}
+                    onChange={(newHours) => handleDayChange('saturday', newHours)}
                 />
-                <DayRow 
-                    day="Sunday" 
-                    dayHours={formData.sunday} 
-                    onChange={(newHours) => handleDayChange('sunday', newHours)} 
+                <DayRow
+                    day="Sunday"
+                    dayHours={formData.sunday}
+                    onChange={(newHours) => handleDayChange('sunday', newHours)}
                 />
             </div>
-            
+
 
             {/* Part 2.5: Exceptions & Alert */}
             <div className="space-y-8 mb-12 pt-8">
@@ -342,8 +327,8 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
                 <div>
                     <h3 className="text-base font-bold text-gray-700 mb-2">Exceptions</h3>
                     <p className="text-sm text-gray-500 mb-4">Add Public Holiday closures or any other exception to your clinic's opening hours.</p>
-                    
-                    <button 
+
+                    <button
                         onClick={() => setIsModalOpen(true)}
                         className="mb-4 flex items-center gap-2 text-orange-500 font-bold text-sm border border-orange-500 rounded px-3 py-1.5 hover:bg-orange-50 transition"
                     >
@@ -373,7 +358,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
                                             <td className="px-4 py-3 text-gray-600">{ex.note}</td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDeleteException(ex.id)}
                                                         className="p-1.5 text-red-500 hover:bg-red-50 rounded-full border border-red-200 transition"
                                                     >
@@ -445,7 +430,7 @@ export default function PracticeContact({ clinicData }: { clinicData: Clinic }) 
 
             {/* Add Exception Modal */}
             {isModalOpen && (
-                <ExceptionModal 
+                <ExceptionModal
                     onClose={() => setIsModalOpen(false)}
                     onSave={handleAddException}
                 />
@@ -468,7 +453,7 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
 
     const handleSave = () => {
         if (!date) return;
-        
+
         const dateObj = new Date(date);
         const formattedDate = dateObj.toLocaleDateString('en-GB').replace(/\//g, '-');
 
@@ -499,7 +484,7 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
-                        <input 
+                        <input
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
@@ -511,8 +496,8 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
                         <label className="block text-sm font-bold text-gray-700 mb-2">Opening Hours</label>
                         <div className="h-[42px] flex items-center">
                             <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     checked={isClosed}
                                     onChange={(e) => setIsClosed(e.target.checked)}
                                     className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500 border-gray-300"
@@ -520,18 +505,18 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
                                 <span className="text-sm text-gray-700">Closed</span>
                             </label>
                         </div>
-                        
+
                         {!isClosed && (
                             <div className="flex items-center gap-2 mt-2">
-                                <input 
-                                    type="time" 
+                                <input
+                                    type="time"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
                                     className="px-2 py-1.5 rounded border border-gray-300 text-sm"
                                 />
                                 <span className="text-gray-400">-</span>
-                                <input 
-                                    type="time" 
+                                <input
+                                    type="time"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
                                     className="px-2 py-1.5 rounded border border-gray-300 text-sm"
@@ -542,9 +527,9 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
 
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                            Label <Info className="w-4 h-4 text-blue-500" />
+                            Label
                         </label>
-                        <input 
+                        <input
                             type="text"
                             placeholder="(e.g. New Year's Day)"
                             value={label}
@@ -555,9 +540,9 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
 
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                            Note <Info className="w-4 h-4 text-blue-500" />
+                            Note
                         </label>
-                        <input 
+                        <input
                             type="text"
                             placeholder="(e.g. Early close)"
                             value={note}
@@ -569,13 +554,13 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
 
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
-                    <button 
+                    <button
                         onClick={onClose}
                         className="px-6 py-2.5 rounded border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition"
                     >
                         Cancel
                     </button>
-                    <button 
+                    <button
                         onClick={handleSave}
                         className="px-8 py-2.5 rounded bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition shadow-sm"
                     >
@@ -591,7 +576,7 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
 // Updated DayRow Component with Multiple Time Slots
 // ----------------------------------------------------------------------
 
-const DayRow = ({ day, dayHours, onChange }: { 
+const DayRow = ({ day, dayHours, onChange }: {
     day: string;
     dayHours: DayHours;
     onChange: (newHours: DayHours) => void;
@@ -608,7 +593,7 @@ const DayRow = ({ day, dayHours, onChange }: {
 
     // Update a specific time slot
     const handleSlotChange = (slotId: string, field: 'start' | 'end', value: string) => {
-        const updatedSlots = dayHours.slots.map(slot => 
+        const updatedSlots = dayHours.slots.map(slot =>
             slot.id === slotId ? { ...slot, [field]: value } : slot
         );
         onChange({ ...dayHours, slots: updatedSlots });
@@ -634,14 +619,14 @@ const DayRow = ({ day, dayHours, onChange }: {
         const updatedSlots = dayHours.slots.filter(slot => slot.id !== slotId);
         onChange({ ...dayHours, slots: updatedSlots });
     };
-    
+
     return (
         <div className="py-2 last:border-0">
             <div className="flex items-start gap-4">
                 {/* Day name and toggle */}
                 <div className="w-32 flex items-center gap-3 pt-1.5">
-                    <input 
-                        type="checkbox" 
+                    <input
+                        type="checkbox"
                         checked={dayHours.isOpen}
                         onChange={(e) => handleToggleOpen(e.target.checked)}
                         className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500 border-gray-300 cursor-pointer"
@@ -673,9 +658,10 @@ const DayRow = ({ day, dayHours, onChange }: {
 
                                 {/* Action buttons */}
                                 <div className="flex items-center gap-1">
-                                    {/* Add button - only show on last slot */}
-                                    {index === dayHours.slots.length - 1 && (
-                                        <button 
+
+                                    {/* Add button – show ONLY when there is 1 slot */}
+                                    {dayHours.slots.length === 1 && (
+                                        <button
                                             onClick={handleAddSlot}
                                             className="p-1 text-blue-500 hover:bg-blue-50 rounded-full border border-blue-200 transition"
                                             title="Add another time slot"
@@ -684,17 +670,19 @@ const DayRow = ({ day, dayHours, onChange }: {
                                         </button>
                                     )}
 
-                                    {/* Remove button - only show if more than one slot */}
+                                    {/* Remove button – show ONLY when extra slot exists */}
                                     {dayHours.slots.length > 1 && (
-                                        <button 
+                                        <button
                                             onClick={() => handleRemoveSlot(slot.id)}
-                                            className="p-1 text-white bg-red-500 rounded-full border border-red-600 transition opacity-0 group-hover:opacity-100"
+                                            className="p-1 text-white bg-red-500 rounded-full border border-red-600 transition"
                                             title="Remove this time slot"
                                         >
                                             <Minus className="w-4 h-4" />
                                         </button>
                                     )}
+
                                 </div>
+
                             </div>
                         ))}
                     </div>
