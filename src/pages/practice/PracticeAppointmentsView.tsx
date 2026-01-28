@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -478,33 +479,185 @@ const RescheduleModal = ({
   const [reason, setReason] = useState<string>('');
   const [isPractitionerOpen, setIsPractitionerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [calendarViewDate, setCalendarViewDate] = useState<Date>(new Date());
 
   // Initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Default to the appointment's current date string YYYY-MM-DD
       const currentAptDate = new Date(apt.dateTime);
-      setSelectedDate(currentAptDate.toISOString().split('T')[0]);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setSelectedDate(tomorrow.toISOString().split('T')[0]);
       setSelectedPractitioner(apt.dentistName);
-      setSelectedTime(''); // Reset time so they have to choose a new one
+      setSelectedTime('');
       setReason('');
+      setCalendarViewDate(tomorrow);
     }
   }, [isOpen, apt]);
 
-  // Generate Slots based on date (Mock logic for UI demonstration)
-  const timeSlots = useMemo(() => {
-    if (!selectedDate) return { morning: [], afternoon: [] };
+  // Calendar helpers
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(calendarViewDate);
+    newDate.setMonth(newDate.getMonth() + offset);
+    setCalendarViewDate(newDate);
+  };
+
+  const isDateDisabled = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
+  const isSameDay = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate();
+  };
+
+  // Generate time slots for a specific date (mock data - replace with API call)
+  const generateSlotsForDate = (dateStr: string): string[] => {
+    if (!dateStr) return [];
     
-    // In a real app, you would fetch available slots from API here
-    const morning = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
-    const afternoon = ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'];
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay();
     
-    return { morning, afternoon };
-  }, [selectedDate]);
+    // Sunday - no slots
+    if (dayOfWeek === 0) return [];
+    
+    // Saturday - limited slots
+    if (dayOfWeek === 6) {
+      return ['09:00', '09:30', '10:00', '10:30', '11:00'];
+    }
+    
+    // Weekdays - full availability (simulated with some variation)
+    const baseSlots = [
+      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+    ];
+    
+    // Remove some slots randomly based on date to simulate bookings
+    const dateNum = date.getDate();
+    return baseSlots.filter((_, index) => {
+      const hash = (dateNum + index) % 5;
+      return hash !== 0; // Remove ~20% of slots
+    });
+  };
+
+  // Check if a date has available slots
+  const hasAvailableSlots = (dateStr: string): boolean => {
+    return generateSlotsForDate(dateStr).length > 0;
+  };
+
+  // Generate 7 days of availability starting from selected date
+  const weekAvailability = useMemo(() => {
+    if (!selectedDate) return [];
+
+    const startDate = new Date(selectedDate);
+    const days: { date: Date; dateStr: string; slots: string[] }[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const currentDate = addDays(startDate, i);
+      const dateStr = currentDate.toISOString().split('T')[0];
+
+      // Skip past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (currentDate < today) continue;
+
+      const slots = generateSlotsForDate(dateStr);
+      
+      // Filter out past times if it's today
+      const now = new Date();
+      const filteredSlots = slots.filter(time => {
+        if (!isSameDay(currentDate, now)) return true;
+        const [hours, minutes] = time.split(':').map(Number);
+        const slotTime = new Date(currentDate);
+        slotTime.setHours(hours, minutes, 0, 0);
+        return slotTime > now;
+      });
+
+      days.push({
+        date: currentDate,
+        dateStr,
+        slots: filteredSlots
+      });
+    }
+
+    return days;
+  }, [selectedDate, selectedPractitioner]);
+
+  // Format time for display (24h to 12h)
+  const formatTimeDisplay = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+  };
+
+  // Generate Calendar Grid
+  const renderCalendar = () => {
+    const year = calendarViewDate.getFullYear();
+    const month = calendarViewDate.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+
+    const days = [];
+
+    // Empty cells for days before the first day of month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-9 w-9" />);
+    }
+
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateObj = new Date(year, month, day);
+      const dateStr = dateObj.toISOString().split('T')[0];
+      const isSelected = selectedDate === dateStr;
+      const isToday = isSameDay(dateObj, new Date());
+      const disabled = isDateDisabled(dateObj);
+      const hasSlots = !disabled && hasAvailableSlots(dateStr);
+      const isSunday = dateObj.getDay() === 0;
+
+      days.push(
+        <button
+          key={day}
+          type="button"
+          onClick={() => {
+            if (!disabled) {
+              setSelectedDate(dateStr);
+              setSelectedTime('');
+            }
+          }}
+          disabled={disabled}
+          className={`
+            h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
+            ${disabled ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
+            ${isSunday && !disabled ? 'text-red-400' : ''}
+            ${isSelected && !disabled
+              ? 'bg-blue-600 text-white font-bold shadow-md'
+              : !disabled ? 'hover:bg-gray-100 text-gray-700' : ''
+            }
+            ${isToday && !isSelected && !disabled ? 'text-blue-600 font-bold ring-2 ring-blue-200' : ''}
+          `}
+        >
+          {day}
+        </button>
+      );
+    }
+
+    return days;
+  };
+
+  const handleSlotSelect = (dateStr: string, time: string) => {
+    setSelectedDate(dateStr);
+    setSelectedTime(time);
+  };
 
   const handleConfirm = async () => {
     setIsLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     onConfirm(selectedDate, selectedTime);
     setIsLoading(false);
@@ -513,14 +666,14 @@ const RescheduleModal = ({
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
       
       {/* 2-Column Modal Layout */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[600px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20">
+        <div className="px-4 sm:px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20 flex-shrink-0">
           <div>
             <h3 className="font-bold text-gray-900 text-lg">Reschedule Appointment</h3>
             <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
@@ -537,219 +690,305 @@ const RescheduleModal = ({
         {/* Content Grid */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           
-          {/* LEFT COLUMN: Date & Practitioner (Gray Background) */}
-          <div className="w-full md:w-5/12 p-6 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto">
-            <div className="flex flex-col gap-6">
-              
-              {/* Date Selection */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <Icons.Calendar className="w-4 h-4" />
-                  Select Date
-                </label>
-                
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(''); }}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-sm font-medium shadow-sm focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
-                  />
+          {/* LEFT COLUMN: Full Calendar & Practitioner */}
+          <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-b from-gray-50 to-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
+            
+            {/* Full Calendar */}
+            <div className="mb-6">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-gray-800 text-base">
+                  {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </h4>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(-1)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeMonth(1)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
+              </div>
 
-                {/* Quick Date Buttons */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {[0, 1, 2, 7].map((offset) => {
-                    const d = addDays(new Date(), offset);
-                    const dStr = d.toISOString().split('T')[0];
-                    const isSelected = selectedDate === dStr;
-                    return (
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
+                  <span
+                    key={i}
+                    className={`text-xs font-semibold h-8 flex items-center justify-center ${
+                      i === 0 ? 'text-red-400' : 'text-gray-400'
+                    }`}
+                  >
+                    {d}
+                  </span>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {renderCalendar()}
+              </div>
+            </div>
+
+            {/* Practitioner Selection */}
+            <div className="mt-auto">
+              <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                <Icons.User className="w-4 h-4" />
+                Practitioner
+              </label>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsPractitionerOpen(!isPractitionerOpen)}
+                  className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left"
+                >
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <Icons.User className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 text-sm truncate">{selectedPractitioner || 'Select Dentist'}</p>
+                  </div>
+                  <Icons.ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${isPractitionerOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown */}
+                {isPractitionerOpen && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 max-h-48 overflow-y-auto">
+                    {practitioners.map((name) => (
                       <button
-                        key={offset}
-                        onClick={() => { setSelectedDate(dStr); setSelectedTime(''); }}
-                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                          isSelected 
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                        key={name}
+                        type="button"
+                        onClick={() => { 
+                          setSelectedPractitioner(name); 
+                          setIsPractitionerOpen(false);
+                          setSelectedTime('');
+                        }}
+                        className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
+                          selectedPractitioner === name ? 'bg-blue-50/50' : ''
                         }`}
                       >
-                        {offset === 0 ? 'Today' : offset === 1 ? 'Tmrw' : formatShortDate(d)}
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
+                          <span className="text-xs font-bold">{name.charAt(4)}</span>
+                        </div>
+                        <div className="text-left flex-1 min-w-0">
+                          <p className={`text-sm font-medium truncate ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p>
+                        </div>
+                        {selectedPractitioner === name && <Icons.Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                       </button>
-                    )
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <div className="h-px bg-gray-200 w-full" />
-
-              {/* Practitioner Selection */}
-              <div className="space-y-3 relative">
-                <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <Icons.User className="w-4 h-4" />
-                  Select Practitioner
-                </label>
-
-                <div className="relative">
-                   <button
-                     type="button"
-                     onClick={() => setIsPractitionerOpen(!isPractitionerOpen)}
-                     className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left"
-                   >
-                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
-                        <Icons.User className="w-5 h-5" />
-                     </div>
-                     <div className="flex-1">
-                       <p className="font-semibold text-gray-800 text-sm">{selectedPractitioner || 'Select Dentist'}</p>
-                       <p className="text-xs text-gray-500">General Dentist</p>
-                     </div>
-                     <Icons.ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isPractitionerOpen ? 'rotate-180' : ''}`} />
-                   </button>
-
-                   {/* Dropdown */}
-                   {isPractitionerOpen && (
-                     <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200">
-                       {practitioners.map((name) => (
-                         <button
-                           key={name}
-                           onClick={() => { setSelectedPractitioner(name); setIsPractitionerOpen(false); }}
-                           className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
-                             selectedPractitioner === name ? 'bg-blue-50/50' : ''
-                           }`}
-                         >
-                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
-                                <span className="text-xs font-bold">{name.charAt(4)}</span>
-                            </div>
-                           <div className="text-left flex-1">
-                             <p className={`text-sm font-medium ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p>
-                           </div>
-                           {selectedPractitioner === name && <Icons.Check className="w-4 h-4 text-blue-600" />}
-                         </button>
-                       ))}
-                     </div>
-                   )}
-                </div>
-              </div>
-
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Time Slots (White Background) */}
-          <div className="w-full md:w-7/12 p-6 bg-white flex flex-col h-full overflow-hidden">
+          {/* RIGHT COLUMN: 7-Day Time Slots View */}
+          <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
             
-            <div className="flex items-center justify-between mb-4 shrink-0">
-              <h4 className="font-bold text-gray-800">Available Time Slots</h4>
-              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
-                {formatDate(selectedDate)}
-              </span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-              {/* Morning Section */}
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  Morning
-                </p>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                  {timeSlots.morning.map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setSelectedTime(t)}
-                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
-                        selectedTime === t
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Afternoon Section */}
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                  Afternoon
-                </p>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                  {timeSlots.afternoon.map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setSelectedTime(t)}
-                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-all border ${
-                        selectedTime === t
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
+            {/* Header */}
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-gray-800">Available Time Slots</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Showing 7 days from {selectedDate ? formatDate(selectedDate) : 'selected date'}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Reason Input (Pinned to bottom of Right Col) */}
-            <div className="mt-4 pt-4 border-t border-gray-100 shrink-0">
-               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Reason for Reschedule
-               </label>
-               <input 
+            {/* Slots Grid - 7 Days View */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              {weekAvailability.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                  <Icons.Calendar className="w-12 h-12 mb-4 opacity-50" />
+                  <p className="font-medium">Select a date to view availability</p>
+                  <p className="text-sm mt-1">Choose a date from the calendar</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {weekAvailability.map((dayData) => {
+                    const isSelectedDay = selectedDate === dayData.dateStr;
+                    const isToday = isSameDay(dayData.date, new Date());
+
+                    return (
+                      <div
+                        key={dayData.dateStr}
+                        className={`rounded-xl border transition-all ${
+                          isSelectedDay
+                            ? 'border-blue-200 bg-blue-50/30'
+                            : 'border-gray-100 bg-white hover:border-gray-200'
+                        }`}
+                      >
+                        {/* Day Header */}
+                        <div className={`px-4 py-3 border-b flex items-center justify-between ${
+                          isSelectedDay ? 'border-blue-100' : 'border-gray-100'
+                        }`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${
+                              isToday
+                                ? 'bg-blue-600 text-white'
+                                : isSelectedDay
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              <span className="text-[10px] font-bold uppercase leading-none">
+                                {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                              </span>
+                              <span className="text-sm font-bold leading-none mt-0.5">
+                                {dayData.date.getDate()}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                                {dayData.date.toLocaleDateString('en-US', { weekday: 'long' })}
+                                {isToday && (
+                                  <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                                    Today
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {dayData.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              dayData.slots.length > 0
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-500'
+                            }`}>
+                              {dayData.slots.length} {dayData.slots.length === 1 ? 'slot' : 'slots'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Time Slots */}
+                        <div className="p-4">
+                          {dayData.slots.length === 0 ? (
+                            <div className="flex items-center justify-center py-4 text-gray-400">
+                              <Icons.Clock className="w-4 h-4 mr-2 opacity-50" />
+                              <span className="text-sm">No available slots</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {dayData.slots.map((time) => {
+                                const isSelected = selectedDate === dayData.dateStr && selectedTime === time;
+
+                                return (
+                                  <button
+                                    key={`${dayData.dateStr}-${time}`}
+                                    type="button"
+                                    onClick={() => handleSlotSelect(dayData.dateStr, time)}
+                                    className={`
+                                      px-3 py-2 rounded-lg text-sm font-medium transition-all border
+                                      ${isSelected
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+                                      }
+                                    `}
+                                  >
+                                    {formatTimeDisplay(time)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Reason Input & Actions (Pinned to bottom) */}
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+              {/* Reason Input */}
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Reason for Reschedule (Optional)
+                </label>
+                <input 
                   type="text" 
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g., Patient requested later time..."
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none transition-all"
-               />
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+                {/* Selected Time Summary */}
+                <div className="text-sm">
+                  {selectedTime && selectedDate ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <Icons.Check className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">New Time</p>
+                        <p className="font-semibold text-gray-900">
+                          {formatDate(selectedDate)} at {formatTimeDisplay(selectedTime)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Select a time slot to continue</span>
+                  )}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={onClose} 
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleConfirm}
+                    disabled={!selectedDate || !selectedTime || isLoading}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${
+                      selectedDate && selectedTime && !isLoading
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Icons.Spinner className="w-4 h-4 animate-spin" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Confirm Reschedule</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
-
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center z-20">
-           <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
-              <Icons.Mail className="w-3.5 h-3.5" />
-              <span>Patient will be notified via Email & SMS</span>
-           </div>
-           <div className="flex gap-3 w-full sm:w-auto justify-end">
-              <button 
-                onClick={onClose} 
-                className="px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleConfirm}
-                disabled={!selectedDate || !selectedTime || isLoading}
-                className={`px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center gap-2 ${
-                  selectedDate && selectedTime 
-                  ? 'bg-gray-900 hover:bg-gray-800 text-white hover:shadow-xl' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <Icons.Spinner className="w-4 h-4" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icons.Refresh className="w-4 h-4" />
-                    <span>Confirm Reschedule</span>
-                  </>
-                )}
-              </button>
-           </div>
         </div>
       </div>
     </div>,
     document.body
   );
 };
+
+
 
 // --- Mobile Bottom Sheet Component (Portal) ---
 const MobileBottomSheet = ({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Info, Briefcase, Users, Image as ImageIcon, Trophy, MessageSquareQuote, ShieldCheck, Building, Phone } from 'lucide-react';
 import PracticeBaseInfo from './PracticeBaseInfo';
 import PracticeServices from './PracticeServices';
@@ -10,7 +10,6 @@ import PracticeReviews from './PracticeReviews';
 import PracticeInsurances from './PracticeInsurances';
 import PracticeFacilities from './PracticeFacilities';
 import PracticeContact from './PracticeContact';
-import PracticeMyCertificate from './PracticeMyCertificate';
 
 export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
     const [activeSection, setActiveSection] = useState('basic-info');
@@ -32,7 +31,6 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
         switch (activeSection) {
             case 'basic-info': return <PracticeBaseInfo clinicData={clinicData} />;
             case 'services': return <PracticeServices clinicData={clinicData} />;
-            case 'my-certificate': return <PracticeMyCertificate clinicData={clinicData} />;
             case 'team': return <PracticeTeam clinicData={clinicData} />;
             case 'gallery': return <PracticeGallery clinicData={clinicData} />;
             case 'achievements': return <PracticeAchievements clinicData={clinicData} />;
@@ -45,7 +43,7 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
     };
 
     return (
-        <div className="flex flex-col bg-gray-50/50 pb-10 min-h-screen">
+        <div className="flex flex-col min-h-screen">
             {/* Editor Tabs */}
             <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 pt-2 shadow-sm z-20 sticky top-[50px]">
                 <div className="flex items-center gap-4 overflow-x-auto pb-0 scrollbar-hide">
@@ -73,11 +71,10 @@ export default function ClinicEditor({ clinicData }: { clinicData: Clinic }) {
             </div>
 
             {/* Editor Content Area */}
-            <div className="p-6 lg:p-8">
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 lg:p-8 animate-in fade-in zoom-in-95 duration-300">
-                    {renderContent()}
-                </div>
+            <div className="bg-white p-4 lg:p-6 animate-in fade-in zoom-in-95 duration-300">
+                {renderContent()}
             </div>
+
         </div>
     );
 }
