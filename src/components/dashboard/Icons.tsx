@@ -241,4 +241,10 @@ export const Icons = {
             <path d="M9 16l2 2 4-4" />
         </svg>
     ),
+    BarChart: () => (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 20V10M10 20V4M16 20v-6M22 20H2"/>
+        </svg>
+    ),
+
 };
