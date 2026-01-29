@@ -7,18 +7,22 @@ import { usePracticeAuth } from '../../hooks/usePracticeAuth';
 import PracticeAppointmentsView from './PracticeAppointmentsView';
 import PracticeDirectoryView from './PracticeDirectoryView';
 import { Icons } from '../../components/dashboard/Icons';
-import { User, LogOut } from 'lucide-react';
+// 1. Import BarChart2 for the icon
+import { User, LogOut, BarChart2 } from 'lucide-react';
 import PracticeBookingCalender from './PracticeBookingCalender';
 import PracticeNewsFeeds from './PracticeNewsFeeds';
 import PractiveViewProfile from './PractiveViewProfile';
 import ConfirmLogoutModal from '../../components/layout/ConfirmLogoutModal';
 import PracticeAppointmentType from './PracticeAppointmentType';
+import PracticeAnalyticsView from './PracticeAnalyticsView';
 
+// 3. Update Type Definition
 type ActiveViewType = 
   | 'directory' 
   | 'appointments' 
-  | 'appointmenttype'  // Added new type
+  | 'appointmenttype' 
   | 'bookingcalender' 
+  | 'analytics' 
   | 'newsfeeds' 
   | 'viewprofile' 
   | 'mylearningHub' 
@@ -26,12 +30,14 @@ type ActiveViewType =
   | 'accountpayrequests' 
   | 'supportrequest';
 
+// 3. Update Validation Logic
 const isValidView = (v: any): v is ActiveViewType =>
   [
     'directory', 
     'appointments', 
-    'appointmenttype',  // Added to validation
+    'appointmenttype', 
     'bookingcalender', 
+    'analytics', 
     'newsfeeds', 
     'viewprofile', 
     'mylearningHub', 
@@ -79,7 +85,6 @@ const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }
   </button>
 );
 
-
 export default function PracticeDashboard() {
   const { practice, logout } = usePracticeAuth();
   const [,] = useState(false);
@@ -100,11 +105,13 @@ export default function PracticeDashboard() {
 
   if (!practice) return null;
 
+  // 4. Update Render Content Switch
   const renderContent = () => {
     switch (activeView) {
       case 'appointments': return <PracticeAppointmentsView />;
-      case 'appointmenttype': return <PracticeAppointmentType />;  // Added new case
+      case 'appointmenttype': return <PracticeAppointmentType />;
       case 'bookingcalender': return <PracticeBookingCalender />;
+      case 'analytics': return <PracticeAnalyticsView />; // <-- Added here
       case 'newsfeeds': return <PracticeNewsFeeds />;
       case 'mylearningHub': return <PracticeNewsFeeds />;
       case 'accountpayrequests': return <PracticeNewsFeeds />;
@@ -169,7 +176,6 @@ export default function PracticeDashboard() {
                     active={activeView === 'appointments'}
                     onClick={() => handleNavClick('appointments')}
                   />
-                  {/* New Appointment Type Link */}
                   <SidebarLink
                     icon={<Icons.AppointmentType />}
                     label="Appointment Type"
@@ -182,6 +188,15 @@ export default function PracticeDashboard() {
                     active={activeView === 'bookingcalender'}
                     onClick={() => handleNavClick('bookingcalender')}
                   />
+                  
+                  {/* 5. Added Analytics Sidebar Link */}
+                  <SidebarLink
+                    icon={<Icons.BarChart  />} 
+                    label="Analytics"
+                    active={activeView === 'analytics'}
+                    onClick={() => handleNavClick('analytics')}
+                  />
+
                   <SidebarLink
                     icon={<Icons.LearningHub />}
                     label="My LearningHub"

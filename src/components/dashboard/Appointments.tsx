@@ -137,18 +137,15 @@ const INITIAL_HISTORY: Appointment[] = [
 
 // Mock available time slots for each practitioner
 const generateAvailableSlots = (practitionerId: string, date: Date): string[] => {
-    // Different practitioners have different availability patterns
     const baseSlots = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
         '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM', '05:00 PM'];
 
-    // Simulate some slots being taken based on date and practitioner
     const dayOfWeek = date.getDay();
     const dateNum = date.getDate();
 
-    // Remove some slots to simulate bookings
     return baseSlots.filter((_, index) => {
         const hash = (practitionerId.charCodeAt(1) + dateNum + index) % 5;
-        return hash !== 0; // Remove ~20% of slots
+        return hash !== 0; 
     });
 };
 
@@ -203,16 +200,14 @@ const SuccessModal = ({
         <div className="fixed inset-0 z-[150] flex items-center justify-center pt-10">
             <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose}></div>
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 fade-in duration-200">
-                {/* Success Header */}
-                <div className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-500 px-6 py-8 text-center text-white">
+                <div className="bg-black/90 bg-gradient-to-br from-green-900 via-green-600 to-green-900 px-6 py-8 text-center text-white">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
                         <Check className="w-8 h-8" />
                     </div>
                     <h2 className="text-2xl font-bold">Appointment Rescheduled!</h2>
-                    <p className="text-green-900 mt-1">Your appointment has been successfully updated</p>
+                    <p className="text-green-100 mt-1">Your appointment has been successfully updated</p>
                 </div>
 
-                {/* Details */}
                 <div className="p-6 space-y-4">
                     <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                         <div className="flex items-center gap-3">
@@ -256,25 +251,11 @@ const SuccessModal = ({
                         </div>
                     </div>
 
-                    {/* Original Time */}
-                    {appointment.originalDateTime && (
-                        <div className="bg-purple-50 rounded-xl p-3 border border-purple-100">
-                            <p className="text-xs text-purple-600 font-medium">
-                                Originally scheduled: {' '}
-                                <span className="line-through">
-                                    {appointment.originalDateTime.toLocaleDateString()} at {' '}
-                                    {appointment.originalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            </p>
-                        </div>
-                    )}
-
                     <p className="text-sm text-gray-500 text-center">
                         A confirmation email will be send to your registered email address.
                     </p>
                 </div>
 
-                {/* Footer */}
                 <div className="px-6 pb-6">
                     <button
                         onClick={onClose}
@@ -311,8 +292,7 @@ const CancelConfirmModal = ({
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose}></div>
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 fade-in duration-200">
-                {/* Warning Header */}
-                <div className="bg-gradient-to-br from-red-500 via-red-600 to-rose-500 px-6 py-8 text-center text-white">
+                <div className="bg-black/90 bg-gradient-to-br from-red-900 via-red-600 to-red-900 px-6 py-8 text-center text-white">
                     <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
                         <AlertCircle className="w-8 h-8" />
                     </div>
@@ -320,7 +300,6 @@ const CancelConfirmModal = ({
                     <p className="text-red-100 mt-1">This action cannot be undone</p>
                 </div>
 
-                {/* Details */}
                 <div className="p-6">
                     <div className="bg-gray-50 rounded-xl p-4 mb-4">
                         <p className="font-semibold text-gray-900">{appointment.treatment}</p>
@@ -338,7 +317,6 @@ const CancelConfirmModal = ({
                     </p>
                 </div>
 
-                {/* Footer */}
                 <div className="px-6 pb-6 flex gap-3">
                     <button
                         onClick={onClose}
@@ -975,16 +953,6 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                                         )}
                                     </div>
 
-                                    {/* Show original time if rescheduled */}
-                                    {appointment.status === 'rescheduled' && appointment.originalDateTime && (
-                                        <p className="text-xs text-purple-600 mt-2 flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-lg w-fit">
-                                            <span>Originally:</span>
-                                            <span className="line-through">
-                                                {appointment.originalDateTime.toLocaleDateString()} at {appointment.originalDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </p>
-                                    )}
-
                                     {/* Notes */}
                                     {appointment.notes && activeTab === 'current' && (
                                         <p className="text-xs text-gray-500 mt-2 italic">📝 {appointment.notes}</p>
@@ -993,24 +961,26 @@ export const Appointments: React.FC<AppointmentsProps> = ({
                             </div>
 
                             {/* Actions */}
-                            {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
-                                <div className="flex flex-wrap mt-4 pt-4 border-t border-gray-100 gap-2 sm:gap-3">
-                                    <button
-                                        onClick={() => handleRescheduleClick(appointment)}
-                                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Calendar className="w-4 h-4" />
-                                        Reschedule
-                                    </button>
-                                    <button
-                                        onClick={() => setShowCancelConfirm(appointment)}
-                                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Cancel
-                                    </button>
-                                </div>
-                            )}
+                            {appointment.status !== 'cancelled' &&
+                                appointment.status !== 'completed' &&
+                                appointment.status !== 'rescheduled' && ( // Added check here
+                                    <div className="flex flex-wrap mt-4 pt-4 border-t border-gray-100 gap-2 sm:gap-3">
+                                        <button
+                                            onClick={() => handleRescheduleClick(appointment)}
+                                            className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Calendar className="w-4 h-4" />
+                                            Reschedule
+                                        </button>
+                                        <button
+                                            onClick={() => setShowCancelConfirm(appointment)}
+                                            className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <X className="w-4 h-4" />
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
                         </div>
                     ))}
                 </div>
