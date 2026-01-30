@@ -44,6 +44,7 @@ export interface Clinic {
   achievements?: { title: string; org?: string }[];
   parking?: boolean;
   emergency?: boolean;
+  reviews: string;
 }
 
 // Forward declaration for circular dependency

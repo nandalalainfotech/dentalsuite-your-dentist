@@ -9,7 +9,8 @@ interface Service {
     description: string;
 }
 
-export default function PracticeServices({ clinicData }: { clinicData: Clinic }) {
+// Added onNext to props
+export default function PracticeServices({ clinicData, onNext }: { clinicData: Clinic, onNext: () => void }) {
     const [services, setServices] = useState<Service[]>([]);
 
     useEffect(() => {
@@ -53,14 +54,11 @@ export default function PracticeServices({ clinicData }: { clinicData: Clinic })
         setDescription('');
         setShowInAppointment(true);
 
-        // Here you would typically update the clinicData or save to backend
         console.log('New service added:', newService);
     };
 
     const deleteService = (id: string) => {
         setServices(prev => prev.filter(service => service.id !== id));
-
-        // Here you would typically update the clinicData or save to backend
         console.log('Service deleted:', id);
     };
 
@@ -79,21 +77,29 @@ export default function PracticeServices({ clinicData }: { clinicData: Clinic })
         setEditedName('');
     };
 
-    return (
-        <div className="max-w-6xl mx-auto space-y-6">
+    const handleSaveAndNext = () => {
+        // Here you would save the 'services' array to your API
+        console.log('Saving all services:', services);
 
-            {/* ADD SERVICES */}
-            <div className="bg-white rounded-2xl p-6 border">
+        // Navigate to next tab
+        onNext();
+    };
+
+    return (
+        <div className="w-full space-y-6">
+
+            {/* ADD SERVICES FORM */}
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-orange-500">
+                    <h2 className="text-xl font-bold text-orange-500">
                         Add Services
                     </h2>
 
                     <button
                         onClick={addService}
-                        className="px-6 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600"
+                        className="px-6 py-2 rounded-full bg-orange-500 text-white font-medium hover:bg-orange-600 transition shadow-sm"
                     >
-                        Save
+                        Add Service
                     </button>
                 </div>
 
@@ -105,31 +111,34 @@ export default function PracticeServices({ clinicData }: { clinicData: Clinic })
                         <input
                             value={name}
                             onChange={e => setName(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && addService()}
                             placeholder="Enter Name"
-                            className="mt-1 w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-400 outline-none"
+                            className="mt-1 w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none transition"
                         />
                     </div>
 
                     <div>
                         <label className="text-sm font-medium text-gray-700 block mb-2">
-                            Service Show In Appointments
+                            Show In Appointments
                         </label>
-                        <div className="flex gap-6 mt-2">
-                            <label className="flex items-center gap-2">
+                        <div className="flex gap-6 mt-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="radio"
+                                    className="text-orange-500 focus:ring-orange-500"
                                     checked={showInAppointment}
                                     onChange={() => setShowInAppointment(true)}
                                 />
-                                Yes
+                                <span className="text-gray-700">Yes</span>
                             </label>
-                            <label className="flex items-center gap-2">
+                            <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="radio"
+                                    className="text-orange-500 focus:ring-orange-500"
                                     checked={!showInAppointment}
                                     onChange={() => setShowInAppointment(false)}
                                 />
-                                No
+                                <span className="text-gray-700">No</span>
                             </label>
                         </div>
                     </div>
@@ -144,64 +153,69 @@ export default function PracticeServices({ clinicData }: { clinicData: Clinic })
                         onChange={e => setDescription(e.target.value)}
                         placeholder="Short Information"
                         rows={4}
-                        className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-400 outline-none resize-none"
+                        className="mt-1 w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none transition"
                     />
                 </div>
             </div>
 
             {/* SERVICES LIST */}
-            <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="text-orange-500 font-semibold mb-4">
-                    Services
+            <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6">
+                <h3 className="text-gray-800 font-bold mb-4">
+                    Active Services
                 </h3>
 
                 <div className="flex flex-wrap gap-4">
+                    {services.length === 0 && (
+                        <p className="text-gray-400 text-sm">No services added yet.</p>
+                    )}
+
                     {services.map(service => (
                         <div
                             key={service.id}
-                            className="bg-white border rounded-full px-5 py-2 flex items-center gap-3"
+                            className="bg-white border border-gray-200 rounded-full px-5 py-2 flex items-center gap-3 shadow-sm hover:border-orange-200 transition"
                         >
                             {/* NAME / EDIT INPUT */}
                             {editingId === service.id ? (
                                 <input
                                     value={editedName}
                                     onChange={e => setEditedName(e.target.value)}
-                                    className="border rounded px-2 py-1 text-sm w-40"
+                                    className="border border-orange-300 rounded px-2 py-1 text-sm w-32 outline-none focus:ring-1 focus:ring-orange-500"
+                                    autoFocus
                                 />
                             ) : (
-                                <span className="font-medium">{service.name}</span>
+                                <span className="font-medium text-gray-700">{service.name}</span>
                             )}
 
                             {/* ACTIONS */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 border-l pl-2 ml-1 border-gray-200">
                                 {editingId === service.id ? (
                                     <>
                                         <button
                                             onClick={() => saveEdit(service.id)}
-                                            className="text-green-600 hover:bg-green-50 p-1 rounded"
+                                            className="text-green-600 hover:bg-green-50 p-1.5 rounded-full transition"
                                         >
-                                            <Check size={16} />
+                                            <Check size={14} />
                                         </button>
                                         <button
                                             onClick={() => setEditingId(null)}
-                                            className="text-gray-500 hover:bg-gray-100 p-1 rounded"
+                                            className="text-gray-400 hover:bg-gray-100 p-1.5 rounded-full transition"
                                         >
-                                            <X size={16} />
+                                            <X size={14} />
                                         </button>
                                     </>
                                 ) : (
                                     <>
                                         <button
                                             onClick={() => startEdit(service)}
-                                            className="text-blue-600 hover:bg-blue-50 p-1 rounded"
+                                            className="text-blue-500 hover:bg-blue-50 p-1.5 rounded-full transition"
                                         >
-                                            <Edit2 size={16} />
+                                            <Edit2 size={14} />
                                         </button>
                                         <button
                                             onClick={() => deleteService(service.id)}
-                                            className="text-red-600 hover:bg-red-50 p-1 rounded"
+                                            className="text-orange-500 hover:bg-orange-50 p-1.5 rounded-full transition"
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </>
                                 )}
@@ -209,6 +223,23 @@ export default function PracticeServices({ clinicData }: { clinicData: Clinic })
                         </div>
                     ))}
                 </div>
+            </div>
+
+            {/* FOOTER ACTIONS */}
+            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                <button
+                    type="button"
+                    onClick={onNext}
+                    className="px-8 py-3 bg-orange-50 text-orange-400 font-medium rounded-full hover:bg-orange-100 transition"
+                >
+                    Skip
+                </button>
+                <button
+                    onClick={handleSaveAndNext}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                >
+                    Save & Next
+                </button>
             </div>
         </div>
     );

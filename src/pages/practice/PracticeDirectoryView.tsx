@@ -6,7 +6,6 @@ import { clinics } from '../../data/clinics';
 import ClinicEditor from './Updatedirectory/ClinicEditor';
 import ClinicProfilePreview from './Updatedirectory/ClinicProfilePreview';
 
-// Fallback data definition
 const clinicFallback = {
     id: '0',
     name: 'Unnamed Clinic',
@@ -25,34 +24,57 @@ const clinicFallback = {
     time: { monday: '', tuesday: '', wednesday: '', thursday: '', friday: '', saturday: '', sunday: '' }
 };
 
+const DEFAULT_PRACTICE_DATA = {
+    tagline: 'Comprehensive dental care',
+    description: 'Professional dental services provided by experienced practitioners.',
+    services: {
+        general: ['General Dentistry', 'Preventive Care', 'Oral Hygiene'],
+        specialist: ['Specialist Dental Care']
+    },
+    defaultTeamRole: {
+        role: 'Practice Director',
+        qualification: 'BDS'
+    },
+    commonInsurance: ['Private Health Insurance'],
+    commonFacilities: ['Modern Equipment', 'Sterilization Room']
+};
+
+
+const formatPracticeType = (type: string): string => {
+    return type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
 export default function DirectoryView() {
     const { practice: authPractice, isAuthenticated } = usePracticeAuth();
     const [isEditing, setIsEditing] = useState(false);
 
     const getClinicData = () => {
         if (authPractice && isAuthenticated && 'practiceName' in authPractice) {
+            const practiceServices = authPractice.practiceType === 'general_dentistry'
+                ? DEFAULT_PRACTICE_DATA.services.general
+                : DEFAULT_PRACTICE_DATA.services.specialist;
+
             return {
                 ...clinicFallback,
                 id: authPractice.id,
                 name: authPractice.practiceName,
-                tagline: 'Comprehensive dental care',
-                description: 'Professional dental services provided by experienced practitioners.',
+                tagline: DEFAULT_PRACTICE_DATA.tagline,
+                description: DEFAULT_PRACTICE_DATA.description,
                 address: `${authPractice.practiceAddress}, ${authPractice.practiceCity} ${authPractice.practiceState} ${authPractice.practicePostcode}`,
                 phone: authPractice.practicePhone,
                 email: authPractice.email,
-                services: authPractice.practiceType === 'general_dentistry'
-                    ? ['General Dentistry', 'Preventive Care', 'Oral Hygiene']
-                    : ['Specialist Dental Care'],
+                services: practiceServices,
                 team: [{
                     name: `${authPractice.firstName} ${authPractice.lastName}`,
-                    role: 'Practice Director',
-                    qual: 'BDS'
+                    role: DEFAULT_PRACTICE_DATA.defaultTeamRole.role,
+                    qual: DEFAULT_PRACTICE_DATA.defaultTeamRole.qualification
                 }],
-                insurance: ['Private Health Insurance'],
-                facilities: ['Modern Equipment', 'Sterilization Room'],
-                specialities: [authPractice.practiceType.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())],
+                insurance: DEFAULT_PRACTICE_DATA.commonInsurance,
+                facilities: DEFAULT_PRACTICE_DATA.commonFacilities,
+                specialities: [formatPracticeType(authPractice.practiceType)],
             };
         }
+
         return (clinics[0] || clinicFallback) as Clinic & typeof clinicFallback;
     };
 
