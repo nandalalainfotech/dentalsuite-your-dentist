@@ -21,7 +21,8 @@ interface PracticeFormData {
     description: string;
 }
 
-export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic }) {
+// 1. Add onNext to props here
+export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: Clinic, onNext: () => void }) {
     const [formData, setFormData] = useState<PracticeFormData>({
         professionType: 'Dental Specialist Practice',
         companyName: clinicData.name || '',
@@ -36,7 +37,6 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
         description: clinicData.description || ''
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isSaving, setIsSaving] = useState(false);
 
     const handleInputChange = (field: keyof PracticeFormData, value: string) => {
@@ -53,6 +53,15 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
 
     const removeImage = (field: 'logo' | 'bannerImage') => {
         handleInputChange(field, '');
+    };
+
+    const handleSave = () => {
+        console.log("Saving data:", formData);
+        setIsSaving(true);
+        setTimeout(() => {
+            setIsSaving(false);
+            onNext();
+        }, 500);
     };
 
     return (
@@ -91,28 +100,28 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
                     label="ABN/ACN Number"
                     required
                     value={formData.abnNumber}
-                    placeholder="1234567895"
+                    placeholder="11 digits ABN/ACN Number"
                     onChange={(val) => handleInputChange('abnNumber', val)}
                 />
                 <FormInput
                     label="Name"
                     required
                     value={formData.contactName}
-                    placeholder="Surender"
+                    placeholder="Enter your name"
                     onChange={(val) => handleInputChange('contactName', val)}
                 />
                 <FormInput
                     label="Address"
                     required
                     value={formData.address}
-                    placeholder="Madrid, Spain"
+                    placeholder="Enter Your Address"
                     onChange={(val) => handleInputChange('address', val)}
                 />
                 <FormInput
                     label="Phone Number"
                     required
                     value={formData.phoneNumber}
-                    placeholder="8776654322"
+                    placeholder="Enter Your Mobile number"
                     onChange={(val) => handleInputChange('phoneNumber', val)}
                 />
                 <FormInput
@@ -146,10 +155,9 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
             {/* Description (Rich Text Editor Mock) */}
             <div className="mb-10">
                 <label className="block text-sm text-gray-600 mb-2">
-                    Description <span className="text-red-500">*</span>
+                    Description <span className="text-orange-500">*</span>
                 </label>
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    {/* Toolbar Mock */}
                     <div className="bg-gray-50 border-b border-gray-200 p-2 flex flex-wrap gap-1">
                         <ToolbarBtn icon={<Undo size={14} />} />
                         <ToolbarBtn icon={<Redo size={14} />} />
@@ -165,8 +173,6 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
                         <ToolbarBtn icon={<List size={14} />} />
                         <ToolbarBtn icon={<LinkIcon size={14} />} />
                     </div>
-
-                    {/* Text Area */}
                     <textarea
                         rows={6}
                         className="w-full p-4 outline-none text-gray-700 resize-y"
@@ -181,15 +187,19 @@ export default function PracticeBaseInfo({ clinicData }: { clinicData: Clinic })
             <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
+                    onClick={onNext} // Allows skipping to next
                     className="px-8 py-3 bg-orange-50 text-orange-400 font-medium rounded-full hover:bg-orange-100 transition"
                 >
                     Skip
                 </button>
+
+                {/* 3. Attach the save handler */}
                 <button
-                    onClick={() => console.log(formData)}
-                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition disabled:opacity-50"
                 >
-                    Save & Next
+                    {isSaving ? 'Saving...' : 'Save & Next'}
                 </button>
             </div>
         </div>
@@ -204,7 +214,7 @@ function FormInput({
     return (
         <div className="w-full">
             <label className="block text-sm text-gray-600 mb-2">
-                {label} {required && <span className="text-red-500">*</span>}
+                {label} {required && <span className="text-orange-500">*</span>}
             </label>
             {isSelect ? (
                 <div className="relative">
@@ -241,10 +251,8 @@ function ImageUploader({
     return (
         <div>
             <label className="block text-sm text-gray-600 mb-2">
-                {label} {required && <span className="text-red-500">*</span>}
+                {label} {required && <span className="text-orange-500">*</span>}
             </label>
-
-            {/* Dashed Area */}
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 bg-white flex flex-col items-center justify-center text-center hover:bg-gray-50 transition relative">
                 <input
                     type="file"
@@ -253,14 +261,11 @@ function ImageUploader({
                     accept="image/*"
                     onChange={onUpload}
                 />
-
                 <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-4">
                     <CloudUpload className="w-6 h-6" />
                 </div>
-
                 <h3 className="text-gray-900 font-medium mb-1">Choose a file or drag & drop it here.</h3>
                 <p className="text-xs text-gray-400 mb-4">JPEG, PNG formats, up to 5 MB</p>
-
                 <button
                     onClick={() => document.getElementById(id)?.click()}
                     className="px-4 py-2 border border-orange-400 text-orange-500 text-sm font-medium rounded-lg hover:bg-orange-50 transition"
@@ -268,8 +273,6 @@ function ImageUploader({
                     Browse File
                 </button>
             </div>
-
-            {/* Preview Area (Matches Screenshot) */}
             {image && (
                 <div className="mt-4 relative inline-block group">
                     <img
@@ -279,7 +282,7 @@ function ImageUploader({
                     />
                     <button
                         onClick={onRemove}
-                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-gray-100 hover:text-red-500 transition"
+                        className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-gray-100 hover:text-orange-500 transition"
                     >
                         <X className="w-3 h-3" />
                     </button>

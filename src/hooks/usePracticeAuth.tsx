@@ -3,6 +3,52 @@ import type { ReactNode } from 'react';
 import type { Practice } from '../types/auth';
 import { validateAllPracticeCredentials, findPracticeByEmail, addPractice, updatePractice } from '../data/practices';
 
+// ----------------------------------------------------------------------
+// 1. STATIC DATA & CONFIGURATION
+// ----------------------------------------------------------------------
+
+const AUTH_CONSTANTS = {
+  STORAGE_KEY: 'practice',
+
+  MESSAGES: {
+    LOGIN_SUCCESS: 'Login successful',
+    LOGIN_INVALID: 'Invalid email/mobile or password',
+    LOGIN_ERROR: 'An error occurred during login',
+
+    SIGNUP_SUCCESS: 'Practice account created successfully',
+    SIGNUP_EMAIL_EXISTS: 'Practice with this email already exists',
+    SIGNUP_ERROR: 'An error occurred during signup',
+
+    CONTEXT_ERROR: 'usePracticeAuth must be used within a PracticeAuthProvider'
+  },
+
+  INITIAL_STATE: {
+    practice: null as Practice | null,
+    isAuthenticated: false,
+    isLoading: true
+  }
+};
+
+// ----------------------------------------------------------------------
+// 2. INTERFACES & TYPES
+// ----------------------------------------------------------------------
+
+export interface SignupCredentials {
+  practiceName: string;
+  abnNumber: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  mobileNumber: string;
+  practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
+  practicePhone: string;
+  practiceAddress: string;
+  practiceCity: string;
+  practiceState: 'NSW' | 'VIC' | 'QLD' | 'WA' | 'SA' | 'TAS' | 'ACT' | 'NT';
+  practicePostcode: string;
+}
+
 interface PracticeAuthState {
   practice: Practice | null;
   isAuthenticated: boolean;
@@ -11,24 +57,14 @@ interface PracticeAuthState {
 
 interface PracticeAuthContextType extends PracticeAuthState {
   login: (credentials: { emailOrMobile: string; password: string }) => Promise<{ success: boolean; message: string }>;
-  signup: (credentials: {
-    practiceName: string;
-    abnNumber: string;
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    mobileNumber: string;
-    practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
-    practicePhone: string;
-    practiceAddress: string;
-    practiceCity: string;
-    practiceState: 'NSW' | 'VIC' | 'QLD' | 'WA' | 'SA' | 'TAS' | 'ACT' | 'NT';
-    practicePostcode: string;
-  }) => Promise<{ success: boolean; message: string }>;
+  signup: (credentials: SignupCredentials) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   updateProfile: (practiceData: Partial<Practice>) => void;
 }
+
+// ----------------------------------------------------------------------
+// 3. CONTEXT & PROVIDER LOGIC
+// ----------------------------------------------------------------------
 
 const PracticeAuthContext = createContext<PracticeAuthContextType | undefined>(undefined);
 
@@ -36,7 +72,7 @@ const PracticeAuthContext = createContext<PracticeAuthContextType | undefined>(u
 export const usePracticeAuth = () => {
   const context = useContext(PracticeAuthContext);
   if (context === undefined) {
-    throw new Error('usePracticeAuth must be used within a PracticeAuthProvider');
+    throw new Error(AUTH_CONSTANTS.MESSAGES.CONTEXT_ERROR);
   }
   return context;
 };
@@ -46,14 +82,10 @@ interface PracticeAuthProviderProps {
 }
 
 export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ children }) => {
-  const [state, setState] = useState<PracticeAuthState>({
-    practice: null,
-    isAuthenticated: false,
-    isLoading: true
-  });
+  const [state, setState] = useState<PracticeAuthState>(AUTH_CONSTANTS.INITIAL_STATE);
 
   useEffect(() => {
-    const savedPractice = localStorage.getItem('practice');
+    const savedPractice = localStorage.getItem(AUTH_CONSTANTS.STORAGE_KEY);
     if (savedPractice) {
       try {
         const practice = JSON.parse(savedPractice);
@@ -64,12 +96,8 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
           isLoading: false
         });
       } catch (error) {
-        localStorage.removeItem('practice');
-        setState({
-          practice: null,
-          isAuthenticated: false,
-          isLoading: false
-        });
+        localStorage.removeItem(AUTH_CONSTANTS.STORAGE_KEY);
+        setState({ ...AUTH_CONSTANTS.INITIAL_STATE, isLoading: false });
         console.error("The error is", error);
       }
     } else {
@@ -87,37 +115,23 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
           isAuthenticated: true,
           isLoading: false
         });
-        localStorage.setItem('practice', JSON.stringify(practice));
-        return { success: true, message: 'Login successful' };
+        localStorage.setItem(AUTH_CONSTANTS.STORAGE_KEY, JSON.stringify(practice));
+        return { success: true, message: AUTH_CONSTANTS.MESSAGES.LOGIN_SUCCESS };
       } else {
-        return { success: false, message: 'Invalid email/mobile or password' };
+        return { success: false, message: AUTH_CONSTANTS.MESSAGES.LOGIN_INVALID };
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      return { success: false, message: 'An error occurred during login' };
+      return { success: false, message: AUTH_CONSTANTS.MESSAGES.LOGIN_ERROR };
     }
   };
 
-  const signup = async (credentials: {
-    practiceName: string;
-    abnNumber: string;
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    mobileNumber: string;
-    practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
-    practicePhone: string;
-    practiceAddress: string;
-    practiceCity: string;
-    practiceState: 'NSW' | 'VIC' | 'QLD' | 'WA' | 'SA' | 'TAS' | 'ACT' | 'NT';
-    practicePostcode: string;
-  }): Promise<{ success: boolean; message: string }> => {
+  const signup = async (credentials: SignupCredentials): Promise<{ success: boolean; message: string }> => {
     try {
       const existingPractice = findPracticeByEmail(credentials.email);
 
       if (existingPractice) {
-        return { success: false, message: 'Practice with this email already exists' };
+        return { success: false, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_EMAIL_EXISTS };
       }
 
       const newPractice = addPractice({
@@ -141,22 +155,18 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
         isAuthenticated: true,
         isLoading: false
       });
-      localStorage.setItem('practice', JSON.stringify(newPractice));
+      localStorage.setItem(AUTH_CONSTANTS.STORAGE_KEY, JSON.stringify(newPractice));
 
-      return { success: true, message: 'Practice account created successfully' };
+      return { success: true, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_SUCCESS };
     } catch (error) {
       console.log("The error is", error);
-      return { success: false, message: 'An error occurred during signup' };
+      return { success: false, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_ERROR };
     }
   };
 
   const logout = () => {
-    setState({
-      practice: null,
-      isAuthenticated: false,
-      isLoading: false
-    });
-    localStorage.removeItem('practice');
+    setState({ ...AUTH_CONSTANTS.INITIAL_STATE, isLoading: false });
+    localStorage.removeItem(AUTH_CONSTANTS.STORAGE_KEY);
   };
 
   const updateProfile = (practiceData: Partial<Practice>): void => {
@@ -165,7 +175,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
       const updatedPractice = updatePractice(prev.practice.id, practiceData);
       if (updatedPractice) {
-        localStorage.setItem('practice', JSON.stringify(updatedPractice));
+        localStorage.setItem(AUTH_CONSTANTS.STORAGE_KEY, JSON.stringify(updatedPractice));
         return { ...prev, practice: updatedPractice };
       }
       return prev;
