@@ -97,21 +97,22 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
     };
 
     return (
-        <div className="w-full space-y-6">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
 
-            {/* ADD / EDIT FORM */}
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                        <FileText className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800">
-                            {editingIndex !== null ? 'Edit Certificate' : 'Add Certificate'}
-                        </h2>
-                        <p className="text-sm text-gray-500">Upload medical registrations or licenses.</p>
-                    </div>
+            {/* HEADER */}
+            <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                    <FileText className="w-6 h-6 text-orange-500" />
                 </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                        {editingIndex !== null ? 'Edit Certificate' : 'Add Certificate'}
+                    </h2>
+                    <p className="text-sm text-gray-500">Upload medical registrations or licenses.</p>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6 mb-8 shadow-sm">
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* LEFT: Name Input */}
@@ -208,8 +209,8 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
             </div>
 
             {/* CERTIFICATE LIST */}
-            <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6">
-                <h3 className="text-gray-800 font-bold mb-4">
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <h3 className="text-sm font-bold text-gray-700 mb-4">
                     Uploaded Certificates ({certificates.length})
                 </h3>
 
@@ -261,7 +262,7 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
             </div>
 
             {/* FOOTER ACTIONS */}
-            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
                     onClick={onNext}

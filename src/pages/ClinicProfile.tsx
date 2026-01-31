@@ -225,11 +225,11 @@ const ClinicProfile = () => {
           className="scroll-mt-36"
         ></section>
         <div className="relative h-56 sm:h-64 md:h-80 w-full overflow-visible">
-          <img
-            src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop"
+          {<img
+            src={clinic.banner}
             alt="Clinic Banner"
             className="w-full h-full object-cover object-center"
-          />
+          />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
           {/* Banner Overlay Content - Left Side */}
@@ -539,16 +539,15 @@ const ClinicProfile = () => {
                               transform: `translateX(-${currentSlide * 100}%)`,
                             }}
                           >
-                            {galleryImages.map((url, index) => (
+                            {galleryImages.map((imageSrc, index) => (
                               <div
                                 key={index}
                                 className="w-full flex-shrink-0 px-1 sm:px-2"
                               >
                                 <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl">
-                                  {/* Image with optimal aspect ratio */}
                                   <div className="aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] lg:aspect-[16/9]">
                                     <img
-                                      src={url}
+                                      src={imageSrc}  
                                       alt={`Clinic gallery image ${index + 1}`}
                                       className="w-full h-full object-cover transition-transform duration-500"
                                       loading={index < 3 ? "eager" : "lazy"}

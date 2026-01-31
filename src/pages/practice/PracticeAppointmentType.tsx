@@ -141,7 +141,9 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
         <div className="flex items-center gap-4">
           <button onClick={onCancel} className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm font-medium">
             <ChevronLeft size={20} /> Back
-          </button> |
+          </button> 
+          <span className="text-gray-500 font-base text-2xl">|
+          </span>
           <h1 className="text-xl font-bold text-gray-800">
             {initialData ? 'Edit Appointment Type' : 'New Appointment Type'}
           </h1>

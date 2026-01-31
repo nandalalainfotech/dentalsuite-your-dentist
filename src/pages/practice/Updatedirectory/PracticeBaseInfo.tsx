@@ -3,7 +3,8 @@ import {
     X, ChevronUp, CloudUpload,
     Bold, Italic, Underline, List, AlignLeft,
     AlignCenter, AlignRight, Link as LinkIcon,
-    Image as Undo, Redo
+    Image as Undo, Redo,
+    Info
 } from 'lucide-react';
 import type { Clinic } from '../../../types/clinic';
 
@@ -16,7 +17,7 @@ interface PracticeFormData {
     address: string;
     phoneNumber: string;
     altPhoneNumber: string;
-    bannerImage: string;
+    banner: string;
     logo: string;
     description: string;
 }
@@ -32,7 +33,7 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: C
         address: clinicData.address || '',
         phoneNumber: clinicData.phone || '',
         altPhoneNumber: '',
-        bannerImage: '',
+        banner: clinicData.banner || '',
         logo: clinicData.logo || '',
         description: clinicData.description || ''
     });
@@ -43,7 +44,7 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: C
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleImageUpload = (field: 'logo' | 'bannerImage', event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (field: 'logo' | 'banner', event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
@@ -51,7 +52,7 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: C
         reader.readAsDataURL(file);
     };
 
-    const removeImage = (field: 'logo' | 'bannerImage') => {
+    const removeImage = (field: 'logo' | 'banner') => {
         handleInputChange(field, '');
     };
 
@@ -67,9 +68,14 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: C
     return (
         <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
             {/* Header */}
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-orange-500">Basic Info</h2>
-                <ChevronUp className="w-6 h-6 text-gray-400 cursor-pointer" />
+            <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                    <Info className="w-6 h-6 text-orange-500" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Basic Info</h2>
+                    <p className="text-sm text-gray-500">Manage your practice's core identity and details.</p>
+                </div>
             </div>
 
             {/* Form Fields Grid */}
@@ -135,11 +141,11 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: C
             {/* Image Upload Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <ImageUploader
-                    label="Banner Image"
+                    label="Banner"
                     required
-                    image={formData.bannerImage}
-                    onUpload={(e) => handleImageUpload('bannerImage', e)}
-                    onRemove={() => removeImage('bannerImage')}
+                    image={formData.banner}
+                    onUpload={(e) => handleImageUpload('banner', e)}
+                    onRemove={() => removeImage('banner')}
                     id="banner-upload"
                 />
                 <ImageUploader
