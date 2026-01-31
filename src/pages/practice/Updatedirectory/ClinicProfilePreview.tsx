@@ -20,30 +20,84 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Clini
     return (
         <div className="bg-white pb-20 font-sans">
 
-            {/* 1. HEADER CARD (Banner & Logo) */}
-            <div className="h-48 sm:h-64 bg-gradient-to-r from-blue-900 via-slate-800 to-gray-900 relative">
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-            </div>
+            <div className="relative h-56 sm:h-64 md:h-60 w-full overflow-visible">
+                {<img
+                    src={clinicData.banner}
+                    alt="Clinic Banner"
+                    className="w-full h-full object-cover object-center"
+                />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                <div className="relative -mt-16 sm:-mt-20 bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 flex flex-col md:flex-row items-center md:items-end gap-6 mb-12 text-center md:text-left">
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 bg-white rounded-2xl border-4 border-white shadow-lg overflow-hidden relative -mt-14 sm:-mt-12 flex-shrink-0">
-                        <div className="w-full h-full bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-3xl">
-                            {clinicData.name.substring(0, 2).toUpperCase()}
-                        </div>
-                    </div>
+                {/* Banner Overlay Content */}
+                <div className="absolute bottom-2 sm:bottom-4 md:bottom-6 lg:bottom-10 left-0 w-full px-4 sm:px-6 md:px-8 lg:px-16">
+                    <div className="max-w-7xl mx-auto flex justify-start">
+                        {/* Clinic Info Box */}
+                        <div className="bg-black/60 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 rounded-xl shadow-2xl w-full sm:w-auto sm:max-w-2xl">
+                            <div className="flex flex-col items-start gap-3">
+                                {/* Clinic Information Wrapper */}
+                                <div className="w-full flex flex-col items-start text-left">
+                                    {/* Clinic Name & Logo */}
+                                    <h1 className="flex flex-row items-center justify-start gap-3 text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-orange-600 mb-2">
+                                        <img
+                                            src={clinicData.logo}
+                                            alt={clinicData.name}
+                                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-orange-100 flex-shrink-0"
+                                        />
+                                        <span className="break-words line-clamp-2">
+                                            {clinicData.name.toUpperCase()}
+                                        </span>
+                                    </h1>
 
-                    <div className="flex-1 w-full">
-                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                            <div>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{clinicData.name}</h2>
-                                <p className="text-gray-500 font-medium flex items-center justify-center md:justify-start gap-2 mt-1">
-                                    <Briefcase className="w-4 h-4 text-orange-500" /> {clinicData.tagline}
-                                </p>
-                                <div className="flex flex-wrap justify-center md:justify-start gap-2 sm:gap-4 mt-4 text-sm text-gray-600">
-                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full"><MapPin className="w-3.5 h-3.5 text-gray-500" /> Sydney, NSW</span>
-                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-100"><Star className="w-3.5 h-3.5 fill-current" /> 4.8 (120 Reviews)</span>
+                                    {/* Address */}
+                                    <div className="text-gray-300 text-sm sm:text-base mb-2">
+                                        <p className="font-medium line-clamp-1 sm:line-clamp-none text-left">
+                                            {clinicData.address}
+                                        </p>
+                                    </div>
+
+                                    {/* Emergency Badge */}
+                                    {clinicData.emergency !== undefined && (
+                                        <div className="flex items-center justify-start mb-2 gap-2">
+                                            {clinicData.emergency ? (
+                                                <>
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse flex-shrink-0"></div>
+                                                    <span className="text-green-400 font-semibold text-xs sm:text-sm">
+                                                        Emergency available
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0"></div>
+                                                    <span className="text-red-400 font-semibold text-xs sm:text-sm">
+                                                        No emergency service
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Rating */}
+                                    <div className="flex items-center justify-start gap-2">
+                                        <span className="text-white font-bold text-sm sm:text-base">
+                                            {clinicData.rating || 0}
+                                        </span>
+                                        <div className="flex gap-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <svg
+                                                    key={i}
+                                                    className={`w-4 h-4 sm:w-5 sm:h-5 ${i < Math.floor(clinicData.rating || 0)
+                                                        ? "text-yellow-500"
+                                                        : "text-gray-400"
+                                                        }`}
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -51,7 +105,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Clini
                 </div>
 
                 {/* Content Grid */}
-                <div className="grid grid-cols-1 gap-12 sm:gap-16 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 gap-12 sm:gap-16 max-w-5xl mx-auto mt-5">
 
                     {/* 2. BASIC INFO SECTION */}
                     <section>
@@ -79,19 +133,23 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Clini
                             <h3 className="text-lg font-extrabold text-gray-900 uppercase tracking-wide flex items-center gap-2">
                                 <Users className="w-5 h-5 text-orange-500" /> Our Team
                             </h3>
-                            <span className="bg-orange-100 text-orange-700 px-4 py-1 rounded-full text-sm font-bold">{(clinicData.team || []).length} Dentists</span>
+                            <span className="bg-orange-100 text-orange-700 px-4 py-1 rounded-full text-sm font-bold">{(clinicData.dentists || []).length} Dentists</span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                            {(clinicData.team || []).map((doc, i) => (
-                                <div key={i} className="flex flex-col items-center p-6 sm:p-8 border border-gray-200 rounded-3xl bg-white shadow-sm hover:shadow-md transition text-center">
+                        <div className="p-2 sm:p-3 md:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                            {(clinicData.dentists || []).map((dentist, i) => (
+                                <div key={i} className="flex flex-col items-center p-6 sm:p-8 border border-gray-200 rounded-2xl bg-white">
                                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gray-100 mb-6 border-4 border-white shadow-md overflow-hidden relative">
                                         <div className="absolute inset-0 flex items-center justify-center bg-gray-200 text-gray-400">
-                                            <Users className="w-12 h-12" />
+                                            <img
+                                                src={dentist.image}
+                                                alt={dentist.name}
+                                                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover flex-shrink-0"
+                                            />
                                         </div>
                                     </div>
-                                    <h4 className="font-bold text-gray-900 text-lg sm:text-xl">{doc.name}</h4>
-                                    <p className="text-gray-500 mt-2 text-sm sm:text-base">{doc.qual} - {doc.role}</p>
+                                    <h4 className="font-bold text-gray-900 text-lg sm:text-xl">{dentist.name}</h4>
+                                    <p className="text-gray-500 mt-2 text-sm sm:text-base">{dentist.qualification}</p>
                                 </div>
                             ))}
                         </div>
@@ -154,9 +212,9 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Clini
                     {/* 9. FACILITIES */}
                     <section>
                         <SectionHeading title="Facilities" icon={Building} />
-                        <div className="flex flex-wrap gap-3 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="flex flex-wrap gap-3 bg-white p-6">
                             {(clinicData.facilities || []).map((fac, i) => (
-                                <span key={i} className="px-3 py-1.5 bg-gray-50 text-gray-700 text-sm rounded-lg font-medium border border-gray-200">
+                                <span key={i} className="px-3 py-2 font-medium text-sm text-gray-800 rounded-full border-2 transition-all">
                                     {fac}
                                 </span>
                             ))}

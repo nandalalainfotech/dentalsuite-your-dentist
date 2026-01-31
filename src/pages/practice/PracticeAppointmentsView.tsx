@@ -392,14 +392,14 @@ const StatusBadge = ({ status, size = 'default' }: { status: ValidStatus; size?:
 };
 
 // --- Patient Tags Component ---
-const PatientTags = ({ 
-  isNewPatient, 
-  isDependent, 
-  size = 'default' 
-}: { 
-  isNewPatient: boolean; 
-  isDependent: boolean; 
-  size?: 'small' | 'default' 
+const PatientTags = ({
+  isNewPatient,
+  isDependent,
+  size = 'default'
+}: {
+  isNewPatient: boolean;
+  isDependent: boolean;
+  size?: 'small' | 'default'
 }) => {
   if (!isNewPatient && !isDependent) return null;
 
@@ -460,16 +460,16 @@ const ToastNotification = ({ message, show, onClose }: { message: string; show: 
 };
 
 // --- New 2-Column Reschedule Modal Component ---
-const RescheduleModal = ({ 
-  apt, 
-  isOpen, 
-  onClose, 
+const RescheduleModal = ({
+  apt,
+  isOpen,
+  onClose,
   onConfirm,
-  practitioners 
-}: { 
-  apt: EnrichedAppointment; 
-  isOpen: boolean; 
-  onClose: () => void; 
+  practitioners
+}: {
+  apt: EnrichedAppointment;
+  isOpen: boolean;
+  onClose: () => void;
   onConfirm: (date: string, time: string) => void;
   practitioners: string[];
 }) => {
@@ -520,24 +520,24 @@ const RescheduleModal = ({
   // Generate time slots for a specific date (mock data - replace with API call)
   const generateSlotsForDate = (dateStr: string): string[] => {
     if (!dateStr) return [];
-    
+
     const date = new Date(dateStr);
     const dayOfWeek = date.getDay();
-    
+
     // Sunday - no slots
     if (dayOfWeek === 0) return [];
-    
+
     // Saturday - limited slots
     if (dayOfWeek === 6) {
       return ['09:00', '09:30', '10:00', '10:30', '11:00'];
     }
-    
+
     // Weekdays - full availability (simulated with some variation)
     const baseSlots = [
       '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
       '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
     ];
-    
+
     // Remove some slots randomly based on date to simulate bookings
     const dateNum = date.getDate();
     return baseSlots.filter((_, index) => {
@@ -568,7 +568,7 @@ const RescheduleModal = ({
       if (currentDate < today) continue;
 
       const slots = generateSlotsForDate(dateStr);
-      
+
       // Filter out past times if it's today
       const now = new Date();
       const filteredSlots = slots.filter(time => {
@@ -668,18 +668,18 @@ const RescheduleModal = ({
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
-      
+
       {/* 2-Column Modal Layout */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20 flex-shrink-0">
           <div>
             <h3 className="font-bold text-gray-900 text-lg">Reschedule Appointment</h3>
             <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
-               <span className="font-medium text-gray-700">{apt.patientName}</span>
-               <span>•</span>
-               <span>{apt.treatment}</span>
+              <span className="font-medium text-gray-700">{apt.patientName}</span>
+              <span>•</span>
+              <span>{apt.treatment}</span>
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
@@ -689,10 +689,10 @@ const RescheduleModal = ({
 
         {/* Content Grid */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          
+
           {/* LEFT COLUMN: Full Calendar & Practitioner */}
           <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-b from-gray-50 to-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
-            
+
             {/* Full Calendar */}
             <div className="mb-6">
               {/* Calendar Header */}
@@ -723,9 +723,8 @@ const RescheduleModal = ({
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
                   <span
                     key={i}
-                    className={`text-xs font-semibold h-8 flex items-center justify-center ${
-                      i === 0 ? 'text-red-400' : 'text-gray-400'
-                    }`}
+                    className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-400' : 'text-gray-400'
+                      }`}
                   >
                     {d}
                   </span>
@@ -767,14 +766,13 @@ const RescheduleModal = ({
                       <button
                         key={name}
                         type="button"
-                        onClick={() => { 
-                          setSelectedPractitioner(name); 
+                        onClick={() => {
+                          setSelectedPractitioner(name);
                           setIsPractitionerOpen(false);
                           setSelectedTime('');
                         }}
-                        className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${
-                          selectedPractitioner === name ? 'bg-blue-50/50' : ''
-                        }`}
+                        className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitioner === name ? 'bg-blue-50/50' : ''
+                          }`}
                       >
                         <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
                           <span className="text-xs font-bold">{name.charAt(4)}</span>
@@ -793,7 +791,7 @@ const RescheduleModal = ({
 
           {/* RIGHT COLUMN: 7-Day Time Slots View */}
           <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
-            
+
             {/* Header */}
             <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center justify-between">
@@ -823,24 +821,21 @@ const RescheduleModal = ({
                     return (
                       <div
                         key={dayData.dateStr}
-                        className={`rounded-xl border transition-all ${
-                          isSelectedDay
-                            ? 'border-blue-200 bg-blue-50/30'
-                            : 'border-gray-100 bg-white hover:border-gray-200'
-                        }`}
+                        className={`rounded-xl border transition-all ${isSelectedDay
+                          ? 'border-blue-200 bg-blue-50/30'
+                          : 'border-gray-100 bg-white hover:border-gray-200'
+                          }`}
                       >
                         {/* Day Header */}
-                        <div className={`px-4 py-3 border-b flex items-center justify-between ${
-                          isSelectedDay ? 'border-blue-100' : 'border-gray-100'
-                        }`}>
+                        <div className={`px-4 py-3 border-b flex items-center justify-between ${isSelectedDay ? 'border-blue-100' : 'border-gray-100'
+                          }`}>
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${
-                              isToday
-                                ? 'bg-blue-600 text-white'
-                                : isSelectedDay
-                                  ? 'bg-blue-100 text-blue-700'
-                                  : 'bg-gray-100 text-gray-700'
-                            }`}>
+                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${isToday
+                              ? 'bg-blue-600 text-white'
+                              : isSelectedDay
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-gray-100 text-gray-700'
+                              }`}>
                               <span className="text-[10px] font-bold uppercase leading-none">
                                 {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
                               </span>
@@ -863,11 +858,10 @@ const RescheduleModal = ({
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              dayData.slots.length > 0
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-500'
-                            }`}>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${dayData.slots.length > 0
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-500'
+                              }`}>
                               {dayData.slots.length} {dayData.slots.length === 1 ? 'slot' : 'slots'}
                             </span>
                           </div>
@@ -919,8 +913,8 @@ const RescheduleModal = ({
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   Reason for Reschedule (Optional)
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g., Patient requested later time..."
@@ -951,20 +945,19 @@ const RescheduleModal = ({
 
                 {/* Buttons */}
                 <div className="flex gap-3">
-                  <button 
-                    onClick={onClose} 
+                  <button
+                    onClick={onClose}
                     className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     onClick={handleConfirm}
                     disabled={!selectedDate || !selectedTime || isLoading}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${
-                      selectedDate && selectedTime && !isLoading
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl' 
+                    className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${selectedDate && selectedTime && !isLoading
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                    }`}
+                      }`}
                   >
                     {isLoading ? (
                       <>
@@ -1017,7 +1010,7 @@ const MobileBottomSheet = ({
   const handleReschedule = () => {
     onClose(); // Close sheet first
     // Small timeout to allow sheet to close before modal logic triggers
-    setTimeout(() => onReschedule(apt), 100); 
+    setTimeout(() => onReschedule(apt), 100);
   };
 
   return ReactDOM.createPortal(
@@ -1231,7 +1224,7 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
     <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
       <div className="bg-white rounded-xl p-4 border border-gray-100 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
+
           {/* Column 1: Contact Info */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Contact Info</h5>
@@ -1288,7 +1281,7 @@ export default function PracticeAppointmentsView() {
   const [isLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
-  
+
   // Reschedule State
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [rescheduleApt, setRescheduleApt] = useState<EnrichedAppointment | null>(null);
@@ -1484,6 +1477,19 @@ export default function PracticeAppointmentsView() {
     }
   };
 
+  // Add this state inside your component
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+
+    // Simulate an API call / Data refresh delay
+    setTimeout(() => {
+      setIsRefreshing(false);
+      // Add your actual data fetch function here if needed
+    }, 800); // 800ms delay for smooth effect
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
@@ -1519,7 +1525,7 @@ export default function PracticeAppointmentsView() {
   return (
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-7xl mx-auto">
-        
+
         {/* Header */}
         <div className="bg-white border-b border-gray-100">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
@@ -1527,9 +1533,25 @@ export default function PracticeAppointmentsView() {
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Appointments</h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Manage your practice bookings</p>
             </div>
-            <button className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all text-xs sm:text-sm border border-gray-200">
-              <Icons.Refresh className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Refresh</span>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all text-xs sm:text-sm border border-gray-200 
+                    ${isRefreshing
+                  ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
+                }`}
+            >
+              {/* Wrap icon in a div to apply style/animation without TypeScript errors */}
+              <div
+                className={isRefreshing ? 'animate-spin' : ''}
+                style={isRefreshing ? { animationDuration: '0.5s' } : undefined}
+              >
+                <Icons.Refresh className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              <span className="hidden sm:inline">
+                        {isRefreshing ? 'Refresh' : 'Refresh'}
+                    </span>
             </button>
           </div>
         </div>
@@ -1596,7 +1618,7 @@ export default function PracticeAppointmentsView() {
                 </button>
               )}
             </div>
-            
+
             {showFilters && (
               <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
                 <div>
@@ -1650,11 +1672,11 @@ export default function PracticeAppointmentsView() {
 
                   return (
                     <div key={apt.id} className="bg-white">
-                      
+
                       {/* ============ MOBILE/TABLET VIEW (< 1024px) ============ */}
                       <div className="lg:hidden">
-                        <div 
-                          onClick={() => toggleRowExpansion(apt.id)} 
+                        <div
+                          onClick={() => toggleRowExpansion(apt.id)}
                           className={`px-3 sm:px-4 py-3 cursor-pointer active:bg-gray-50 transition-colors ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -1662,8 +1684,8 @@ export default function PracticeAppointmentsView() {
                             <div className="flex items-center gap-1">
                               <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} size="small" />
                               {!isTerminalState(apt.status) && (
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }} 
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
                                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
                                   <Icons.MoreVertical className="w-4 h-4" />
@@ -1699,17 +1721,17 @@ export default function PracticeAppointmentsView() {
                             </div>
                           </div>
                           {/* Mobile/Tablet Expanded Details */}
-                        {isExpanded && <ExpandedDetailsCard apt={apt} />}
+                          {isExpanded && <ExpandedDetailsCard apt={apt} />}
                         </div>
 
-                        
+
                       </div>
 
                       {/* ============ DESKTOP VIEW (>= 1024px) ============ */}
-                      <div 
+                      <div
                         className={`hidden lg:block transition-colors ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
                       >
-                        <div 
+                        <div
                           className="flex items-center px-4 md:px-6 py-4 cursor-pointer"
                           onClick={() => toggleRowExpansion(apt.id)}
                         >
@@ -1751,8 +1773,8 @@ export default function PracticeAppointmentsView() {
                           {/* Actions */}
                           <div className="w-16 flex justify-end items-center gap-1 relative">
                             {!isTerminalState(apt.status) && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }} 
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
                                 className={`p-1.5 rounded-lg transition-all ${openMenuId === apt.id ? 'bg-gray-200 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                               >
                                 <Icons.MoreVertical className="w-5 h-5" />
@@ -1761,16 +1783,16 @@ export default function PracticeAppointmentsView() {
 
                             {/* DROPDOWN RENDERED INLINE FOR DESKTOP */}
                             {openMenuId === apt.id && !isMobile && (
-                                <DesktopDropdown 
-                                  apt={apt} 
-                                  onUpdate={handleStatusUpdate} 
-                                  onReschedule={handleRescheduleClick} 
-                                  onClose={handleCloseMenu} 
-                                />
+                              <DesktopDropdown
+                                apt={apt}
+                                onUpdate={handleStatusUpdate}
+                                onReschedule={handleRescheduleClick}
+                                onClose={handleCloseMenu}
+                              />
                             )}
 
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }} 
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }}
                               className={`p-1.5 transition-transform duration-200 text-gray-400 hover:text-gray-600 ${isExpanded ? 'rotate-180' : ''}`}
                             >
                               <Icons.ChevronDown className="w-5 h-5" />
@@ -1788,7 +1810,7 @@ export default function PracticeAppointmentsView() {
               </div>
             )}
           </div>
-          
+
           {/* Footer (Pagination) */}
           {filteredAppointments.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50">
@@ -1798,9 +1820,9 @@ export default function PracticeAppointmentsView() {
               </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => handlePageChange(currentPage - 1)} 
-                    disabled={currentPage === 1} 
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                     className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
                     Previous
@@ -1808,9 +1830,9 @@ export default function PracticeAppointmentsView() {
                   <div className="hidden sm:flex items-center gap-1">
                     {getPageNumbers().map((page, index) => (
                       typeof page === 'number' ? (
-                        <button 
-                          key={index} 
-                          onClick={() => handlePageChange(page)} 
+                        <button
+                          key={index}
+                          onClick={() => handlePageChange(page)}
                           className={`w-7 h-7 flex items-center justify-center text-xs rounded-md transition-all ${currentPage === page ? 'font-medium text-white bg-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
                           {page}
@@ -1821,9 +1843,9 @@ export default function PracticeAppointmentsView() {
                     ))}
                   </div>
                   <span className="sm:hidden text-xs text-gray-500">{currentPage} / {totalPages}</span>
-                  <button 
-                    onClick={() => handlePageChange(currentPage + 1)} 
-                    disabled={currentPage === totalPages} 
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
                     className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
                     Next
@@ -1835,22 +1857,22 @@ export default function PracticeAppointmentsView() {
 
         </div>
       </div>
-      
+
       {/* Mobile Bottom Sheet Portal (Only for Mobile) */}
       {openMenuId && openMenuApt && isMobile && (
-        <MobileBottomSheet 
-          apt={openMenuApt} 
-          onUpdate={handleStatusUpdate} 
-          onReschedule={handleRescheduleClick} 
-          onClose={handleCloseMenu} 
+        <MobileBottomSheet
+          apt={openMenuApt}
+          onUpdate={handleStatusUpdate}
+          onReschedule={handleRescheduleClick}
+          onClose={handleCloseMenu}
         />
       )}
 
       {/* Reschedule Modal */}
       {showRescheduleModal && rescheduleApt && (
-        <RescheduleModal 
-          apt={rescheduleApt} 
-          isOpen={showRescheduleModal} 
+        <RescheduleModal
+          apt={rescheduleApt}
+          isOpen={showRescheduleModal}
           onClose={() => setShowRescheduleModal(false)}
           onConfirm={handleRescheduleConfirm}
           practitioners={practitioners}
@@ -1858,10 +1880,10 @@ export default function PracticeAppointmentsView() {
       )}
 
       {/* Success Toast */}
-      <ToastNotification 
-        message="Rescheduled! Patient notified via Email & SMS." 
-        show={showToast} 
-        onClose={() => setShowToast(false)} 
+      <ToastNotification
+        message="Rescheduled! Patient notified via Email & SMS."
+        show={showToast}
+        onClose={() => setShowToast(false)}
       />
     </div>
   );

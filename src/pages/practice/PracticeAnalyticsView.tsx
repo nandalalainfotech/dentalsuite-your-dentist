@@ -338,7 +338,7 @@ export default function PracticeAnalyticsView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 text-sm font-medium hover:bg-white hover:shadow-sm bg-white transition-all">
             <HelpCircle size={18} />
             <span>Support</span>
@@ -351,7 +351,7 @@ export default function PracticeAnalyticsView() {
             <Printer size={18} />
             <span>Print Report</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* --- STATS CARDS ROW --- */}

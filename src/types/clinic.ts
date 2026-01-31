@@ -22,6 +22,8 @@ export interface Clinic {
   website?: string;
   rating?: number;
   logo?: string;
+  banner?: string;
+  gallery?: string[];
   slots?: TimeSlot[];
   time: {
     monday: string;

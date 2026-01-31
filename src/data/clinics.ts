@@ -10,7 +10,7 @@ export const clinics: Clinic[] = [
     specialities: ["General Dentistry", "Root Canal", "Cosmetic Dentistry"],
     services: ["General Dentistry", "Root Canal", "Cosmetic Dentistry"],
     phone: "(02) 9234 5678",
-    email: "Sydney@dentalcare.com.au",
+    email: "sydney@dentalcare.com.au",
     password: "vv123",
     website: "https://vishwadentalcare.com.au",
     rating: 4.8,
@@ -25,6 +25,19 @@ export const clinics: Clinic[] = [
       sunday: "Closed"
     },
     logo: "/head.jpeg",
+    banner: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    ],
     description: "A premier dental clinic offering comprehensive oral healthcare services with state-of-the-art technology and experienced professionals.",
     establishedYear: 2024,
     facilities: ["Digital X-Ray", "Sterilization Equipment", "Air Conditioned", "Waiting Area", "Pharmacy"],
@@ -84,7 +97,8 @@ export const clinics: Clinic[] = [
       { name: "Dr. Sarah Chen", role: "Conservative Dentistry", qual: "BDSc, MDSc" }
     ],
     achievements: [],
-    insurances: ["Bupa", "Medibank", "HCF", "NIB"]
+    insurances: ["Bupa", "Medibank", "HCF", "NIB"],
+    reviews: ''
   },
   {
     id: "2",
@@ -94,7 +108,7 @@ export const clinics: Clinic[] = [
     specialities: ["Specialist Dentistry", "Orthodontics", "Oral Surgery"],
     services: ["Specialist Dentistry", "Orthodontics", "Oral Surgery"],
     phone: "(03) 9876 5432",
-    email: "Melbourne@dentalclinic.com.au",
+    email: "melbourne@dentalclinic.com.au",
     password: "practice456",
     website: "https://citydentalclinic.com.au",
     rating: 4.9,
@@ -109,6 +123,19 @@ export const clinics: Clinic[] = [
       sunday: "Closed"
     },
     logo: "/head2.avif",
+    banner: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    ],
     description: "Specialized dental center offering advanced treatments with state-of-the-art technology and experienced specialists.",
     establishedYear: 2024,
     facilities: ["3D CBCT Scanner", "Laser Dentistry", "Surgical Suite", "In-house Lab", "WiFi"],
@@ -168,7 +195,8 @@ export const clinics: Clinic[] = [
       { name: "Dr. Emily Wilson", role: "Orthodontics", qual: "BDSc, MDSc" }
     ],
     achievements: [],
-    insurances: ["Bupa", "Medibank Private", "AHM", "Australian Unity"]
+    insurances: ["Bupa", "Medibank Private", "AHM", "Australian Unity"],
+    reviews: ''
   },
   {
     id: "3",
@@ -178,7 +206,7 @@ export const clinics: Clinic[] = [
     specialities: ["Cosmetic Dentistry", "Teeth Whitening", "Smile Makeover"],
     services: ["Cosmetic Dentistry", "Teeth Whitening", "Smile Makeover"],
     phone: "(07) 3456 7890",
-    email: "City@smile.com.au",
+    email: "city@smile.com.au",
     password: "practice789",
     website: "https://brightsmile.com.au",
     rating: 4.7,
@@ -193,6 +221,19 @@ export const clinics: Clinic[] = [
       sunday: "Closed"
     },
     logo: "/head3.jpg",
+    banner: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    ],
     description: "Cosmetic dental care center specializing in smile transformations and aesthetic procedures with modern technology.",
     establishedYear: 2024,
     facilities: ["Digital Smile Design", "CAD/CAM System", "Teeth Whitening Studio", "Coffee Bar"],
@@ -252,7 +293,8 @@ export const clinics: Clinic[] = [
       { name: "Dr. Neha Patel", role: "Orthodontics", qual: "BDS, MDS" }
     ],
     achievements: [],
-    insurances: ["Bajaj Allianz", "United India", "Oriental Insurance"]
+    insurances: ["Bajaj Allianz", "United India", "Oriental Insurance"],
+    reviews: ''
   },
   {
     id: "4",
@@ -277,6 +319,19 @@ export const clinics: Clinic[] = [
       sunday: "Closed"
     },
     logo: "/head2.avif",
+    banner: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    ],
     description: "Family-focused dental care center specializing in pediatric dentistry and preventive treatments for all ages.",
     establishedYear: 2024,
     facilities: ["Pediatric Play Area", "Digital Scanner", "Sterilization Room", "Parking"],
@@ -336,7 +391,8 @@ export const clinics: Clinic[] = [
       { name: "Dr. Sarah Johnson", role: "Family Dentistry", qual: "BDS, MDS" }
     ],
     achievements: [],
-    insurances: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"]
+    insurances: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"],
+    reviews: ''
   },
   {
     id: "5",
@@ -361,6 +417,19 @@ export const clinics: Clinic[] = [
       sunday: "Closed"
     },
     logo: "/head2.avif",
+    banner: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&auto=format&fit=crop",
+    ],
     description: "Specialized orthodontic practice offering advanced teeth straightening solutions using the latest technology and techniques.",
     establishedYear: 2024,
     facilities: ["Orthodontic Lab", "Digital Scanner", "3D Imaging", "Patient Consultation Rooms"],
@@ -396,6 +465,7 @@ export const clinics: Clinic[] = [
       { name: "Dr. James Martinez", role: "Orthodontics", qual: "BDS, MDS" }
     ],
     achievements: [],
-    insurances: ["Major Health Funds", "Private Health Insurance"]
+    insurances: ["Major Health Funds", "Private Health Insurance"],
+    reviews: ''
   }
 ];
