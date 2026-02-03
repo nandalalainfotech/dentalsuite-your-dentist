@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent, type ComponentType, } from 'react';
 import {
     MapPin, Globe, Facebook, Instagram, Twitter, Youtube,
-    Plus, Trash2, X, Clock, Phone, Mail, Navigation, Calendar
+    Plus, Trash2, X, Clock, Phone, Mail, Navigation,
 } from 'lucide-react';
 import type { Clinic } from '../../../types';
 
@@ -72,24 +72,24 @@ const generateId = (): string => Math.random().toString(36).substr(2, 9);
 // Convert 12-hour time format (e.g., "9:00 AM") to 24-hour format (e.g., "09:00")
 const convertTo24Hour = (time12h: string): string => {
     if (!time12h) return '09:00';
-    
+
     const timeStr = time12h.trim();
-    
+
     // If already in 24-hour format (no AM/PM)
     if (!timeStr.toLowerCase().includes('am') && !timeStr.toLowerCase().includes('pm')) {
         // Ensure proper formatting (e.g., "9:00" -> "09:00")
         const [hours, minutes] = timeStr.split(':');
         return `${hours.padStart(2, '0')}:${minutes || '00'}`;
     }
-    
+
     const isPM = timeStr.toLowerCase().includes('pm');
     const cleanTime = timeStr.replace(/[aApP][mM]/g, '').trim();
     const [hours, minutes] = cleanTime.split(':').map(s => s.trim());
-    
+
     let hour = parseInt(hours, 10);
     if (isPM && hour !== 12) hour += 12;
     if (!isPM && hour === 12) hour = 0;
-    
+
     return `${hour.toString().padStart(2, '0')}:${minutes || '00'}`;
 };
 
@@ -97,33 +97,33 @@ const convertTo24Hour = (time12h: string): string => {
 const parseTimeString = (timeStr: string | undefined): DayHours => {
     // Handle closed or empty cases
     if (!timeStr || timeStr.toLowerCase() === 'closed' || timeStr.toLowerCase() === 'close') {
-        return { 
-            isOpen: false, 
-            slots: [{ id: generateId(), start: '09:00', end: '17:00' }] 
+        return {
+            isOpen: false,
+            slots: [{ id: generateId(), start: '09:00', end: '17:00' }]
         };
     }
-    
+
     // Handle multiple time ranges (e.g., "9:00 AM - 12:00 PM, 2:00 PM - 5:00 PM")
     const ranges = timeStr.split(',').map(r => r.trim());
-    
+
     const slots: TimeSlot[] = ranges.map(range => {
         // Split by '-' handling various formats with or without spaces
         const parts = range.split(/\s*[-–]\s*/);
-        
+
         if (parts.length >= 2) {
             const start = convertTo24Hour(parts[0]);
             const end = convertTo24Hour(parts[1]);
-            return { 
-                id: generateId(), 
-                start, 
-                end 
+            return {
+                id: generateId(),
+                start,
+                end
             };
         }
-        
+
         // Fallback for malformed data
         return { id: generateId(), start: '09:00', end: '17:00' };
     });
-    
+
     return { isOpen: true, slots };
 };
 
@@ -136,7 +136,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
     const [formData, setFormData] = useState<ContactFormData>(() => {
         // Parse clinic time data on initialization
         const timeData = clinicData.time || {};
-        
+
         return {
             address: clinicData.address || '',
             suburb: 'Macquarie', // Mock default
@@ -164,6 +164,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // --- Handlers ---
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleInputChange = (field: keyof ContactFormData, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -210,7 +211,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                     <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
                         <Navigation className="w-4 h-4 text-orange-500" /> Location
                     </h3>
-                    
+
                     <div>
                         <label className={labelClasses}>Street Address</label>
                         <input
@@ -255,7 +256,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
 
                 {/* Visual Map Placeholder */}
                 <div className="flex flex-col h-full pt-11">
-                     <div className="flex-1 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden group min-h-[250px]">
+                    <div className="flex-1 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden group min-h-[250px]">
                         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]"></div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full">
                             <MapPin className="w-12 h-12 text-red-500 drop-shadow-lg fill-red-500 animate-bounce" />
@@ -274,7 +275,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                 <h3 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-6">
                     <Clock className="w-4 h-4 text-orange-500" /> Opening Hours
                 </h3>
-                
+
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                     <div className="space-y-1">
                         {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
@@ -367,7 +368,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                 <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-orange-500" /> Online Presence
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label className={labelClasses}>Phone Number</label>
@@ -408,10 +409,10 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                     <SocialInput Icon={Facebook} color="text-blue-600" placeholder="Facebook URL" value={formData.facebook} onChange={(e: { target: { value: any; }; }) => handleInputChange('facebook', e.target.value)} inputClasses={inputClasses} />
-                     <SocialInput Icon={Instagram} color="text-pink-600" placeholder="Instagram URL" value={formData.instagram} onChange={(e: { target: { value: any; }; }) => handleInputChange('instagram', e.target.value)} inputClasses={inputClasses} />
-                     <SocialInput Icon={Twitter} color="text-sky-500" placeholder="Twitter URL" value={formData.twitter} onChange={(e: { target: { value: any; }; }) => handleInputChange('twitter', e.target.value)} inputClasses={inputClasses} />
-                     <SocialInput Icon={Youtube} color="text-red-600" placeholder="Youtube URL" value={formData.youtube} onChange={(e: { target: { value: any; }; }) => handleInputChange('youtube', e.target.value)} inputClasses={inputClasses} />
+                    <SocialInput Icon={Facebook} color="text-blue-600" placeholder="Facebook URL" value={formData.facebook} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('facebook', e.target.value)} inputClasses={inputClasses} />
+                    <SocialInput Icon={Instagram} color="text-pink-600" placeholder="Instagram URL" value={formData.instagram} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('instagram', e.target.value)} inputClasses={inputClasses} />
+                    <SocialInput Icon={Twitter} color="text-sky-500" placeholder="Twitter URL" value={formData.twitter} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('twitter', e.target.value)} inputClasses={inputClasses} />
+                    <SocialInput Icon={Youtube} color="text-red-600" placeholder="Youtube URL" value={formData.youtube} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('youtube', e.target.value)} inputClasses={inputClasses} />
                 </div>
             </div>
 
@@ -445,7 +446,8 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
 // Sub-Components
 // ----------------------------------------------------------------------
 
-const SocialInput = ({ Icon, color, placeholder, value, onChange, inputClasses }: any) => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SocialInput = ({ Icon, color, placeholder, value, onChange, inputClasses }: { Icon: ComponentType<any>, color: string, placeholder: string, value: string, onChange: (e: ChangeEvent<HTMLInputElement>) => void, inputClasses: string }) => (
     <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Icon className={`w-5 h-5 ${color}`} />
@@ -460,21 +462,20 @@ const SocialInput = ({ Icon, color, placeholder, value, onChange, inputClasses }
     </div>
 );
 
-const DayRow = ({ 
-    day, 
-    dayHours, 
-    originalTime,
-    onChange 
-}: { 
-    day: string; 
-    dayHours: DayHours; 
+const DayRow = ({
+    day,
+    dayHours,
+    onChange
+}: {
+    day: string;
+    dayHours: DayHours;
     originalTime?: string;
-    onChange: (newHours: DayHours) => void; 
+    onChange: (newHours: DayHours) => void;
 }) => {
     const handleToggleOpen = (isOpen: boolean) => onChange({ ...dayHours, isOpen });
-    
+
     const handleSlotChange = (slotId: string, field: 'start' | 'end', value: string) => {
-        const updatedSlots = dayHours.slots.map(slot => 
+        const updatedSlots = dayHours.slots.map(slot =>
             slot.id === slotId ? { ...slot, [field]: value } : slot
         );
         onChange({ ...dayHours, slots: updatedSlots });
@@ -497,7 +498,7 @@ const DayRow = ({
             <div className="flex-1 flex justify-end">
                 {dayHours.isOpen ? (
                     <div className="space-y-2">
-                        {dayHours.slots.map((slot, index) => (
+                        {dayHours.slots.map((slot) => (
                             <div key={slot.id} className="flex items-center gap-2">
                                 <input
                                     type="time"
