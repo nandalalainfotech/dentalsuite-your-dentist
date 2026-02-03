@@ -101,7 +101,7 @@ export default function PracticeSignIn() {
             </p>
             <div className="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
               <p className="font-semibold mb-1">Test Credentials:</p>
-              <p>Email: vishwa@dentalcare.com.au</p>
+              <p>Email: sydney@dentalcare.com.au</p>
               <p>Password: vv123</p>
             </div>
           </div>
