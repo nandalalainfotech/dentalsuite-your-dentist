@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building, Plus, X, Wifi, Car, Coffee, Accessibility, Thermometer, Tv, Stethoscope, Baby, Check } from 'lucide-react';
+import { Building, Plus, X, Wifi, Car, Accessibility, Thermometer, Tv, Stethoscope, Check } from 'lucide-react';
 import type { Clinic } from '../../../types';
 
 // Added onNext to props
@@ -13,11 +13,9 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
         { name: 'Free Wi-Fi', icon: Wifi },
         { name: 'Parking Available', icon: Car },
         { name: 'Wheelchair Access', icon: Accessibility },
-        { name: 'Coffee / Tea', icon: Coffee },
         { name: 'Air Conditioned', icon: Thermometer },
         { name: 'TV in Waiting Area', icon: Tv },
         { name: 'Emergency Service', icon: Stethoscope },
-        { name: 'Kid\'s Play Area', icon: Baby },
     ];
 
     const toggleFacility = (name: string) => {
@@ -61,7 +59,7 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
             {/* COMMON AMENITIES GRID */}
             <div className="mb-8">
                 <h3 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Common Amenities</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {commonAmenities.map((item) => {
                         const isSelected = facilities.includes(item.name);
                         const Icon = item.icon;

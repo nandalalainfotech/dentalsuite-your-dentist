@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 
 export const SectionHeader = ({ title, desc, actionLabel, onActionClick }: { 
     title: string, 
@@ -7,11 +7,16 @@ export const SectionHeader = ({ title, desc, actionLabel, onActionClick }: {
     actionLabel?: string,
     onActionClick?: () => void 
 }) => (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-100">
-        <div>
-            <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-500 mt-1">{desc}</p>
-        </div>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+        <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                    <Users className="w-6 h-6 text-orange-500" />
+                </div>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+                    <p className="text-sm text-gray-500">{desc}</p>
+                </div>
+            </div>
         {actionLabel && (
             <button 
                 onClick={onActionClick}

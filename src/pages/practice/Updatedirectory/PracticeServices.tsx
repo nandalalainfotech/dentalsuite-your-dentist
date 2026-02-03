@@ -274,7 +274,7 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: C
                                                 {service.showInAppointment ? (
                                                     <span className="w-2 h-2 rounded-full bg-green-500" title="Active"></span>
                                                 ) : (
-                                                    <span className="w-2 h-2 rounded-full bg-gray-300" title="Inactive"></span>
+                                                    <span className="w-2 h-2 rounded-full bg-red-500" title="Inactive"></span>
                                                 )}
                                             </div>
                                             
