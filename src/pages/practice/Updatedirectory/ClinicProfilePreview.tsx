@@ -55,7 +55,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Clini
                                         </p>
                                     </div>
 
-                                    {/* Emergency Badge */}
+                                    {/* Emergency Badgee */}
                                     {clinicData.emergency !== undefined && (
                                         <div className="flex items-center justify-start mb-2 gap-2">
                                             {clinicData.emergency ? (
