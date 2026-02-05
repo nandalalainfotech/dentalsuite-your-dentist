@@ -141,7 +141,7 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
         <div className="flex items-center gap-4">
           <button onClick={onCancel} className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm font-medium">
             <ChevronLeft size={20} /> Back
-          </button> 
+          </button>
           <span className="text-gray-500 font-base text-2xl">|
           </span>
           <h1 className="text-xl font-bold text-gray-800">
@@ -354,29 +354,37 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <div>
-                <label className="block text-sm font-bold text-gray-600 mb-2">Link for Existing Patients</label>
+                <label className="block text-sm font-bold text-gray-600 mb-2">
+                  Link for Existing Patients
+                </label>
+
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm bg-white"
-                  value={formData.existingLink}
-                  onChange={(e) => setFormData({ ...formData, existingLink: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm bg-gray-100 cursor-not-allowed"
+                  value=""
+                  disabled
+                // value={formData.existingLink}
+                // onChange={(e) => setFormData({ ...formData, existingLink: e.target.value })}
                 >
                   <option value="">Select PMS appointment type</option>
                   <option value="consult_std">Standard Consultation</option>
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-2">Link for New Patients</label>
                 <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm bg-white"
-                  value={formData.newLink}
-                  onChange={(e) => setFormData({ ...formData, newLink: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm bg-gray-100 cursor-not-allowed"
+                  value=""
+                  disabled
+                // value={formData.newLink}
+                // onChange={(e) => setFormData({ ...formData, newLink: e.target.value })}
                 >
                   <option value="">Select PMS appointment type</option>
                   <option value="consult_new">New Patient Consultation</option>
                 </select>
               </div>
             </div>
-            
+
             {/* RADIO GROUP 2: Cancellations */}
             <div className="flex py-4 text-sm text-gray-700">
               <p>Accept Cancellations Online</p>
@@ -520,7 +528,7 @@ export default function PracticeAppointmentType() {
   };
 
   const onDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
-    e.preventDefault(); 
+    e.preventDefault();
     if (draggedItemIndex === null || draggedItemIndex === index) return;
 
     const newItems = [...appointmentTypes];
@@ -553,7 +561,7 @@ export default function PracticeAppointmentType() {
         <button
           onClick={handleCreateNew}
           disabled={isSorting}
-          className={`flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm ${isSorting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm ${isSorting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Plus size={16} />
           New Appointment Type

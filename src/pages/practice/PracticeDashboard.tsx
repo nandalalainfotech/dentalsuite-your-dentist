@@ -17,31 +17,31 @@ import PracticeAppointmentType from './PracticeAppointmentType';
 import PracticeAnalyticsView from './PracticeAnalyticsView';
 
 // 3. Update Type Definition
-type ActiveViewType = 
-  | 'directory' 
-  | 'appointments' 
-  | 'appointmenttype' 
-  | 'bookingcalender' 
-  | 'analytics' 
-  | 'newsfeeds' 
-  | 'viewprofile' 
-  | 'mylearningHub' 
-  | 'payments' 
-  | 'accountpayrequests' 
+type ActiveViewType =
+  | 'directory'
+  | 'appointments'
+  | 'appointmenttype'
+  | 'bookingcalender'
+  | 'analytics'
+  | 'newsfeeds'
+  | 'viewprofile'
+  | 'mylearningHub'
+  | 'payments'
+  | 'accountpayrequests'
   | 'supportrequest';
 
 // 3. Update Validation Logic
 const isValidView = (v: any): v is ActiveViewType =>
   [
-    'directory', 
-    'appointments', 
-    'appointmenttype', 
-    'bookingcalender', 
-    'analytics', 
-    'newsfeeds', 
-    'viewprofile', 
-    'mylearningHub', 
-    'accountpayrequests', 
+    'directory',
+    'appointments',
+    'appointmenttype',
+    'bookingcalender',
+    'analytics',
+    'newsfeeds',
+    'viewprofile',
+    'mylearningHub',
+    'accountpayrequests',
     'supportrequest'
   ].includes(v);
 
@@ -53,8 +53,8 @@ interface SidebarLinkProps {
 }
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active = false, onClick }) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={`w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${active ? 'border-orange-500 text-gray-900 bg-orange-50/30' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
   >
     <div className={`${active ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-600'}`}>{icon}</div>
@@ -70,8 +70,8 @@ interface ContentTabProps {
 }
 
 const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={`relative pb-4 px-1 text-sm font-medium transition-all duration-200 ${active ? 'text-gray-800 border-b-2 border-orange-500' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}
   >
     <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export default function PracticeDashboard() {
                   />
                   <SidebarLink
                     icon={<Icons.Appointment />}
-                    label="My Appointment"
+                    label="Online Bookings"
                     active={activeView === 'appointments'}
                     onClick={() => handleNavClick('appointments')}
                   />
@@ -188,10 +188,10 @@ export default function PracticeDashboard() {
                     active={activeView === 'bookingcalender'}
                     onClick={() => handleNavClick('bookingcalender')}
                   />
-                  
+
                   {/* 5. Added Analytics Sidebar Link */}
                   <SidebarLink
-                    icon={<Icons.BarChart  />} 
+                    icon={<Icons.BarChart />}
                     label="Analytics"
                     active={activeView === 'analytics'}
                     onClick={() => handleNavClick('analytics')}
