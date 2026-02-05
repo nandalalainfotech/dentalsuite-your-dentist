@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/static-components */
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Users, Edit2, ArrowLeft,
+    Users, Edit2, ArrowLeft, Trash2,
     Info, Check, ChevronDown, Stethoscope, ChevronRight, X, RotateCcw,
 } from 'lucide-react';
 import { SectionHeader } from './SharedEditorComponents';
@@ -447,6 +447,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clini
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingApptName, setEditingApptName] = useState<string | null>(null);
     const [formData, setFormData] = useState<TeamMember | null>(null);
+    const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
 
     // List View Filter State
     const [activeTab, setActiveTab] = useState<'all' | 'visible' | 'hidden'>('all');
@@ -480,6 +481,11 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clini
         }
         setEditingId(null);
         setFormData(null);
+    };
+
+    const handleDeleteMember = (id: string) => {
+        setTeamMembers(prev => prev.filter(m => m.id !== id));
+        setMemberToDelete(null);
     };
 
     const handleApptSave = (updatedTypes: AppointmentType[]) => {
@@ -1066,9 +1072,18 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clini
                                 </span>
                             </div>
 
-                            <div className="mt-auto pt-4 border-t border-gray-100 w-full">
+                            <div className="mt-auto pt-4 border-t border-gray-100 w-full flex gap-4">
                                 <span className="text-blue-600 text-sm font-medium flex items-center justify-center gap-1 group-hover:text-blue-700">
                                     <Edit2 className="w-3 h-3" /> Edit Profile
+                                </span>
+                                <span 
+                                    className="text-red-600 text-sm font-medium flex items-center justify-center gap-1 group-hover:text-red-700"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMemberToDelete(member.id);
+                                    }}
+                                >
+                                    <Trash2 className="w-3 h-3" /> Delete
                                 </span>
                             </div>
                         </div>
@@ -1096,6 +1111,34 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clini
                     Save & Next
                 </button>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {memberToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">Delete Practitioner</h3>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to delete this practitioner? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setMemberToDelete(null)}
+                                className="px-4 py-2 text-gray-700 rounded hover:bg-gray-100 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDeleteMember(memberToDelete)}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
