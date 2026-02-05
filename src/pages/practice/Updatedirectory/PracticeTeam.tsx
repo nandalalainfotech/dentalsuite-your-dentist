@@ -447,6 +447,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clini
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingApptName, setEditingApptName] = useState<string | null>(null);
     const [formData, setFormData] = useState<TeamMember | null>(null);
+    const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
 
     // List View Filter State
     const [activeTab, setActiveTab] = useState<'all' | 'visible' | 'hidden'>('all');
