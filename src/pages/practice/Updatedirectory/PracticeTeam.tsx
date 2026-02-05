@@ -1,14 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Users, Edit2, ArrowLeft, HelpCircle,
-    Info, Check, ChevronDown, RefreshCw,
-    PlusCircle, Stethoscope, ChevronRight, X,
-    Save, RotateCcw, Upload
+    Users, Edit2, ArrowLeft,
+    Info, Check, ChevronDown, Stethoscope, ChevronRight, X, RotateCcw,
 } from 'lucide-react';
-import { SectionHeader } from './SharedEditorComponents'; // Ensure this path is correct for your project
-import type { Clinic } from '../../../types/clinic'; // Ensure this path is correct
+import { SectionHeader } from './SharedEditorComponents';
+import type { Clinic } from '../../../types/clinic';
 
-// --- Types ---
 
 interface AppointmentType {
     id: string;
@@ -75,8 +72,8 @@ export function ProfessionalInterestsDropdown({ value, onChange, placeholder }: 
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const selectedValues = value 
-        ? value.split(',').map(s => s.trim()).filter(s => s !== '') 
+    const selectedValues = value
+        ? value.split(',').map(s => s.trim()).filter(s => s !== '')
         : [];
 
     const filteredOptions = options.filter(option =>
@@ -105,9 +102,8 @@ export function ProfessionalInterestsDropdown({ value, onChange, placeholder }: 
             {/* 1. INPUT & DROPDOWN WRAPPER */}
             <div className="relative">
                 <div
-                    className={`w-full px-3 py-2 border rounded bg-white flex items-center justify-between cursor-text transition-all ${
-                        isOpen ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded bg-white flex items-center justify-between cursor-text transition-all ${isOpen ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-300'
+                        }`}
                     onClick={() => {
                         setIsOpen(!isOpen);
                         if (!isOpen) setTimeout(() => inputRef.current?.focus(), 0);
@@ -140,11 +136,10 @@ export function ProfessionalInterestsDropdown({ value, onChange, placeholder }: 
                                 return (
                                     <div
                                         key={index}
-                                        className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors ${
-                                            isSelected 
-                                                ? 'bg-blue-50 text-blue-700 font-medium' 
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                        className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors ${isSelected
+                                            ? 'bg-blue-50 text-blue-700 font-medium'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                            }`}
                                         onClick={() => toggleOption(option)}
                                     >
                                         <span>{option}</span>
@@ -165,16 +160,16 @@ export function ProfessionalInterestsDropdown({ value, onChange, placeholder }: 
             {selectedValues.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                     {selectedValues.map((interest, index) => (
-                        <span 
-                            key={index} 
+                        <span
+                            key={index}
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100 animate-fadeIn"
                         >
                             {interest}
-                            <button 
-                                type="button" 
-                                onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    removeOption(interest); 
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeOption(interest);
                                 }}
                                 className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
                             >
@@ -306,9 +301,9 @@ const AppointmentTypeEditor = ({
     );
 
     return (
-        <div className="bg-[#f3f4f6] min-h-screen font-sans text-gray-800 -m-6 sm:-m-8">
+        <div className="min-h-screen font-sans text-gray-800">
             {/* Header Bar */}
-            <div className="bg-[#e5e7eb] px-6 py-4 flex items-center justify-between">
+            <div className="mt-4 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
@@ -378,7 +373,7 @@ const AppointmentTypeEditor = ({
 
 // --- Main Component ---
 
-export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
+export default function PracticeTeam({ clinicData, onNext }: { clinicData: Clinic; onNext: () => void }) {
 
     const defaultAppointmentTypes: AppointmentType[] = [
         { id: '1', name: 'Consultation', patientType: 'New', duration: 30, enabled: false },
@@ -391,26 +386,59 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
     ];
 
     const generateInitialMembers = (): TeamMember[] => {
-        return (clinicData.team || []).map((member, i) => ({
-            id: i.toString(),
-            name: member.name,
-            role: member.role || '',
-            qualification: member.qual || '',
-            gender: '',
-            ahpra: '',
-            education: '',
-            languages: '',
-            professionalStatement: '',
-            areasOfInterest: '',
-            // Initialize with some data for demo if needed, else defaults
-            isVisibleOnline: false, 
-            allowMultipleBookings: true,
-            bookingTimeLimit: 0,
-            bookingTimeLimitUnit: 'minutes',
-            cancelTimeLimit: 0,
-            cancelTimeLimitUnit: 'minutes',
-            appointmentTypes: JSON.parse(JSON.stringify(defaultAppointmentTypes))
-        }));
+        const team = clinicData.team || [];
+        const dentists = clinicData.dentists || [];
+
+        const teamByName = new Map(team.map(member => [member.name, member]));
+        const dentistByName = new Map(dentists.map(dentist => [dentist.name, dentist]));
+
+        const membersFromDentists = dentists.map((dentist, i) => {
+            const teamMatch = teamByName.get(dentist.name);
+            return {
+                id: `dentist-${i}`,
+                name: dentist.name,
+                role: teamMatch?.role || dentist.specialities?.[0] || '',
+                qualification: teamMatch?.qual || dentist.qualification || '',
+                gender: dentist.gender || '',
+                ahpra: '',
+                education: '',
+                languages: dentist.languages?.join(', ') || '',
+                professionalStatement: dentist.overview || '',
+                areasOfInterest: dentist.specialities?.join(', ') || '',
+                imageUrl: dentist.image || '',
+                isVisibleOnline: false,
+                allowMultipleBookings: true,
+                bookingTimeLimit: 0,
+                bookingTimeLimitUnit: 'minutes',
+                cancelTimeLimit: 0,
+                cancelTimeLimitUnit: 'minutes',
+                appointmentTypes: JSON.parse(JSON.stringify(defaultAppointmentTypes))
+            };
+        });
+
+        const membersFromTeamOnly = team
+            .filter(member => !dentistByName.has(member.name))
+            .map((member, i) => ({
+                id: `team-${i}`,
+                name: member.name,
+                role: member.role || '',
+                qualification: member.qual || '',
+                gender: '',
+                ahpra: '',
+                education: '',
+                languages: '',
+                professionalStatement: '',
+                areasOfInterest: '',
+                isVisibleOnline: false,
+                allowMultipleBookings: true,
+                bookingTimeLimit: 0,
+                bookingTimeLimitUnit: 'minutes',
+                cancelTimeLimit: 0,
+                cancelTimeLimitUnit: 'minutes',
+                appointmentTypes: JSON.parse(JSON.stringify(defaultAppointmentTypes))
+            }));
+
+        return [...membersFromDentists, ...membersFromTeamOnly];
     };
 
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>(generateInitialMembers());
@@ -804,7 +832,7 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                                         className="w-5 h-5 border-gray-300 rounded text-blue-600 focus:ring-blue-500"
                                     />
                                     <span className="text-sm text-gray-600">
-                                        Visible for Online Bookings 
+                                        Visible for Online Bookings
                                     </span>
                                 </label>
                                 <label className="flex items-start gap-3 cursor-pointer">
@@ -881,8 +909,8 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                                 </div>
                             </div>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
+                        <div className="w-full">
+                            <table className="w-full text-left text-sm table-fixed">
                                 <thead className="bg-white border-b border-gray-200">
                                     <tr>
                                         <th className="px-6 py-3 font-semibold text-gray-600 w-16">Enabled</th>
@@ -931,6 +959,11 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
         );
     }
 
+    const handleSaveAndNext = () => {
+        console.log('Saving Team Members:', teamMembers);
+        onNext();
+    };
+
     // 3. Main List View (Card Grid)
     return (
         <div className="max-w-7xl mx-auto min-h-screen pb-10 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
@@ -970,8 +1003,8 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`pb-3 px-4 text-sm font-medium transition-colors relative ${activeTab === 'all'
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-gray-500 hover:text-gray-700'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         All ({counts.all})
@@ -979,8 +1012,8 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                     <button
                         onClick={() => setActiveTab('visible')}
                         className={`pb-3 px-4 text-sm font-medium transition-colors relative ${activeTab === 'visible'
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-gray-500 hover:text-gray-700'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         Visible Online ({counts.visible})
@@ -988,8 +1021,8 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                     <button
                         onClick={() => setActiveTab('hidden')}
                         className={`pb-3 px-4 text-sm font-medium transition-colors relative ${activeTab === 'hidden'
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-gray-500 hover:text-gray-700'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         Not Visible ({counts.hidden})
@@ -1041,6 +1074,23 @@ export default function PracticeTeam({ clinicData }: { clinicData: Clinic }) {
                         <p>No practitioners found in this view.</p>
                     </div>
                 )}
+            </div>
+
+            {/* FOOTER ACTIONS */}
+            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
+                <button
+                    type="button"
+                    onClick={onNext}
+                    className="px-8 py-3 bg-orange-50 text-orange-400 font-medium rounded-full hover:bg-orange-100 transition"
+                >
+                    Skip
+                </button>
+                <button
+                    onClick={handleSaveAndNext}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                >
+                    Save & Next
+                </button>
             </div>
         </div>
     );
