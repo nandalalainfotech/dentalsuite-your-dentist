@@ -42,11 +42,17 @@ export interface Clinic {
   insurances?: string[];
   services?: string[];
   tagline?: string;
+  appointmentTypes: AppointmentType[];
   team?: { name: string; role: string; qual?: string }[];
   achievements?: { title: string; org?: string }[];
   parking?: boolean;
   emergency?: boolean;
   reviews: string;
+}
+export interface AppointmentType {
+  id: string;
+  name: string;
+  duration: number; // in minutes
 }
 
 // Forward declaration for circular dependency

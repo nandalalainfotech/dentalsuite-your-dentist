@@ -484,7 +484,6 @@ const RescheduleModal = ({
   // Initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
-      const currentAptDate = new Date(apt.dateTime);
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       setSelectedDate(tomorrow.toISOString().split('T')[0]);
@@ -547,9 +546,6 @@ const RescheduleModal = ({
   };
 
   // Check if a date has available slots
-  const hasAvailableSlots = (dateStr: string): boolean => {
-    return generateSlotsForDate(dateStr).length > 0;
-  };
 
   // Generate 7 days of availability starting from selected date
   const weekAvailability = useMemo(() => {
@@ -618,7 +614,6 @@ const RescheduleModal = ({
       const isSelected = selectedDate === dateStr;
       const isToday = isSameDay(dateObj, new Date());
       const disabled = isDateDisabled(dateObj);
-      const hasSlots = !disabled && hasAvailableSlots(dateStr);
       const isSunday = dateObj.getDay() === 0;
 
       days.push(
@@ -1477,13 +1472,12 @@ export default function PracticeAppointmentsView() {
     }
   };
 
-  // Add this state inside your component
+  
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
 
-    // Simulate an API call / Data refresh delay
     setTimeout(() => {
       setIsRefreshing(false);
       // Add your actual data fetch function here if needed
@@ -1591,13 +1585,13 @@ export default function PracticeAppointmentsView() {
           <div className="px-2 sm:px-6 py-2 sm:py-3 border-b border-gray-100">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Icons.Search className="absolute left-3 top-1/4 w-4 h-4 text-gray-400" />
+                <Icons.Search className="absolute left-3 top-1/3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search patients..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border-0 rounded-lg text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                  className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border-0 rounded-lg text-sm placeholder:text-gray-400 outline-none ring-2 ring-gray-200"
                 />
               </div>
               <button

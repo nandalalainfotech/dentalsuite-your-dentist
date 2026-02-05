@@ -44,6 +44,19 @@ export const clinics: Clinic[] = [
     insurance: ["Bupa", "Medibank", "HCF", "NIB"],
     parking: true,
     emergency: true,
+    appointmentTypes: [
+      { id: "at1", name: "Consultation", duration: 30 },
+      { id: "at2", name: "Check Up and Clean", duration: 30 },
+      { id: "at3", name: "Emergency", duration: 30 },
+      { id: "at4", name: "Recall", duration: 30 }
+    ],
+    team: [
+      { name: "Dr. James Mitchell", role: "Oral Surgery", qual: "BDSc, MDSc" },
+      { name: "Dr. Sarah Chen", role: "Conservative Dentistry", qual: "BDSc, MDSc" }
+    ],
+    achievements: [],
+    insurances: ["Bupa", "Medibank", "HCF", "NIB"],
+    reviews: '',
     dentists: [
       {
         id: "d1",
@@ -92,13 +105,6 @@ export const clinics: Clinic[] = [
         reviews: SAMPLE_REVIEWS
       }
     ],
-    team: [
-      { name: "Dr. James Mitchell", role: "Oral Surgery", qual: "BDSc, MDSc" },
-      { name: "Dr. Sarah Chen", role: "Conservative Dentistry", qual: "BDSc, MDSc" }
-    ],
-    achievements: [],
-    insurances: ["Bupa", "Medibank", "HCF", "NIB"],
-    reviews: ''
   },
   {
     id: "2",
@@ -142,6 +148,19 @@ export const clinics: Clinic[] = [
     insurance: ["Bupa", "Medibank Private", "AHM", "Australian Unity"],
     parking: true,
     emergency: true,
+    appointmentTypes: [
+      { id: "at1", name: "Consultation", duration: 30 },
+      { id: "at2", name: "Check Up and Clean", duration: 30 },
+      { id: "at3", name: "Emergency", duration: 30 },
+      { id: "at4", name: "Recall", duration: 30 }
+    ],
+    team: [
+      { name: "Dr. Michael Chen", role: "Implantology", qual: "BDS, MDS" },
+      { name: "Dr. Emily Wilson", role: "Orthodontics", qual: "BDSc, MDSc" }
+    ],
+    achievements: [],
+    insurances: ["Bupa", "Medibank Private", "AHM", "Australian Unity"],
+    reviews: '',
     dentists: [
       {
         id: "d3",
@@ -190,13 +209,6 @@ export const clinics: Clinic[] = [
         reviews: SAMPLE_REVIEWS
       }
     ],
-    team: [
-      { name: "Dr. Michael Chen", role: "Implantology", qual: "BDS, MDS" },
-      { name: "Dr. Emily Wilson", role: "Orthodontics", qual: "BDSc, MDSc" }
-    ],
-    achievements: [],
-    insurances: ["Bupa", "Medibank Private", "AHM", "Australian Unity"],
-    reviews: ''
   },
   {
     id: "3",
@@ -240,6 +252,19 @@ export const clinics: Clinic[] = [
     insurance: ["Bajaj Allianz", "United India", "Oriental Insurance"],
     parking: true,
     emergency: false,
+    appointmentTypes: [
+      { id: "at1", name: "Consultation", duration: 30 },
+      { id: "at2", name: "Check Up and Clean", duration: 30 },
+      { id: "at3", name: "Emergency", duration: 60 },
+      { id: "at4", name: "Recall", duration: 30 }
+    ],
+    team: [
+      { name: "Dr. Amit Verma", role: "Prosthodontics", qual: "BDS, MDS" },
+      { name: "Dr. Neha Patel", role: "Orthodontics", qual: "BDS, MDS" }
+    ],
+    achievements: [],
+    insurances: ["Bajaj Allianz", "United India", "Oriental Insurance"],
+    reviews: '',
     dentists: [
       {
         id: "d5",
@@ -288,13 +313,6 @@ export const clinics: Clinic[] = [
         reviews: SAMPLE_REVIEWS
       }
     ],
-    team: [
-      { name: "Dr. Amit Verma", role: "Prosthodontics", qual: "BDS, MDS" },
-      { name: "Dr. Neha Patel", role: "Orthodontics", qual: "BDS, MDS" }
-    ],
-    achievements: [],
-    insurances: ["Bajaj Allianz", "United India", "Oriental Insurance"],
-    reviews: ''
   },
   {
     id: "4",
@@ -338,6 +356,19 @@ export const clinics: Clinic[] = [
     insurance: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"],
     parking: false,
     emergency: false,
+    appointmentTypes: [
+      { id: "at1", name: "Consultation", duration: 30 },
+      { id: "at2", name: "Check Up and Clean", duration: 30 },
+      { id: "at3", name: "Emergency", duration: 30 },
+      { id: "at4", name: "Recall", duration: 30 }
+    ],
+    team: [
+      { name: "Dr. David Taylor", role: "Pediatric Dentistry", qual: "BDSc, MDSc" },
+      { name: "Dr. Sarah Johnson", role: "Family Dentistry", qual: "BDS, MDS" }
+    ],
+    achievements: [],
+    insurances: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"],
+    reviews: '',
     dentists: [
       {
         id: "d7",
@@ -386,13 +417,6 @@ export const clinics: Clinic[] = [
         reviews: SAMPLE_REVIEWS
       }
     ],
-    team: [
-      { name: "Dr. David Taylor", role: "Pediatric Dentistry", qual: "BDSc, MDSc" },
-      { name: "Dr. Sarah Johnson", role: "Family Dentistry", qual: "BDS, MDS" }
-    ],
-    achievements: [],
-    insurances: ["IFFCO Tokio", "HDFC Ergo", "Royal Sundaram"],
-    reviews: ''
   },
   {
     id: "5",
@@ -436,6 +460,18 @@ export const clinics: Clinic[] = [
     insurance: ["Major Health Funds", "Private Health Insurance"],
     parking: true,
     emergency: false,
+    appointmentTypes: [
+      { id: "at1", name: "Consultation", duration: 30 },
+      { id: "at2", name: "Check Up and Clean", duration: 30 },
+      { id: "at3", name: "Emergency", duration: 30 },
+      { id: "at4", name: "Recall", duration: 30 }
+    ],
+    team: [
+      { name: "Dr. James Martinez", role: "Orthodontics", qual: "BDS, MDS" }
+    ],
+    achievements: [],
+    insurances: ["Major Health Funds", "Private Health Insurance"],
+    reviews: '',
     dentists: [
       {
         id: "d9",
@@ -461,11 +497,5 @@ export const clinics: Clinic[] = [
         reviews: SAMPLE_REVIEWS
       }
     ],
-    team: [
-      { name: "Dr. James Martinez", role: "Orthodontics", qual: "BDS, MDS" }
-    ],
-    achievements: [],
-    insurances: ["Major Health Funds", "Private Health Insurance"],
-    reviews: ''
   }
 ];
