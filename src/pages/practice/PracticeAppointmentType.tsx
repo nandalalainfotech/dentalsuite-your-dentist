@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, ArrowUpDown, Info, ChevronLeft, HelpCircle, GripVertical } from 'lucide-react';
+import type { Clinic, AppointmentType as ClinicAppointmentType } from '../../types/clinic';
+import { clinics } from '../../data/clinics';
+import { usePracticeAuth } from '../../hooks/usePracticeAuth';
 
 // --- TYPES ---
 interface AppointmentType {
@@ -35,64 +38,34 @@ const mockPractitioners: Practitioner[] = [
   { id: 'p3', name: 'Dr Rodrygo' },
 ];
 
-const initialAppointmentTypes: AppointmentType[] = [
-  {
-    id: '1',
-    name: 'Consultation',
-    existingEnabled: true,
-    existingDuration: 30,
-    existingLink: 'consult_std',
-    existingFutureBookingLimit: 90,
-    newEnabled: true,
-    newDuration: 30,
-    newLink: 'consult_new',
-    newFutureBookingLimit: 90,
-    newTermsEnabled: false,
-    onlineEnabled: true,
-    askReason: false,
-    addMessage: false,
-    unavailableAction: 'call',
-    cancellationEnabled: true // Default
-  },
-  {
-    id: '2',
-    name: 'Check Up and Clean',
-    existingEnabled: true,
-    existingDuration: 30,
-    existingLink: 'checkup',
-    existingFutureBookingLimit: 90,
-    newEnabled: true,
-    newDuration: 30,
-    newLink: 'checkup_new',
-    newFutureBookingLimit: 60,
-    newTermsEnabled: false,
-    onlineEnabled: true,
-    askReason: false,
-    addMessage: false,
-    unavailableAction: 'call',
-    cancellationEnabled: true
-  },
-  {
-    id: '3',
-    name: 'Emergency',
-    existingEnabled: true,
-    existingDuration: 30,
-    existingLink: 'emergency',
-    existingFutureBookingLimit: 7,
-    newEnabled: false,
-    newDuration: 30,
-    newLink: '',
-    newFutureBookingLimit: 7,
-    newTermsEnabled: false,
-    onlineEnabled: true,
-    askReason: true,
-    addMessage: true,
-    unavailableAction: 'call',
-    cancellationEnabled: false
-  }
-];
-
 const timeOptions = [5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 90, 120];
+
+const buildAppointmentTypes = (types?: ClinicAppointmentType[]): AppointmentType[] => {
+  if (!types || types.length === 0) return [];
+
+  return types.map((type) => {
+    const isEmergency = type.name.toLowerCase().includes('emergency');
+
+    return {
+      id: type.id,
+      name: type.name,
+      existingEnabled: true,
+      existingDuration: type.duration,
+      existingLink: '',
+      existingFutureBookingLimit: isEmergency ? 7 : 90,
+      newEnabled: !isEmergency,
+      newDuration: type.duration,
+      newLink: '',
+      newFutureBookingLimit: isEmergency ? 7 : 90,
+      newTermsEnabled: false,
+      onlineEnabled: true,
+      askReason: isEmergency,
+      addMessage: isEmergency,
+      unavailableAction: 'call',
+      cancellationEnabled: !isEmergency
+    };
+  });
+};
 
 // --- EDITOR COMPONENT ---
 interface AppointmentTypeEditorProps {
@@ -483,13 +456,28 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
 
 // --- MAIN COMPONENT ---
 export default function PracticeAppointmentType() {
-  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>(initialAppointmentTypes);
+  const { practice: authPractice, isAuthenticated } = usePracticeAuth();
+  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [editingData, setEditingData] = useState<AppointmentType | null>(null);
 
   // Sorting State
   const [isSorting, setIsSorting] = useState(false);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    let activeClinic: Clinic | undefined = clinics[0];
+
+    if (isAuthenticated && authPractice) {
+      activeClinic = clinics.find(c =>
+        c.email === authPractice.email ||
+        c.id === authPractice.id
+      ) ?? clinics[0];
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAppointmentTypes(buildAppointmentTypes(activeClinic?.appointmentTypes));
+  }, [isAuthenticated, authPractice]);
 
   const handleCreateNew = () => {
     setEditingData(null);
