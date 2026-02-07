@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Printer,
   Calendar as CalendarIcon,
@@ -809,7 +809,83 @@ const DatePresets = ({ onSelect, active }: { onSelect: (preset: string) => void;
   );
 };
 
-// --- DATE RANGE PICKER ---
+
+
+const YEARS = Array.from({ length: 15 }, (_, i) => new Date().getFullYear() - 5 + i);
+
+/* ---------------- CUSTOM DROPDOWN ---------------- */
+
+const ScrollDropdown = ({
+  value,
+  options,
+  onChange,
+  placeholder
+}: {
+  value: number;
+  options: { label: string; value: number }[];
+  onChange: (v: number) => void;
+  placeholder: string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selected = options.find(o => o.value === value);
+
+  // click outside close
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative w-full mt-3" ref={ref}>
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-medium
+                   text-gray-700 bg-white flex items-center justify-between
+                   focus:outline-none focus:ring-2 focus:ring-orange-400"
+      >
+        <span>{selected?.label || placeholder}</span>
+        <ChevronDown size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div
+          className="absolute mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl
+                     z-[9999] max-h-[180px] overflow-y-auto"
+        >
+          {options.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
+              className={`px-3 py-2 text-sm cursor-pointer transition-colors
+                ${opt.value === value
+                  ? 'bg-orange-100 text-orange-700 font-semibold'
+                  : 'hover:bg-gray-100 text-gray-700'
+                }`}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ---------------- DATE RANGE PICKER ---------------- */
+
 const DateRangePicker = ({
   startDate,
   endDate,
@@ -834,6 +910,7 @@ const DateRangePicker = ({
 
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(currentYear, currentMonth, day);
+
     if (selecting === 'start') {
       onChange(clickedDate, clickedDate);
       setSelecting('end');
@@ -847,26 +924,50 @@ const DateRangePicker = ({
     }
   };
 
+  const MONTH_OPTIONS = MONTH_NAMES.map((m, i) => ({ label: m, value: i }));
+  const YEAR_OPTIONS = YEARS.map(y => ({ label: String(y), value: y }));
+
   return (
-    <div className="absolute top-14 left-0 bg-white shadow-2xl border border-gray-200 rounded-2xl p-6 z-50 w-[360px]">
-      <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100">
+    <div className="absolute top-14 left-0 bg-white shadow-2xl border border-gray-200 rounded-2xl p-6 z-[9999] w-[360px]">
+
+      {/* Close */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600
+                   p-1 rounded-full hover:bg-gray-100"
+      >
         <X size={18} />
       </button>
 
-      <div className="flex justify-between items-center mt-3">
-        <button onClick={() => setCurrentMonth(m => m === 0 ? 11 : m - 1)} className="p-2 hover:bg-gray-100 rounded-lg">
-          <ChevronLeft size={20} />
-        </button>
-        <span className="font-bold text-gray-800">{MONTH_NAMES[currentMonth]} {currentYear}</span>
-        <button onClick={() => setCurrentMonth(m => m === 11 ? 0 : m + 1)} className="p-2 hover:bg-gray-100 rounded-lg">
-          <ChevronRight size={20} />
-        </button>
+      {/* Month + Year */}
+      <div className="flex justify-between items-center mt-3 gap-3">
+
+        <div className="w-1/2">
+          <ScrollDropdown
+            value={currentMonth}
+            options={MONTH_OPTIONS}
+            onChange={setCurrentMonth}
+            placeholder="Month"
+          />
+        </div>
+
+        <div className="w-1/2">
+          <ScrollDropdown
+            value={currentYear}
+            options={YEAR_OPTIONS}
+            onChange={setCurrentYear}
+            placeholder="Year"
+          />
+        </div>
+
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-sm">
+      {/* Calendar */}
+      <div className="grid grid-cols-7 gap-1 text-center text-sm mt-4">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
           <span key={d} className="text-gray-400 text-xs font-medium py-2">{d}</span>
         ))}
+
         {days.map((day, idx) => {
           if (!day) return <span key={idx} />;
 
@@ -881,7 +982,7 @@ const DateRangePicker = ({
               onClick={() => handleDayClick(day)}
               className={`p-2.5 rounded-xl text-sm font-medium transition-all
                 ${isInRange && !isStart && !isEnd ? 'bg-orange-100 text-orange-700' : ''} 
-                ${isStart || isEnd ? 'bg-orange-500  text-white shadow-md' : 'hover:bg-gray-100'}
+                ${isStart || isEnd ? 'bg-orange-500 text-white shadow-md' : 'hover:bg-gray-100'}
               `}
             >
               {day}
@@ -890,8 +991,13 @@ const DateRangePicker = ({
         })}
       </div>
 
-      <div className="mt-3 flex justify-end">
-        <button onClick={onClose} className="px-4 py-1.5 w-full bg-orange-500 text-white font-base rounded-xl hover:shadow-lg transition-all">
+      {/* Apply */}
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 w-full bg-orange-500 text-white font-medium
+                     rounded-xl hover:shadow-lg transition-all"
+        >
           Apply
         </button>
       </div>
