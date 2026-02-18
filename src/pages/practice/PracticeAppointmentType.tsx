@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, ArrowUpDown, Info, ChevronLeft, HelpCircle, GripVertical } from 'lucide-react';
-import type { Clinic, AppointmentType as ClinicAppointmentType } from '../../types/clinic';
+import type { Clinic, AppointmentType as ClinicAppointmentType, Dentist } from '../../types/clinic';
 import { clinics } from '../../data/clinics';
 import { usePracticeAuth } from '../../hooks/usePracticeAuth';
 
@@ -23,20 +23,9 @@ interface AppointmentType {
   onlineEnabled: boolean;
   askReason: boolean;
   addMessage: boolean;
-  unavailableAction: 'call' | 'inform'; // For Section 1
-  cancellationEnabled: boolean;         // NEW: For Section 3
+  unavailableAction: 'call' | 'inform';
+  cancellationEnabled: boolean;
 }
-
-interface Practitioner {
-  id: string;
-  name: string;
-}
-
-const mockPractitioners: Practitioner[] = [
-  { id: 'p1', name: 'Dr Ronaldo' },
-  { id: 'p2', name: 'Dr Kylian' },
-  { id: 'p3', name: 'Dr Rodrygo' },
-];
 
 const timeOptions = [5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 90, 120];
 
@@ -53,7 +42,7 @@ const buildAppointmentTypes = (types?: ClinicAppointmentType[]): AppointmentType
       existingDuration: type.duration,
       existingLink: '',
       existingFutureBookingLimit: isEmergency ? 7 : 90,
-      newEnabled: !isEmergency,
+      newEnabled: true,
       newDuration: type.duration,
       newLink: '',
       newFutureBookingLimit: isEmergency ? 7 : 90,
@@ -67,14 +56,22 @@ const buildAppointmentTypes = (types?: ClinicAppointmentType[]): AppointmentType
   });
 };
 
+const buildDentists = (clinic?: Clinic): Dentist[] => clinic?.dentists ?? [];
+
 // --- EDITOR COMPONENT ---
 interface AppointmentTypeEditorProps {
   initialData?: AppointmentType | null;
+  dentists: Dentist[];
   onSave: (data: AppointmentType) => void;
   onCancel: () => void;
 }
 
-const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialData, onSave, onCancel }) => {
+const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
+  initialData,
+  dentists,
+  onSave,
+  onCancel
+}) => {
   const [formData, setFormData] = useState<AppointmentType>(initialData || {
     id: '',
     name: '',
@@ -90,8 +87,8 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
     onlineEnabled: true,
     askReason: false,
     addMessage: false,
-    unavailableAction: 'call', // Default for Section 1
-    cancellationEnabled: true  // Default for Section 3
+    unavailableAction: 'call',
+    cancellationEnabled: true
   });
 
   const [practitionerSettings, setPractitionerSettings] = useState<Record<string, { ex: boolean, new: boolean }>>({});
@@ -405,24 +402,24 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {mockPractitioners.map((practitioner) => (
-                  <tr key={practitioner.id} className="hover:bg-gray-50">
+                {dentists.map((dentist) => (
+                  <tr key={dentist.id} className="hover:bg-gray-50">
                     <td className="py-3 px-6 text-sm">
-                      <a href="/PracticeTeam" className="text-emerald-600 underline hover:text-emerald-700">{practitioner.name}</a>
+                      <a href="/PracticeTeam" className="text-emerald-600 underline hover:text-emerald-700">{dentist.name}</a>
                     </td>
                     <td className="py-3 px-6">
                       <input
                         type="checkbox"
-                        checked={!!practitionerSettings[practitioner.id]?.ex}
-                        onChange={() => togglePractitioner(practitioner.id, 'ex')}
+                        checked={!!practitionerSettings[dentist.id]?.ex}
+                        onChange={() => togglePractitioner(dentist.id, 'ex')}
                         className="w-4 h-4 text-blue-600 rounded border-gray-300"
                       />
                     </td>
                     <td className="py-3 px-6">
                       <input
                         type="checkbox"
-                        checked={!!practitionerSettings[practitioner.id]?.new}
-                        onChange={() => togglePractitioner(practitioner.id, 'new')}
+                        checked={!!practitionerSettings[dentist.id]?.new}
+                        onChange={() => togglePractitioner(dentist.id, 'new')}
                         className="w-4 h-4 text-blue-600 rounded border-gray-300"
                       />
                     </td>
@@ -458,10 +455,9 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({ initialDa
 export default function PracticeAppointmentType() {
   const { practice: authPractice, isAuthenticated } = usePracticeAuth();
   const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
+  const [dentists, setDentists] = useState<Dentist[]>([]);
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [editingData, setEditingData] = useState<AppointmentType | null>(null);
-
-  // Sorting State
   const [isSorting, setIsSorting] = useState(false);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
 
@@ -477,6 +473,7 @@ export default function PracticeAppointmentType() {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAppointmentTypes(buildAppointmentTypes(activeClinic?.appointmentTypes));
+    setDentists(buildDentists(activeClinic));
   }, [isAuthenticated, authPractice]);
 
   const handleCreateNew = () => {
@@ -536,6 +533,7 @@ export default function PracticeAppointmentType() {
     return (
       <AppointmentTypeEditor
         initialData={editingData}
+        dentists={dentists}
         onSave={handleSave}
         onCancel={() => setView('list')}
       />
