@@ -26,6 +26,7 @@ export interface Practice {
   firstName: string;
   lastName: string;
   mobileNumber: string;
+  practiceLogo: string;
   practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
   practicePhone: string;
   practiceAddress: string;

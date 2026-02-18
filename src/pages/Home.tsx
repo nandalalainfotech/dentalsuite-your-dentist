@@ -118,7 +118,7 @@ const Home = () => {
       <div
         className="w-full bg-cover bg-center bg-no-repeat py-12 sm:py-16 md:py-20 lg:py-24 px-4"
         style={{
-          backgroundImage: `url('/hero2.webp')`,
+          backgroundImage: `url('/hero.webp')`,
         }}
       >
         <div className="max-w-7xl mx-auto text-center">
