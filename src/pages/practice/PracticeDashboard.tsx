@@ -7,22 +7,23 @@ import { usePracticeAuth } from '../../hooks/usePracticeAuth';
 import PracticeAppointmentsView from './PracticeAppointmentsView';
 import PracticeDirectoryView from './PracticeDirectoryView';
 import { Icons } from '../../components/dashboard/Icons';
-// 1. Import BarChart2 for the icon
-import { User, LogOut, BarChart2 } from 'lucide-react';
+import { User, LogOut, FileText } from 'lucide-react';
 import PracticeBookingCalender from './PracticeBookingCalender';
 import PracticeNewsFeeds from './PracticeNewsFeeds';
 import PractiveViewProfile from './PractiveViewProfile';
 import ConfirmLogoutModal from '../../components/layout/ConfirmLogoutModal';
 import PracticeAppointmentType from './PracticeAppointmentType';
 import PracticeAnalyticsView from './PracticeAnalyticsView';
+import PracticeInvoiceHistoryView from './PracticeInvoiceHistoryView';
 
-// 3. Update Type Definition
+// 3. Update Type Definition - Added 'invoicehistory'
 type ActiveViewType =
   | 'directory'
   | 'appointments'
   | 'appointmenttype'
   | 'bookingcalender'
   | 'analytics'
+  | 'invoicehistory'
   | 'newsfeeds'
   | 'viewprofile'
   | 'mylearningHub'
@@ -30,7 +31,7 @@ type ActiveViewType =
   | 'accountpayrequests'
   | 'supportrequest';
 
-// 3. Update Validation Logic
+// 3. Update Validation Logic - Added 'invoicehistory'
 const isValidView = (v: any): v is ActiveViewType =>
   [
     'directory',
@@ -38,6 +39,7 @@ const isValidView = (v: any): v is ActiveViewType =>
     'appointmenttype',
     'bookingcalender',
     'analytics',
+    'invoicehistory',
     'newsfeeds',
     'viewprofile',
     'mylearningHub',
@@ -105,13 +107,14 @@ export default function PracticeDashboard() {
 
   if (!practice) return null;
 
-  // 4. Update Render Content Switch
+  // 4. Update Render Content Switch - Added invoicehistory case
   const renderContent = () => {
     switch (activeView) {
       case 'appointments': return <PracticeAppointmentsView />;
       case 'appointmenttype': return <PracticeAppointmentType />;
       case 'bookingcalender': return <PracticeBookingCalender />;
-      case 'analytics': return <PracticeAnalyticsView />; // <-- Added here
+      case 'analytics': return <PracticeAnalyticsView />;
+      case 'invoicehistory': return <PracticeInvoiceHistoryView />;
       case 'newsfeeds': return <PracticeNewsFeeds />;
       case 'mylearningHub': return <PracticeNewsFeeds />;
       case 'accountpayrequests': return <PracticeNewsFeeds />;
@@ -139,8 +142,12 @@ export default function PracticeDashboard() {
               {/* Profile Header */}
               <div className="p-8 pb-6">
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="w-16 h-14 rounded-full bg-blue-500 flex items-center justify-center shadow-md relative overflow-hidden">
-                    <User className="text-white/90 w-8 h-8" />
+                  <div className="w-16 h-14 rounded-full flex items-center justify-center shadow-md relative overflow-hidden">
+                    <img
+                      src={practice.practiceLogo}
+                      alt={practice.practiceName}
+                      className="w-10 h-10 sm:w-16 sm:h-14 rounded-full flex-shrink-0"
+                    />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm font-medium">Welcome Back!</p>
@@ -189,12 +196,20 @@ export default function PracticeDashboard() {
                     onClick={() => handleNavClick('bookingcalender')}
                   />
 
-                  {/* 5. Added Analytics Sidebar Link */}
+                  {/* Analytics Sidebar Link */}
                   <SidebarLink
                     icon={<Icons.BarChart />}
                     label="Analytics"
                     active={activeView === 'analytics'}
                     onClick={() => handleNavClick('analytics')}
+                  />
+
+                  {/* Invoice History Sidebar Link - Added next to Analytics */}
+                  <SidebarLink
+                    icon={<FileText size={18} />}
+                    label="Invoice History"
+                    active={activeView === 'invoicehistory'}
+                    onClick={() => handleNavClick('invoicehistory')}
                   />
 
                   <SidebarLink

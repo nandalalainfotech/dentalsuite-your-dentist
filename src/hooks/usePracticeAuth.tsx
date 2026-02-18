@@ -42,6 +42,7 @@ export interface SignupCredentials {
   firstName: string;
   lastName: string;
   mobileNumber: string;
+  practiceLogo: string;
   practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
   practicePhone: string;
   practiceAddress: string;
@@ -117,6 +118,7 @@ const mapClinicToPractice = (clinic: Clinic): Practice => {
     password: clinic.password ?? '',
     firstName: 'Practice',
     lastName: 'Admin',
+    practiceLogo: clinic.logo?? '',
     mobileNumber: clinic.phone ?? '',
     practiceType: 'general_dentistry',
     practicePhone: clinic.phone ?? '',
@@ -223,6 +225,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
         firstName: credentials.firstName,
         lastName: credentials.lastName,
         mobileNumber: credentials.mobileNumber,
+        practiceLogo: credentials.practiceLogo,
         practiceType: credentials.practiceType,
         practicePhone: credentials.practicePhone,
         practiceAddress: credentials.practiceAddress,
