@@ -11,7 +11,7 @@ function AppContent() {
   const hideNavbarRoutes = ['/list-your-practice'];
   const isPracticeRoute = location.pathname.startsWith('/practice');
   const booking = location.pathname.startsWith('/bookings')
-  const shouldHideNavbar = booking || isPracticeRoute || hideNavbarRoutes.includes(location.pathname);
+  const shouldHideNavbar = booking || isPracticeRoute || hideNavbarRoutes.includes(location.pathname) || location.pathname.startsWith('/superadmin');
   return (
     <>
       {!shouldHideNavbar && <Navbar />}

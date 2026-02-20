@@ -19,6 +19,7 @@ export interface UserWithDashboard extends User {
 
 export interface Practice {
   id: string;
+  role?: 'practice' | 'superadmin'; 
   practiceName: string;
   abnNumber: string;
   email: string;

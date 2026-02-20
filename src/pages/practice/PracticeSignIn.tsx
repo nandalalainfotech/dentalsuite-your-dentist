@@ -15,6 +15,7 @@ export default function PracticeSignIn() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Clear alerts after 3 seconds
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
@@ -40,11 +41,33 @@ export default function PracticeSignIn() {
       return;
     }
 
+    // Attempt Login via Auth Hook (validates against updated API)
     const result = await login(formData);
 
     if (result.success) {
-      setSuccess(result.message || "Login Successfully!");
-      setTimeout(() => navigate("/practice/dashboard"), 1500);
+      // 1. Retrieve the authenticated user from storage to check role
+      // Ensure 'practiceUser' matches the key used in your PracticeAuthContext
+      const storedData = localStorage.getItem('practiceUser'); 
+      let userRole = 'practice'; // Default fallback
+      
+      if (storedData) {
+          try {
+            const parsed = JSON.parse(storedData);
+            if (parsed.role) userRole = parsed.role;
+          } catch (e) {
+            console.error("Error parsing user data", e);
+          }
+      }
+
+      // 2. Redirect based on Role
+      if (userRole === 'superadmin') {
+          setSuccess("Welcome, Super Admin!");
+          setTimeout(() => navigate("/superadmin/dashboard"), 1500);
+      } else {
+          setSuccess(result.message || "Login Successfully!");
+          setTimeout(() => navigate("/practice/dashboard"), 1500);
+      }
+
     } else {
       setError(result.message || "Invalid credentials");
     }
@@ -55,13 +78,10 @@ export default function PracticeSignIn() {
 
       {/* TOASTS */}
       <div className="fixed top-5 left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
-
         {error && (
           <div className="pointer-events-auto w-full max-w-sm bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between animate-bounce-in">
             <div className="flex items-center gap-3">
-              <div className="p-1 bg-white/20 rounded-full">
-                ⚠️
-              </div>
+              <div className="p-1 bg-white/20 rounded-full">⚠️</div>
               <span className="text-sm font-medium">{error}</span>
             </div>
             <button onClick={() => setError("")} className="ml-4 text-white">✕</button>
@@ -81,33 +101,29 @@ export default function PracticeSignIn() {
 
           {/* Header */}
           <div className="relative mb-6">
-
-            {/* Close / Back Button – TOP RIGHT */}
             <button
               onClick={() => navigate(-1)}
-              className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center
-               rounded-full bg-gray-100 hover:bg-gray-200
-               text-gray-600 text-xl transition"
+              className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl transition"
               aria-label="Go back"
             >
               ✕
             </button>
 
-          {/* Header Content */}
-          <div className="flex flex-col ">
-            <h1 className="text-4xl font-bold mt-4">Practice Login</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              Access your practice dashboard
-            </p>
-            <div className="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-              <p className="font-semibold mb-1">Test Credentials:</p>
-              <p>Email: sydney@dentalcare.com.au</p>
-              <p>Password: vv123</p>
+            <div className="flex flex-col">
+              <h1 className="text-4xl font-bold mt-4">Practice Login</h1>
+              <p className="text-gray-500 text-sm mt-1">
+                Access your dashboard
+              </p>
+              
+              {/* Credentials Helper (Optional - for testing) */}
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-700 space-y-2">
+                <div>
+                  <p className="font-semibold">Standard Login:</p>
+                  <p>sydney@dentalcare.com.au / vv123</p>
+                </div>
+              </div>
             </div>
           </div>
-
-          </div>
-
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -116,7 +132,7 @@ export default function PracticeSignIn() {
               name="emailOrMobile"
               value={formData.emailOrMobile}
               onChange={handleInputChange}
-              placeholder="Practice Email or Mobile"
+              placeholder="Email or Mobile"
               className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 bg-gray-50 ${error
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-200 focus:ring-orange-500"
@@ -135,10 +151,19 @@ export default function PracticeSignIn() {
                 }`}
             />
 
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" className="h-4 w-4 accent-orange-600" />
-              Remember me
-            </label>
+            <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <input type="checkbox" className="h-4 w-4 accent-orange-600" />
+                Remember me
+                </label>
+
+                <Link
+                to="/practice/forgot-password"
+                className="text-sm text-gray-400 hover:text-gray-600"
+                >
+                Forgot password?
+                </Link>
+            </div>
 
             <button
               type="submit"
@@ -147,13 +172,6 @@ export default function PracticeSignIn() {
             >
               {isLoading ? "Signing in..." : "Login"}
             </button>
-
-            <Link
-              to="/practice/forgot-password"
-              className="text-sm text-gray-400 hover:text-gray-600 text-center"
-            >
-              Forgot password?
-            </Link>
           </form>
 
           <p className="text-center text-sm text-gray-600 mt-8">

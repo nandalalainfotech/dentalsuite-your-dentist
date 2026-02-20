@@ -18,6 +18,11 @@ export interface Clinic {
   phone?: string;
   email?: string;
   password?: string;
+  admin?: {
+    email: string;
+    password: string;
+  };
+
   available?: boolean;
   website?: string;
   rating?: number;
@@ -49,6 +54,7 @@ export interface Clinic {
   emergency?: boolean;
   reviews: string;
 }
+
 export interface AppointmentType {
   id: string;
   name: string;

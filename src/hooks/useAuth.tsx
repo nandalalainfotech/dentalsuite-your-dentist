@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthState, AuthContextType, LoginCredentials, SignupCredentials, PracticeSignupCredentials, User, Practice } from '../types/auth';
 import { validateCredentials, getUserByEmail, addUser, updateUser } from '../data/userApi';
-import { validatePracticeCredentials, getPracticeByEmail, addPractice, updatePractice } from '../data/practiceApi';
+import { validatePracticeCredentials } from '../data/practiceApi';
+import { addPractice, updatePractice } from '../data/practices';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -157,11 +158,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signupPractice = async (credentials: PracticeSignupCredentials): Promise<{ success: boolean; message: string }> => {
     try {
-      const existingPractice = getPracticeByEmail(credentials.email);
-
-      if (existingPractice) {
-        return { success: false, message: 'Practice with this email already exists' };
-      }
 
       const newPractice = addPractice({
         practiceName: credentials.practiceName,
@@ -176,7 +172,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         practiceAddress: credentials.practiceAddress,
         practiceCity: credentials.practiceCity,
         practiceState: credentials.practiceState,
-        practicePostcode: credentials.practicePostcode
+        practicePostcode: credentials.practicePostcode,
+        practiceLogo: ''
       });
 
       setState({

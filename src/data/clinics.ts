@@ -5,13 +5,17 @@ export const clinics: Clinic[] = [
   {
     id: "1",
     name: "Sydney Harbour Dental",
+    email: "sydney@dentalcare.com.au",
+    password: "vv123",
+    admin: {
+        email: "sydneyadmin@dentalcare.com.au",
+        password: "admin123"
+    },
     tagline: "Comprehensive family dentistry",
     address: "Adelaide, SA 5000",
     specialities: ["General Dentistry", "Root Canal", "Cosmetic Dentistry"],
     services: ["General Dentistry", "Root Canal", "Cosmetic Dentistry"],
     phone: "(02) 9234 5678",
-    email: "sydney@dentalcare.com.au",
-    password: "vv123",
     website: "https://vishwadentalcare.com.au",
     rating: 4.8,
     available: true,
@@ -109,13 +113,17 @@ export const clinics: Clinic[] = [
   {
     id: "2",
     name: "Melbourne Family Dental",
+    email: "melbourne@dentalclinic.com.au",
+    password: "practice456",
+    admin: {
+        email: "melbourneadmin@dentalclinic.com.au",
+        password: "admin456"
+    },
     tagline: "Specialist dental care",
     address: "456 Collins Street, Melbourne VIC 3000",
     specialities: ["Specialist Dentistry", "Orthodontics", "Oral Surgery"],
     services: ["Specialist Dentistry", "Orthodontics", "Oral Surgery"],
     phone: "(03) 9876 5432",
-    email: "melbourne@dentalclinic.com.au",
-    password: "practice456",
     website: "https://citydentalclinic.com.au",
     rating: 4.9,
     available: true,
@@ -213,13 +221,17 @@ export const clinics: Clinic[] = [
   {
     id: "3",
     name: "City Dental Studio",
+    email: "city@smile.com.au",
+    password: "practice789",
+    admin: {
+        email: "cityadmin@smile.com.au",
+        password: "admin789"
+    },
     tagline: "Cosmetic and restorative specialists",
     address: " Adelaide SA 5000",
     specialities: ["Cosmetic Dentistry", "Teeth Whitening", "Smile Makeover"],
     services: ["Cosmetic Dentistry", "Teeth Whitening", "Smile Makeover"],
     phone: "(07) 3456 7890",
-    email: "city@smile.com.au",
-    password: "practice789",
     website: "https://brightsmile.com.au",
     rating: 4.7,
     available: true,
@@ -317,13 +329,17 @@ export const clinics: Clinic[] = [
   {
     id: "4",
     name: "Family Dental Center",
+    email: "dental@familydental.com.au",
+    password: "practice111",
+    admin: {
+        email: "familyadmin@familydental.com.au",
+        password: "admin111"
+    },
     tagline: "Caring for families and children",
     address: "Adelaide SA 5000",
     specialities: ["Pediatric Dentistry", "Family Dentistry", "Preventive Care"],
     services: ["Pediatric Dentistry", "Family Dentistry", "Preventive Care"],
     phone: "(08) 8765 4321",
-    email: "dental@familydental.com.au",
-    password: "practice111",
     website: "https://familydental.com.au",
     rating: 4.6,
     available: true,
@@ -421,13 +437,17 @@ export const clinics: Clinic[] = [
   {
     id: "5",
     name: "Orthodontic Specialists Clinic",
+    email: "info@ortho-specialists.com.au",
+    password: "practice222",
+    admin: {
+        email: "orthoadmin@ortho-specialists.com.au",
+        password: "admin222"
+    },
     tagline: "Advanced orthodontic care",
     address: "555 Northbourne Avenue, Canberra ACT 2600",
     specialities: ["Orthodontics", "Braces", "Clear Aligners"],
     services: ["Orthodontics", "Braces", "Clear Aligners"],
     phone: "(02) 6789 0123",
-    email: "info@ortho-specialists.com.au",
-    password: "practice222",
     website: "https://ortho-specialists.com.au",
     rating: 4.9,
     available: true,
