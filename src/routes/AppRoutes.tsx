@@ -17,6 +17,7 @@ import { ProtectedRoute } from '../components/layout/ProtectedRoute'
 import Aboutus from '../pages/Aboutus'
 import ListYourPractice from '../pages/ListYourPractice'
 import PracticeRoutes from './practice/PracticeRoutes'
+import SuperAdminDashboard from '../pages/superadmin/SuperAdminDashboard'
 
 function AppRoutes() {
     return (
@@ -44,6 +45,7 @@ function AppRoutes() {
                 
                 {/* Practice Routes - Separate Module */}
                 <Route path="/practice/*" element={<PracticeRoutes />} />
+                <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
                 
                 <Route path="/booking/success" element={
                     <ProtectedRoute>

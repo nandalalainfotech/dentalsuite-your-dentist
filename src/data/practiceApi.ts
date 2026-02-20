@@ -1,87 +1,119 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// Minimal in-memory practice store for development/login
-import type { Practice, PracticeWithDashboard } from '../types/auth';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { PracticeWithDashboard } from '../types/auth';
+import type { Clinic } from '../types';
+import { clinics } from './clinics';
 
-const staticPractices: PracticeWithDashboard[] = [
-  {
-    id: 'p1',
-    practiceName: 'Dev Practice',
+// --- HELPER: Map Clinic to Practice Object ---
+const mapClinicToPractice = (clinic: Clinic, role: 'practice' | 'superadmin'): PracticeWithDashboard => {
+  // Extract address parts (City/State/Postcode)
+  const address = clinic.address || '';
+  // Simple regex to extract postcode (4 digits)
+  const postcodeMatch = address.match(/\b\d{4}\b/);
+  const postcode = postcodeMatch ? postcodeMatch[0] : '2000';
+  
+  // Very basic state extraction (you can improve this parser later)
+  const stateMatch = address.match(/\b(NSW|VIC|QLD|WA|SA|TAS|ACT|NT)\b/);
+  const state = (stateMatch ? stateMatch[0] : 'NSW') as any;
+
+  // City is whatever is left (simplified)
+  const city = address.replace(postcode, '').replace(state, '').replace(/,/g, '').trim() || 'Sydney';
+
+  return {
+    id: clinic.id,
+    role: role, // <--- SET DYNAMIC ROLE
+    
+    // If Super Admin, append label to name
+    practiceName: role === 'superadmin' ? `${clinic.name} (Super Admin)` : clinic.name,
+    
+    // Use the email that was used to login
+    email: role === 'superadmin' && clinic.admin ? clinic.admin.email : (clinic.email ?? ''),
+    password: '', // Don't return password
+    
+    firstName: role === 'superadmin' ? 'Super' : 'Practice',
+    lastName: 'Admin',
+    
     abnNumber: '00-000-000',
-    email: 'dev@practice.local',
-    password: 'devpass',
-    firstName: 'Dev',
-    lastName: 'Owner',
-    mobileNumber: '+61123456789',
+    mobileNumber: clinic.phone || '',
+    practiceLogo: clinic.logo || '',
     practiceType: 'general_dentistry',
-    practicePhone: '+61123456789',
-    practiceAddress: '1 Dev Street',
-    practiceCity: 'DevCity',
-    practiceState: 'NSW',
-    practicePostcode: '2000',
+    practicePhone: clinic.phone || '',
+    practiceAddress: clinic.address || '',
+    practiceCity: city,
+    practiceState: state,
+    practicePostcode: postcode,
     createdAt: new Date().toISOString(),
     appointments: [],
     notifications: [],
     profileImage: undefined,
     isActive: true,
-    rating: 5,
+    rating: clinic.rating || 0,
     totalReviews: 0
-  }
-];
-
-export const practiceApi = {
-  getAllPractices: (): PracticeWithDashboard[] => staticPractices,
-  getPracticeById: (id: string): PracticeWithDashboard | null => staticPractices.find(p => p.id === id) || null,
-  getPracticeByEmail: (email: string): PracticeWithDashboard | null => staticPractices.find(p => p.email.toLowerCase() === email.toLowerCase()) || null,
-  getPracticeByMobile: (mobile: string): PracticeWithDashboard | null => staticPractices.find(p => p.mobileNumber === mobile) || null,
-  getPracticeByEmailOrMobile: (v: string): PracticeWithDashboard | null => staticPractices.find(p => p.email.toLowerCase() === v.toLowerCase() || p.mobileNumber === v) || null,
-  validatePracticeCredentials: (v: string, p: string): PracticeWithDashboard | null => {
-    const practice = staticPractices.find(pr => (pr.email.toLowerCase() === v.toLowerCase() || pr.mobileNumber === v) && pr.password === p);
-    return practice || null;
-  },
-  updatePractice: (_id: string, _data: Partial<Practice>): PracticeWithDashboard | null => null,
-  updatePracticeProfile: (_id: string, _data: Partial<Practice>): PracticeWithDashboard | null => null,
-  addPractice: (practiceData: Omit<Practice, 'id' | 'createdAt'>): PracticeWithDashboard => {
-    const newPractice: PracticeWithDashboard = {
-      ...practiceData,
-      id: (staticPractices.length + 1).toString(),
-      createdAt: new Date().toISOString(),
-      appointments: [],
-      notifications: [],
-      isActive: true,
-      rating: 0,
-      totalReviews: 0
-    } as PracticeWithDashboard;
-    staticPractices.push(newPractice);
-    return newPractice;
-  },
-  searchPractices: (_q: string): PracticeWithDashboard[] => [],
-  getPracticesByType: (_t: string): PracticeWithDashboard[] => [],
-  getPracticesByState: (_s: string): PracticeWithDashboard[] => [],
-  getPracticesByDateRange: (_a: Date, _b: Date): PracticeWithDashboard[] => [],
-  getPracticeStats: () => ({} as Record<string, unknown>),
-  deletePractice: (_id: string) => false,
-  emailExists: (email: string) => staticPractices.some(p => p.email.toLowerCase() === email.toLowerCase()),
-  mobileExists: (m: string) => staticPractices.some(p => p.mobileNumber === m),
-  abnExists: (a: string) => staticPractices.some(p => p.abnNumber === a)
+  };
 };
 
+// --- API OBJECT ---
+export const practiceApi = {
+  getAllPractices: (): PracticeWithDashboard[] => {
+    // Map all as standard practices for listing purposes
+    return clinics.map(c => mapClinicToPractice(c, 'practice'));
+  },
+  
+  // --- UPDATED VALIDATION LOGIC ---
+  validatePracticeCredentials: (v: string, p: string): PracticeWithDashboard | null => {
+    const inputEmail = v.toLowerCase().trim();
+
+    for (const clinic of clinics) {
+      
+      // 1. CHECK CLINIC PROFILE LOGIN
+      // Check Email OR Phone (if phone matches input)
+      const isProfileEmail = clinic.email && clinic.email.toLowerCase() === inputEmail;
+      // Phone check logic (simplified)
+      const isProfilePhone = clinic.phone && clinic.phone.replace(/\D/g,'') === v.replace(/\D/g,'');
+
+      if ((isProfileEmail || isProfilePhone) && clinic.password === p) {
+        return mapClinicToPractice(clinic, 'practice');
+      }
+
+      // 2. CHECK CLINIC SUPER ADMIN LOGIN
+      if (clinic.admin) {
+        const isAdminEmail = clinic.admin.email.toLowerCase() === inputEmail;
+        if (isAdminEmail && clinic.admin.password === p) {
+          return mapClinicToPractice(clinic, 'superadmin');
+        }
+      }
+    }
+    
+    return null;
+  },
+  // --------------------------------
+
+  getPracticeById: (id: string) => {
+    const c = clinics.find(x => x.id === id);
+    return c ? mapClinicToPractice(c, 'practice') : null;
+  },
+  
+  // ... (Keep existing stubs for other methods to satisfy TS interface)
+  getPracticeByEmail: () => null,
+  getPracticeByMobile: () => null,
+  getPracticeByEmailOrMobile: () => null,
+  updatePractice: () => null,
+  updatePracticeProfile: () => null,
+  addPractice: (d: any) => ({ ...d, id: 'new', createdAt: new Date().toISOString() } as any),
+  searchPractices: () => [],
+  getPracticesByType: () => [],
+  getPracticesByState: () => [],
+  getPracticesByDateRange: () => [],
+  getPracticeStats: () => ({}),
+  deletePractice: () => false,
+  emailExists: () => false,
+  mobileExists: () => false,
+  abnExists: () => false
+};
+
+// Export individual functions for easier importing
 export const {
   getAllPractices,
-  getPracticeById,
-  getPracticeByEmail,
-  getPracticeByMobile,
-  getPracticeByEmailOrMobile,
   validatePracticeCredentials,
-  updatePractice,
-  updatePracticeProfile,
-  addPractice,
-  searchPractices,
-  getPracticesByType,
-  getPracticesByState,
-  getPracticesByDateRange,
-  getPracticeStats,
-  deletePractice,
-  emailExists,
-  mobileExists,
-  abnExists
+  getPracticeById
 } = practiceApi;

@@ -9,7 +9,8 @@ import { clinics } from '../data/clinics';
 // ----------------------------------------------------------------------
 
 const AUTH_CONSTANTS = {
-  STORAGE_KEY: 'practice',
+  // IMPORTANT: Changed storage key to avoid conflict with patient login
+  STORAGE_KEY: 'practiceUser', 
 
   MESSAGES: {
     LOGIN_SUCCESS: 'Login successful',
@@ -106,19 +107,33 @@ const getAddressParts = (address: string) => {
   };
 };
 
-const mapClinicToPractice = (clinic: Clinic): Practice => {
+// ----------------------------------------------------------------------
+// 4. MAPPER & VALIDATION HELPERS (UPDATED)
+// ----------------------------------------------------------------------
+
+// Helper to map a Clinic object to a Practice user object, assigning the correct role.
+const mapClinicToPractice = (clinic: Clinic, role: 'practice' | 'superadmin'): Practice => {
   const { city, state, postcode } = getAddressParts(clinic.address);
   const createdAtYear = clinic.establishedYear ?? new Date().getFullYear();
 
   return {
     id: clinic.id,
-    practiceName: clinic.name,
+    role: role, // <--- DYNAMIC ROLE
+    
+    // Append (Admin) to name if it's an admin login, for clarity in dashboard
+    practiceName: role === 'superadmin' ? `${clinic.name}` : clinic.name,
+    
     abnNumber: '00000000000',
-    email: clinic.email ?? '',
-    password: clinic.password ?? '',
-    firstName: 'Practice',
+    
+    // Use the email that corresponds to the role
+    email: role === 'superadmin' && clinic.admin ? clinic.admin.email : (clinic.email ?? ''),
+    
+    // Don't expose password in state
+    password: '', 
+    
+    firstName: role === 'superadmin' ? 'Super' : 'Practice',
     lastName: 'Admin',
-    practiceLogo: clinic.logo?? '',
+    practiceLogo: clinic.logo ?? '',
     mobileNumber: clinic.phone ?? '',
     practiceType: 'general_dentistry',
     practicePhone: clinic.phone ?? '',
@@ -127,25 +142,42 @@ const mapClinicToPractice = (clinic: Clinic): Practice => {
     practiceState: state,
     practicePostcode: postcode,
     createdAt: new Date(`${createdAtYear}-01-01T00:00:00Z`).toISOString()
-  };
+  } as Practice;
 };
 
-const findClinicByEmailOrMobile = (emailOrMobile: string): Clinic | undefined => {
-  const normalizedEmail = normalizeEmail(emailOrMobile);
+// Updated validation logic that checks BOTH roles
+const validateClinicCredentials = (emailOrMobile: string, password: string): Practice | null => {
+  const normalizedInput = normalizeEmail(emailOrMobile);
   const normalizedPhone = normalizePhone(emailOrMobile);
 
-  return clinics.find(clinic => {
-    const emailMatch = clinic.email && normalizeEmail(clinic.email) === normalizedEmail;
-    const phoneMatch = clinic.phone && normalizePhone(clinic.phone) === normalizedPhone && normalizedPhone.length > 0;
-    return Boolean(emailMatch || phoneMatch);
-  });
+  for (const clinic of clinics) {
+    
+    // --- CHECK 1: Standard Clinic Profile Login ---
+    const isProfileEmail = clinic.email && normalizeEmail(clinic.email) === normalizedInput;
+    // Simple phone check: matches if phone is provided and matches input
+    const isProfilePhone = clinic.phone && normalizePhone(clinic.phone) === normalizedPhone && normalizedPhone.length > 0;
+
+    if ((isProfileEmail || isProfilePhone) && clinic.password === password) {
+      return mapClinicToPractice(clinic, 'practice');
+    }
+
+    // --- CHECK 2: Clinic Super Admin Login ---
+    if (clinic.admin) {
+      const isAdminEmail = normalizeEmail(clinic.admin.email) === normalizedInput;
+      // You can add admin phone check here if you add a phone field to the admin object
+      
+      if (isAdminEmail && clinic.admin.password === password) {
+        return mapClinicToPractice(clinic, 'superadmin');
+      }
+    }
+  }
+
+  return null;
 };
 
-const validateClinicCredentials = (emailOrMobile: string, password: string): Clinic | null => {
-  const clinic = findClinicByEmailOrMobile(emailOrMobile);
-  if (!clinic || !clinic.password) return null;
-  return clinic.password === password ? clinic : null;
-};
+// ----------------------------------------------------------------------
+// 5. HOOK & PROVIDER
+// ----------------------------------------------------------------------
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const usePracticeAuth = () => {
@@ -177,7 +209,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
       } catch (error) {
         localStorage.removeItem(AUTH_CONSTANTS.STORAGE_KEY);
         setState({ ...AUTH_CONSTANTS.INITIAL_STATE, isLoading: false });
-        console.error("The error is", error);
+        console.error("Auth Error:", error);
       }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
@@ -186,21 +218,20 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
   const login = async (credentials: { emailOrMobile: string; password: string }): Promise<{ success: boolean; message: string }> => {
     try {
-      const clinic = validateClinicCredentials(credentials.emailOrMobile, credentials.password);
+      // Use the updated validation function
+      const practiceUser = validateClinicCredentials(credentials.emailOrMobile, credentials.password);
 
-      if (clinic) {
-        const practice = mapClinicToPractice(clinic);
+      if (practiceUser) {
         setState({
-          practice,
+          practice: practiceUser,
           isAuthenticated: true,
           isLoading: false
         });
-        localStorage.setItem(AUTH_CONSTANTS.STORAGE_KEY, JSON.stringify(practice));
+        localStorage.setItem(AUTH_CONSTANTS.STORAGE_KEY, JSON.stringify(practiceUser));
         return { success: true, message: AUTH_CONSTANTS.MESSAGES.LOGIN_SUCCESS };
       } else {
         return { success: false, message: AUTH_CONSTANTS.MESSAGES.LOGIN_INVALID };
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return { success: false, message: AUTH_CONSTANTS.MESSAGES.LOGIN_ERROR };
     }
@@ -218,6 +249,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
       const newPractice: Practice = {
         id: `practice-${Date.now()}`,
+        role: 'practice', // Default role for new signups
         practiceName: credentials.practiceName,
         abnNumber: credentials.abnNumber,
         email: credentials.email,
@@ -244,7 +276,7 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
       return { success: true, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_SUCCESS };
     } catch (error) {
-      console.log("The error is", error);
+      console.log("Signup Error:", error);
       return { success: false, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_ERROR };
     }
   };

@@ -5,11 +5,14 @@ import "./index.css";
 import 'animate.css';
 
 import { BrowserRouter } from "react-router-dom";
+import { PracticeAuthProvider } from "./hooks/usePracticeAuth.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
+    <PracticeAuthProvider>
       <App />
+      </PracticeAuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
