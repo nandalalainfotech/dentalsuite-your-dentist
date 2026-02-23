@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { usePracticeAuth } from '../../hooks/usePracticeAuth';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { logout as logoutAction } from '../../store/slices/practiceSlice';
 import PracticeAppointmentsView from './PracticeAppointmentsView';
 import PracticeDirectoryView from './PracticeDirectoryView';
 import { Icons } from '../../components/dashboard/Icons';
-import { User, LogOut, FileText } from 'lucide-react';
+import { LogOut, FileText } from 'lucide-react';
 import PracticeBookingCalender from './PracticeBookingCalender';
 import PracticeNewsFeeds from './PracticeNewsFeeds';
 import PractiveViewProfile from './PractiveViewProfile';
@@ -88,7 +89,8 @@ const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }
 );
 
 export default function PracticeDashboard() {
-  const { practice, logout } = usePracticeAuth();
+  const practice = useAppSelector((state) => state.practice.auth.practice);
+  const dispatch = useAppDispatch();
   const [,] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
@@ -265,7 +267,7 @@ export default function PracticeDashboard() {
 
       {/* Logout Modal */}
       {showLogoutModal && createPortal(
-        <ConfirmLogoutModal open={showLogoutModal} onClose={() => setShowLogoutModal(false)} onConfirm={logout} />,
+        <ConfirmLogoutModal open={showLogoutModal} onClose={() => setShowLogoutModal(false)} onConfirm={() => dispatch(logoutAction())} />,
         document.body
       )}
     </div>

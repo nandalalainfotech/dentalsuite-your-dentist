@@ -35,6 +35,12 @@ export interface Practice {
   practiceState: 'NSW' | 'VIC' | 'QLD' | 'WA' | 'SA' | 'TAS' | 'ACT' | 'NT';
   practicePostcode: string;
   createdAt: string;
+  status?: string;
+  profileCompleted?: boolean;
+  paymentCompleted?: boolean;
+  subscriptionPermissions?: unknown;
+  token?: string;
+  refreshToken?: string;
 }
 
 export interface PracticeWithDashboard extends Practice {

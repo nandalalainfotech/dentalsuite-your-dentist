@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { usePracticeAuth } from '../../hooks/usePracticeAuth';
+import { useAppSelector } from '../../store/hooks';
 import { Navigate } from 'react-router-dom';
 
 interface PracticeProtectedRouteProps {
@@ -7,7 +7,7 @@ interface PracticeProtectedRouteProps {
 }
 
 function PracticeProtectedRoute({ children }: PracticeProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = usePracticeAuth();
+  const { isAuthenticated, isLoading } = useAppSelector((state) => state.practice.auth);
 
   if (isLoading) {
     return (
