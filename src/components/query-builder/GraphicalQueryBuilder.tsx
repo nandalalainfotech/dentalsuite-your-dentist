@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryBuilder } from 'react-querybuilder';
 import 'react-querybuilder/dist/query-builder.css';
 import { queryFields } from './fields';

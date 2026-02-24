@@ -19,5 +19,15 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      'no-irregular-whitespace': [
+        'error',
+        {
+          skipStrings: false,
+          skipComments: false,
+          skipTemplates: false,
+        },
+      ],
+    },
   },
 ])
