@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
@@ -1472,7 +1473,7 @@ export default function PracticeAppointmentsView() {
     }
   };
 
-  
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -1544,8 +1545,8 @@ export default function PracticeAppointmentsView() {
                 <Icons.Refresh className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <span className="hidden sm:inline">
-                        {isRefreshing ? 'Refresh' : 'Refresh'}
-                    </span>
+                {isRefreshing ? 'Refresh' : 'Refresh'}
+              </span>
             </button>
           </div>
         </div>

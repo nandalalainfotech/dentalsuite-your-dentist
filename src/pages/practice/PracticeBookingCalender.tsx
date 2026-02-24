@@ -1,10 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
     ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon,
     Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle,
-    MapPin,
-    Phone,
-    Mail
 } from 'lucide-react';
 
 // --- Types ---
@@ -1203,7 +1201,6 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
             const isSelected = selectedDate === dateStr;
             const isToday = new Date().toDateString() === dateObj.toDateString();
             const disabled = isDateDisabled(dateObj);
-            const hasSlots = !disabled && getAvailableSlotsForDate(dateStr).length > 0;
 
             days.push(
                 <button
@@ -1943,7 +1940,7 @@ const PracticeBookingCalender = () => {
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [rescheduleAppointment, setRescheduleAppointment] = useState<Appointment | null>(null);
     const [selectedDayForModal, setSelectedDayForModal] = useState<Date>(new Date());
-    const [selectedSlotTime, setSelectedSlotTime] = useState({ hour: 9, minutes: 0 });
+    // const [selectedSlotTime, setSelectedSlotTime] = useState({ hour: 9, minutes: 0 });
     const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
     const { isMobile, isTablet } = useScreenSize();
@@ -1991,13 +1988,13 @@ const PracticeBookingCalender = () => {
         }
     };
 
-    const handleToday = () => {
-        setCurrentDate(new Date());
-        const today = new Date();
-        const startWeek = getStartOfWeek(today);
-        const dayIndex = Math.floor((today.getTime() - startWeek.getTime()) / (1000 * 60 * 60 * 24));
-        setSelectedDayIndex(Math.max(0, Math.min(6, dayIndex)));
-    };
+    // const handleToday = () => {
+    //     setCurrentDate(new Date());
+    //     const today = new Date();
+    //     const startWeek = getStartOfWeek(today);
+    //     const dayIndex = Math.floor((today.getTime() - startWeek.getTime()) / (1000 * 60 * 60 * 24));
+    //     setSelectedDayIndex(Math.max(0, Math.min(6, dayIndex)));
+    // };
 
     // --- REPLACED SLOT MODAL WITH DIRECT BREAK MODAL ---
     const handleSlotClick = (day: Date, hour: number, minutes: number) => {

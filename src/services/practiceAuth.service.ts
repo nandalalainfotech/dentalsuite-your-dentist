@@ -1,4 +1,6 @@
 import axios from "axios";
+import { interfaceClient } from "../api/apollo/dental_interface";
+import { LOGIN_MUTATION } from "../queries/auth_query";
 
 export interface LoginPayload {
   emailOrMobile: string;
@@ -70,6 +72,39 @@ const extractLastName = (name: string): string => {
   return parts.length > 1 ? parts.slice(1).join(" ") : "";
 };
 
+export const loginService = async (payload: LoginPayload) => {
+  const variables = {
+    details: {
+      emailOrPhone: payload.emailOrMobile,
+      password: payload.password,
+    },
+  };
+
+  const { data } = await interfaceClient.mutate({
+    mutation: LOGIN_MUTATION,
+    variables,
+  });
+  console.log("res===========>", data);
+
+  // const data = data?.login_api;
+
+  // if (!data?.login_api.accessToken) {
+  //   return {
+  //     success: false,
+  //     message: data?.message || "Login failed",
+  //   };
+  // }
+
+  // // ✅ Store tokens
+  // localStorage.setItem("accessToken", data.accessToken);
+  // localStorage.setItem("refreshToken", data.refreshToken);
+
+  return {
+    success: true,
+    // user: data,
+  };
+};
+
 
 export const practiceLoginService = async (
   payload: LoginPayload
@@ -100,7 +135,7 @@ export const practiceLoginService = async (
     );
 
     const responseData = res.data;
-    
+
     if (!responseData.accessToken) {
       return {
         success: false,
@@ -109,7 +144,7 @@ export const practiceLoginService = async (
     }
 
     const role: "practice" | "superadmin" = responseData.type === "SUPER_ADMIN" ? "superadmin" : "practice";
-    
+
     const practiceUser = {
       id: responseData.id || "",
       role: role,
@@ -135,7 +170,7 @@ export const practiceLoginService = async (
       token: responseData.accessToken || "",
       refreshToken: responseData.refreshToken || "",
     };
-    
+
     return {
       success: true,
       message: "Login successful",

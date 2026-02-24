@@ -1,14 +1,14 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import loginimg from "../../assets/login.png";
-import { practiceLoginService } from "../../services/practiceAuth.service";
-import { useAppDispatch } from "../../store/hooks";
-import { loginSuccess } from "../../store/slices/practiceSlice";
+import { loginService } from "../../services/practiceAuth.service";
+// import { useAppDispatch } from "../../store/hooks";
+// import { loginSuccess } from "../../store/slices/practiceSlice";
 
 
 export default function PracticeSignIn() {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  // const navigate = useNavigate();
+  // const dispatch = useAppDispatch();
 
   const [formData, setFormData] = useState({
     emailOrMobile: "",
@@ -47,36 +47,38 @@ export default function PracticeSignIn() {
     setError("");
     setSuccess("");
 
-    const result = await practiceLoginService(formData);
+    // const result = await practiceLoginService(formData);
+    const result = await loginService(formData);
+    console.log("result=============>", result);
 
     setLoading(false);
 
-    if (!result.success) {
-      setError(result.message);
-      return;
-    }
+    // if (!result.success) {
+    //   setError(result.message);
+    //   return;
+    // }
 
-    // Save user session
-    if (result.user) {
-      // Update Redux
-      dispatch(loginSuccess({ 
-        practice: result.user as any, 
-        token: result.user.token || '',
-        refreshToken: result.user.refreshToken
-      }));
-      
-      console.log("result.user===============>", result.user)
+    // // Save user session
+    // if (result.user) {
+    //   // Update Redux
+    //   dispatch(loginSuccess({
+    //     practice: result.user,
+    //     token: result.user.token || '',
+    //     refreshToken: result.user.refreshToken
+    //   }));
 
-    }
+    //   console.log("result.user===============>", result.user)
 
-    // Role-based redirect
-    if (result.user?.role === "superadmin") {
-      setSuccess("Welcome Super Admin!");
-      setTimeout(() => navigate("/superadmin/dashboard"), 1200);
-    } else {
-      setSuccess("Login successful!");
-      setTimeout(() => navigate("/practice/dashboard"), 1200);
-    }
+    // }
+
+    // // Role-based redirect
+    // if (result.user?.role === "superadmin") {
+    //   setSuccess("Welcome Super Admin!");
+    //   setTimeout(() => navigate("/superadmin/dashboard"), 1200);
+    // } else {
+    //   setSuccess("Login successful!");
+    //   setTimeout(() => navigate("/practice/dashboard"), 1200);
+    // }
   };
 
   return (
