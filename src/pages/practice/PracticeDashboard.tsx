@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom'; // Added Navigate
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { logout as logoutAction } from '../../store/slices/practiceSlice';
 import PracticeAppointmentsView from './PracticeAppointmentsView';
@@ -17,7 +17,6 @@ import PracticeAppointmentType from './PracticeAppointmentType';
 import PracticeAnalyticsView from './PracticeAnalyticsView';
 import PracticeInvoiceHistoryView from './PracticeInvoiceHistoryView';
 
-// 3. Update Type Definition - Added 'invoicehistory'
 type ActiveViewType =
   | 'directory'
   | 'appointments'
@@ -32,7 +31,6 @@ type ActiveViewType =
   | 'accountpayrequests'
   | 'supportrequest';
 
-// 3. Update Validation Logic - Added 'invoicehistory'
 const isValidView = (v: any): v is ActiveViewType =>
   [
     'directory',
@@ -107,9 +105,13 @@ export default function PracticeDashboard() {
     }
   }, [location.search]);
 
-  if (!practice) return null;
+  // Handle Authentication Redirect
+  // Since we updated practiceSlice to read from localStorage, 
+  // 'practice' will only be null if truly logged out.
+  if (!practice) {
+    return <Navigate to="/practice/login" replace />; // Adjust route path if your login URL is different
+  }
 
-  // 4. Update Render Content Switch - Added invoicehistory case
   const renderContent = () => {
     switch (activeView) {
       case 'appointments': return <PracticeAppointmentsView />;
@@ -118,9 +120,9 @@ export default function PracticeDashboard() {
       case 'analytics': return <PracticeAnalyticsView />;
       case 'invoicehistory': return <PracticeInvoiceHistoryView />;
       case 'newsfeeds': return <PracticeNewsFeeds />;
-      case 'mylearningHub': return <PracticeNewsFeeds />;
-      case 'accountpayrequests': return <PracticeNewsFeeds />;
-      case 'supportrequest': return <PracticeNewsFeeds />;
+      case 'mylearningHub': return <PracticeNewsFeeds />; // Assuming placeholder
+      case 'accountpayrequests': return <PracticeNewsFeeds />; // Assuming placeholder
+      case 'supportrequest': return <PracticeNewsFeeds />; // Assuming placeholder
       case 'viewprofile': return <PractiveViewProfile />;
       case 'directory': default: return <PracticeDirectoryView />;
     }
@@ -206,7 +208,7 @@ export default function PracticeDashboard() {
                     onClick={() => handleNavClick('analytics')}
                   />
 
-                  {/* Invoice History Sidebar Link - Added next to Analytics */}
+                  {/* Invoice History Sidebar Link */}
                   <SidebarLink
                     icon={<FileText size={18} />}
                     label="Invoice History"

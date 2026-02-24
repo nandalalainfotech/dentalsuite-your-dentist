@@ -50,7 +50,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       
       {/* Toast Notifications */}
       <div className="fixed top-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">

@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@apollo/client": "^4.1.5",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@react-google-maps/api": "^2.20.7",
@@ -17,13 +18,18 @@
     "@tailwindcss/vite": "^4.1.17",
     "animate.css": "^4.1.1",
     "axios": "^1.13.5",
+    "graphql": "^16.12.0",
+    "graphql-ws": "^6.0.7",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
+    "react-querybuilder": "^8.14.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.6",
     "react-toastify": "^11.0.5",
+    "redux": "^5.0.1",
+    "redux-persist": "^6.0.0",
     "tailwindcss": "^4.1.17"
   },
   "devDependencies": {

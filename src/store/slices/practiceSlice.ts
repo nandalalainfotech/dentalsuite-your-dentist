@@ -2,6 +2,30 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Practice } from '../../types/auth';
 import type { Appointment, Notification } from '../../types/dashboard';
 
+// --- HELPER: Local Storage Management ---
+const STORAGE_KEY = 'practice_auth_session';
+
+const getStoredAuthState = (): { practice: Practice | null; token: string | null; refreshToken: string | null; isAuthenticated: boolean } => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Validate that essential data exists
+      if (parsed.practice && parsed.token) {
+        return {
+          practice: parsed.practice,
+          token: parsed.token,
+          refreshToken: parsed.refreshToken || null,
+          isAuthenticated: true,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load auth state from storage', error);
+  }
+  return { practice: null, token: null, refreshToken: null, isAuthenticated: false };
+};
+
 interface PracticeAuthState {
   practice: Practice | null;
   token: string | null;
@@ -83,11 +107,14 @@ interface PracticeState {
   dashboard: PracticeDashboardState;
 }
 
+// Initialize Auth State from LocalStorage
+const storedAuth = getStoredAuthState();
+
 const initialAuthState: PracticeAuthState = {
-  practice: null,
-  token: null,
-  refreshToken: null,
-  isAuthenticated: false,
+  practice: storedAuth.practice,
+  token: storedAuth.token,
+  refreshToken: storedAuth.refreshToken,
+  isAuthenticated: storedAuth.isAuthenticated,
   isLoading: false,
   error: null,
 };
@@ -147,6 +174,13 @@ const practiceSlice = createSlice({
       state.auth.practice = action.payload.practice;
       state.auth.token = action.payload.token;
       state.auth.refreshToken = action.payload.refreshToken || null;
+
+      // SAVE TO LOCAL STORAGE
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        practice: action.payload.practice,
+        token: action.payload.token,
+        refreshToken: action.payload.refreshToken
+      }));
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.auth.isLoading = false;
@@ -159,6 +193,9 @@ const practiceSlice = createSlice({
       state.auth.isAuthenticated = false;
       state.auth.isLoading = false;
       state.auth.error = null;
+
+      // CLEAR LOCAL STORAGE
+      localStorage.removeItem(STORAGE_KEY);
     },
     setPractice: (state, action: PayloadAction<Practice>) => {
       state.auth.practice = action.payload;
@@ -168,6 +205,14 @@ const practiceSlice = createSlice({
     updatePractice: (state, action: PayloadAction<Partial<Practice>>) => {
       if (state.auth.practice) {
         state.auth.practice = { ...state.auth.practice, ...action.payload };
+        
+        // UPDATE LOCAL STORAGE to keep data in sync if profile changes
+        const currentStorage = localStorage.getItem(STORAGE_KEY);
+        if (currentStorage) {
+          const parsed = JSON.parse(currentStorage);
+          parsed.practice = state.auth.practice;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
       }
     },
     setToken: (state, action: PayloadAction<string>) => {
