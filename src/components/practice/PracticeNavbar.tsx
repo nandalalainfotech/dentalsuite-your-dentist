@@ -75,11 +75,12 @@ const PracticeNavbar: React.FC = () => {
                             </div>
                         </>
                     ) : (
-                        <Link to="/practice/signin">
-                            <button className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-black hover:text-orange-600 transition">
-                                Practice Login
-                            </button>
-                        </Link>
+                        <button
+                            onClick={() => setShowLogoutModal(true)}
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-300 transition"
+                        >
+                            <LogOut size={16} className="sm:w-5 sm:h-5 ml-0.5" />
+                        </button>
                     )}
                 </div>
 
