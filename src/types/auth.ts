@@ -18,6 +18,7 @@ export interface UserWithDashboard extends User {
 }
 
 export interface Practice {
+  practiceType: string;
   id: string;
   role?: 'practice' | 'superadmin'; 
   practiceName: string;
@@ -28,11 +29,10 @@ export interface Practice {
   lastName: string;
   mobileNumber: string;
   practiceLogo: string;
-  practiceType: 'general_dentistry' | 'specialist' | 'cosmetic' | 'orthodontic' | 'pediatric';
   practicePhone: string;
   practiceAddress: string;
   practiceCity: string;
-  practiceState: 'NSW' | 'VIC' | 'QLD' | 'WA' | 'SA' | 'TAS' | 'ACT' | 'NT';
+  practiceState: string;
   practicePostcode: string;
   createdAt: string;
   status?: string;
