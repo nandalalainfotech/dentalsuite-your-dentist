@@ -173,7 +173,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         practiceCity: credentials.practiceCity,
         practiceState: credentials.practiceState,
         practicePostcode: credentials.practicePostcode,
-        practiceLogo: ''
+        practiceLogo: '',
+        business_name: ''
       });
 
       setState({

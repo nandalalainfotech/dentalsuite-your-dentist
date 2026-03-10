@@ -5,6 +5,8 @@ import { BookingProvider } from './hooks/booking/useBookingContext'
 import { FilterProvider } from './hooks/filters/useFilters'
 import { AuthProvider } from './hooks/useAuth'
 import { useLocation } from 'react-router-dom'
+import { Toaster } from "react-hot-toast";
+
 
 function AppContent() {
   const location = useLocation();
@@ -25,6 +27,7 @@ function App() {
     <AuthProvider>
       <FilterProvider>
         <BookingProvider>
+          <Toaster position="top-right" />
           <AppContent />
         </BookingProvider>
       </FilterProvider>

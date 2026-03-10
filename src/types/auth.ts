@@ -1,11 +1,12 @@
 export interface User {
   id: string;
   email: string;
+  role?: string; 
   password: string;
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  gender: 'male' | 'female' | 'other';
+  gender?: 'male' | 'female' | 'other';
   mobileNumber: string;
   createdAt: string;
 }
@@ -20,7 +21,7 @@ export interface UserWithDashboard extends User {
 export interface Practice {
   practiceType: string;
   id: string;
-  role?: 'practice' | 'superadmin'; 
+  role?: string; 
   practiceName: string;
   abnNumber: string;
   email: string;
@@ -41,6 +42,11 @@ export interface Practice {
   subscriptionPermissions?: unknown;
   token?: string;
   refreshToken?: string;
+  business_name: string;
+  address?: string;
+  phone?:string;
+  name?: string;
+  city?: string;
 }
 
 export interface PracticeWithDashboard extends Practice {
@@ -105,4 +111,28 @@ export interface AuthContextType extends AuthState {
   logout: () => void;
   updateProfile: (userData: Partial<User>) => void;
   updatePracticeProfile: (practiceData: Partial<Practice>) => void;
+}
+
+
+export interface Practices {
+   practiceType: string;
+  id: string;
+  role?: string; 
+  name?: string;
+  email: string;
+  business_name: string;
+  abnNumber: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  mobileNumber: string;
+  logo: string;
+  address: string;
+  city: string;
+  state: string;
+  postcode: string;
+  createdAt: string;
+  status?: string;
+  token?: string;
 }

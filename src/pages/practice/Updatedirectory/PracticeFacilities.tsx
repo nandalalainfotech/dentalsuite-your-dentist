@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Building, Plus, X, Wifi, Car, Accessibility, Thermometer, Tv, Stethoscope, Check } from 'lucide-react';
-import type { Clinic } from '../../../types';
+import { Building, Plus, X, Wifi, Car, Accessibility, Thermometer, Tv, Stethoscope, Check, } from 'lucide-react';
+import type { PracticeInfo } from '../../../types/clinic';
 
 // Added onNext to props
-export default function PracticeFacilities({ clinicData, onNext }: { clinicData: Clinic, onNext: () => void }) {
+export default function PracticeFacilities({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const initialFacilities = (clinicData as any).facilities || [];
     const [facilities, setFacilities] = useState<string[]>(initialFacilities);
@@ -43,22 +43,22 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
     };
 
     return (
-        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-in fade-in zoom-in-95 duration-300">
 
             {/* HEADER */}
-            <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-orange-100 rounded-lg">
+            <div className="flex items-start gap-4 mb-8 border-b border-gray-100 pb-6">
+                <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
                     <Building className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Clinic Facilities</h2>
-                    <p className="text-sm text-gray-500">What amenities do you offer patients?</p>
+                    <h2 className="text-xl font-bold text-gray-900">Facilities & Amenities</h2>
+                    <p className="text-gray-500 text-sm mt-1">What amenities do you offer patients to make their visit comfortable?</p>
                 </div>
             </div>
 
             {/* COMMON AMENITIES GRID */}
-            <div className="mb-8">
-                <h3 className="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Common Amenities</h3>
+            <div className="mb-10">
+                <h3 className="font-bold text-gray-900 mb-5 text-xs uppercase tracking-wider">Common Amenities</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {commonAmenities.map((item) => {
                         const isSelected = facilities.includes(item.name);
@@ -67,20 +67,24 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
                             <button
                                 key={item.name}
                                 onClick={() => toggleFacility(item.name)}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition duration-200 gap-2
+                                className={`
+                                    relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all duration-200 gap-3 group
                                     ${isSelected
-                                        ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-sm'
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-orange-300 hover:bg-gray-50'
+                                        ? 'bg-orange-50/40 border-orange-500 shadow-sm'
+                                        : 'bg-white border-gray-100 hover:border-orange-200 hover:shadow-md'
                                     }
                                 `}
                             >
-                                <div className={`p-2 rounded-full ${isSelected ? 'bg-orange-200' : 'bg-gray-100'}`}>
-                                    <Icon className={`w-5 h-5 ${isSelected ? 'text-orange-700' : 'text-gray-500'}`} />
+                                <div className={`p-3 rounded-full transition-colors ${isSelected ? 'bg-orange-100 text-orange-600' : 'bg-gray-50 text-gray-400 group-hover:text-orange-500 group-hover:bg-orange-50'}`}>
+                                    <Icon className="w-6 h-6" />
                                 </div>
-                                <span className="text-sm font-medium text-center leading-tight">{item.name}</span>
+                                <span className={`text-sm font-semibold text-center leading-tight ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>
+                                    {item.name}
+                                </span>
+                                
                                 {isSelected && (
-                                    <div className="absolute top-2 right-2">
-                                        <Check className="w-4 h-4 text-orange-500" />
+                                    <div className="absolute top-3 right-3 bg-orange-500 text-white p-0.5 rounded-full shadow-sm animate-in zoom-in">
+                                        <Check className="w-3 h-3" strokeWidth={3} />
                                     </div>
                                 )}
                             </button>
@@ -90,21 +94,21 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
             </div>
 
             {/* CUSTOM INPUT */}
-            <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                <label className="text-sm font-medium text-gray-700 block mb-2">Other Facilities</label>
-                <div className="flex gap-2">
+            <div className="mb-10 p-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <label className="text-sm font-bold text-gray-900 block mb-3">Add Other Facilities</label>
+                <div className="flex gap-3">
                     <input
                         type="text"
                         value={customFacility}
                         onChange={(e) => setCustomFacility(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addCustomFacility()}
-                        placeholder="e.g. Pharmacy on-site"
-                        className="flex-1 rounded-xl border border-gray-300 shadow-sm px-4 py-2.5 outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="e.g. Pharmacy on-site, Children's Play Area"
+                        className="flex-1 rounded-xl border border-gray-200 shadow-sm px-5 py-3 outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
                     />
                     <button
                         onClick={addCustomFacility}
                         disabled={!customFacility.trim()}
-                        className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+                        className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 shadow-lg shadow-gray-900/10"
                     >
                         <Plus className="w-4 h-4" /> Add
                     </button>
@@ -112,33 +116,44 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
             </div>
 
             {/* SELECTED LIST SUMMARY */}
-            <div className="border-t border-gray-100 pt-6">
-                <h3 className="font-bold text-gray-800 mb-4">Selected Facilities ({facilities.length})</h3>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                 <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100">
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        Active Facilities <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs">{facilities.length}</span>
+                    </h3>
+                </div>
 
-                {facilities.length === 0 ? (
-                    <p className="text-gray-400 text-sm italic">No facilities selected.</p>
-                ) : (
-                    <div className="flex flex-wrap gap-3">
-                        {facilities.map((fac) => (
-                            <div
-                                key={fac}
-                                className="flex items-center gap-2 pl-4 pr-2 py-2 rounded-full bg-white border border-gray-200 text-gray-700 text-sm font-medium shadow-sm"
-                            >
-                                <span>{fac}</span>
-                                <button
-                                    onClick={() => removeFacility(fac)}
-                                    className="p-1 rounded-full hover:bg-orange-50 text-gray-400 hover:text-orange-500 transition"
+                <div className="p-6">
+                    {facilities.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                            <Building className="w-8 h-8 text-gray-300 mb-2 opacity-50" />
+                            <p className="text-gray-500 text-sm italic">No facilities selected yet.</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap gap-3">
+                            {facilities.map((fac) => (
+                                <div
+                                    key={fac}
+                                    className="group flex items-center gap-2 pl-4 pr-2 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-medium shadow-sm hover:border-orange-200 hover:shadow-md transition-all duration-200"
                                 >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                    <span>{fac}</span>
+                                    <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                                    <button
+                                        onClick={() => removeFacility(fac)}
+                                        className="p-1 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* FOOTER ACTIONS */}
-            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
+            <div className="mt-10 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
                     onClick={onNext}

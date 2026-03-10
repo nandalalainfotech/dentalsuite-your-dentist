@@ -389,9 +389,6 @@ export default function PracticeSignUp() {
             >
               {isLoading ? "Creating Practice Account..." : "Create Practice Account"}
             </button>
-
-           
-
           </form>
         </div>
       </div>

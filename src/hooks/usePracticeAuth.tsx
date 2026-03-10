@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Practice } from '../types/auth';
 import type { Clinic } from '../types';
 import { clinics } from '../data/clinics';
+import type { Practice } from '../types/auth';
 
 // ----------------------------------------------------------------------
 // 1. STATIC DATA & CONFIGURATION
@@ -264,7 +264,8 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
         practiceCity: credentials.practiceCity,
         practiceState: credentials.practiceState,
         practicePostcode: credentials.practicePostcode,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        business_name: '',
       };
 
       setState({

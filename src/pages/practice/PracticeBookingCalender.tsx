@@ -2056,7 +2056,7 @@ const PracticeBookingCalender = () => {
 
     const handleReschedule = (
         appointmentId: string,
-        newDate: Date,
+        _newDate: Date,
         newStartTime: Date,
         newEndTime: Date,
         newPractitionerId: string

@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { 
-    Stethoscope, Plus, Trash2, Edit2, Check, X, 
-    CheckCircle2, AlertCircle, 
-    Briefcase
+import {
+    Briefcase, Plus, Trash2, Edit2, X, Check, Loader2
 } from 'lucide-react';
-import type { Clinic } from '../../../types';
+import { useAppDispatch } from '../../../store/hooks';
+import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
+import type { PracticeInfo } from '../../../types/clinic';
+import toast from "react-hot-toast";
 
 interface Service {
     id: string;
@@ -13,41 +15,45 @@ interface Service {
     description: string;
 }
 
-const POPULAR_SERVICES = [
-    "General Checkup", "Teeth Cleaning", "Vaccination", 
-    "Physiotherapy", "Blood Test", "Consultation", 
-    "X-Ray", "Pediatrics", "Dermatology"
-];
+export default function PracticeServices({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+    const dispatch = useAppDispatch();
 
-export default function PracticeServices({ clinicData, onNext }: { clinicData: Clinic, onNext: () => void }) {
-    // --- State ---
     const [services, setServices] = useState<Service[]>([]);
-    
+    const [isSaving, setIsSaving] = useState(false);
+
     // Form State
     const [newName, setNewName] = useState('');
     const [newDesc, setNewDesc] = useState('');
-    const [newShow, setNewShow] = useState(true);
 
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Service>>({});
 
-    // --- Effects ---
+    const stripHtml = (html: string) => {
+        if (!html) return "";
+        return html.replace(/<[^>]*>?/gm, '');
+    };
+
     useEffect(() => {
-        if (clinicData?.services && Array.isArray(clinicData.services)) {
-            const formattedServices = clinicData.services.map((serviceName, index) => ({
-                id: (index + 1).toString(),
-                name: serviceName,
-                showInAppointment: true,
-                description: 'Standard consultation service.'
-            }));
-            setServices(formattedServices);
-        } else {
-            // Default mock data if empty
-            setServices([
-                { id: '1', name: 'General Consultation', showInAppointment: true, description: 'Standard 15 minute appointment.' },
-            ]);
+        if (!clinicData) {
+            setServices([]);
+            return;
         }
+        const rawServices =
+            Array.isArray((clinicData as PracticeInfo).directory_services) &&
+                (clinicData as PracticeInfo).directory_services.length > 0
+                ? (clinicData as PracticeInfo).directory_services
+                : Array.isArray(clinicData.services)
+                    ? clinicData.services
+                    : [];
+
+        const formattedServices = rawServices.map((s: any, index: number) => ({
+            id: s.id || (index + 1).toString(),
+            name: s.name || "",
+            description: stripHtml?.(s.description) || "",
+            showInAppointment: true // Default to true if missing
+        }));
+        setServices(formattedServices);
     }, [clinicData]);
 
     // --- Handlers ---
@@ -59,32 +65,18 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: C
             id: Date.now().toString(),
             name: newName,
             description: newDesc,
-            showInAppointment: newShow
-        };
-
-        setServices(prev => [newService, ...prev]); // Add to top
-        
-        // Reset
-        setNewName('');
-        setNewDesc('');
-        setNewShow(true);
-    };
-
-    const handleQuickAdd = (name: string) => {
-        // Prevent duplicates
-        if (services.some(s => s.name === name)) return;
-
-        const newService: Service = {
-            id: Date.now().toString(),
-            name: name,
-            description: 'Standard service',
             showInAppointment: true
         };
+
         setServices(prev => [newService, ...prev]);
+        setNewName('');
+        setNewDesc('');
+        toast.success("Service added to list");
     };
 
     const handleDelete = (id: string) => {
         setServices(prev => prev.filter(s => s.id !== id));
+        toast.success("Service removed");
     };
 
     const startEdit = (service: Service) => {
@@ -94,206 +86,176 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: C
 
     const saveEdit = () => {
         if (!editingId || !editForm.name) return;
-        
-        setServices(prev => prev.map(s => 
+
+        setServices(prev => prev.map(s =>
             s.id === editingId ? { ...s, ...editForm } as Service : s
         ));
         setEditingId(null);
         setEditForm({});
+        toast.success("Service updated");
     };
 
-    const cancelEdit = () => {
-        setEditingId(null);
-        setEditForm({});
-    };
+    const handleSaveAndNext = async () => {
+        setIsSaving(true);
+        try {
+            const formData = new FormData();
+            const servicesList = services.map(s => ({
+                name: s.name,
+                description: s.description,
+            }));
 
-    const handleSaveAndNext = () => {
-        console.log('Saving Services:', services);
-        onNext();
-    };
+            formData.append('directory_services', JSON.stringify(servicesList));
+            await dispatch(updatePracticeProfile(formData)).unwrap();
 
-    // --- Styles ---
-    const inputClasses = "w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-100 focus:border-orange-500 outline-none transition text-sm";
+            toast.success("Services saved successfully!");
+            onNext();
+        } catch (error) {
+            console.error("Failed to save services:", error);
+            toast.error("Failed to save changes.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
-        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-in fade-in zoom-in-95 duration-300">
 
-            {/* HEADER */}
-            <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-orange-100 rounded-lg">
+            {/* Header Section */}
+            <div className="flex items-start gap-4 mb-8 border-b border-gray-100 pb-6">
+                <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
                     <Briefcase className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Services</h2>
-                    <p className="text-sm text-gray-500">Add the medical services available at your practice.</p>
+                    <h2 className="text-xl font-bold text-gray-900">Services</h2>
+                    <p className="text-gray-500 text-sm mt-1">List the treatments and procedures available at your practice.</p>
                 </div>
             </div>
 
-            {/* ADD SERVICE SECTION */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8">
-                <h3 className="text-sm font-bold text-gray-800 mb-4">Add New Service</h3>
-                
+            {/* Input Section */}
+            <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-5 mb-8 focus-within:ring-1 focus-within:ring-orange-200 transition-all">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                    {/* Name Input */}
-                    <div className="md:col-span-4">
+                    {/* Name */}
+                    <div className="md:col-span-4 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Service Name</label>
                         <input
                             type="text"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            placeholder="Service Name (e.g. Dental Exam)"
-                            className={inputClasses}
+                            placeholder="e.g. Dental Implant"
+                            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition shadow-sm"
                         />
                     </div>
 
-                    {/* Description Input */}
-                    <div className="md:col-span-5">
+                    {/* Description */}
+                    <div className="md:col-span-6 space-y-1.5">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Short Description</label>
                         <input
                             type="text"
                             value={newDesc}
                             onChange={(e) => setNewDesc(e.target.value)}
-                            placeholder="Short description..."
-                            className={inputClasses}
+                            placeholder="Brief details about the procedure..."
+                            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition shadow-sm"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                         />
                     </div>
 
-                    {/* Actions */}
-                    <div className="md:col-span-3 flex items-center gap-3 h-[42px]">
-                        <label className="flex items-center gap-2 cursor-pointer bg-white border border-gray-200 px-3 py-2 rounded-lg text-sm hover:border-orange-300 transition select-none h-full">
-                            <input
-                                type="checkbox"
-                                checked={newShow}
-                                onChange={(e) => setNewShow(e.target.checked)}
-                                className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500 border-gray-300"
-                            />
-                            <span className="text-gray-600">Active</span>
-                        </label>
+                    {/* Add Button */}
+                    <div className="md:col-span-2 pt-6">
                         <button
                             onClick={handleAdd}
                             disabled={!newName.trim()}
-                            className="flex-1 h-full bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                            className="w-full h-[46px] bg-gray-900 text-white font-medium rounded-xl hover:bg-black hover:shadow-lg hover:shadow-gray-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
                         >
-                            <Plus className="w-4 h-4" /> Add
+                            <Plus size={18} />
+                            <span>Add</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* QUICK ADD / POPULAR */}
-            {/* <div className="mb-8">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Popular Services</h3>
-                <div className="flex flex-wrap gap-2">
-                    {POPULAR_SERVICES.map((name) => {
-                        const isAdded = services.some(s => s.name === name);
-                        return (
-                            <button
-                                key={name}
-                                onClick={() => handleQuickAdd(name)}
-                                disabled={isAdded}
-                                className={`
-                                    flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200
-                                    ${isAdded 
-                                        ? 'bg-orange-50 border-orange-200 text-orange-400 cursor-default' 
-                                        : 'bg-white border-gray-200 text-gray-600 hover:border-orange-200 hover:text-orange-600'
-                                    }
-                                `}
-                            >
-                                {isAdded && <CheckCircle2 className="w-3.5 h-3.5" />}
-                                {name}
-                                {!isAdded && <Plus className="w-3.5 h-3.5 opacity-50" />}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div> */}
-
-            {/* SERVICES LIST GRID */}
+            {/* List Section */}
             <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                    <h3 className="text-sm font-bold text-gray-700">
-                        Service List ({services.length})
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-gray-900">
+                        Active Services <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs">{services.length}</span>
                     </h3>
                 </div>
 
                 {services.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
-                        <AlertCircle className="w-10 h-10 text-gray-300 mb-2" />
-                        <p className="text-gray-400 text-sm">No services added yet.</p>
+                    <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30 text-center">
+                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                            <Briefcase className="w-6 h-6 text-gray-300" />
+                        </div>
+                        <h4 className="text-gray-900 font-medium">No services added yet</h4>
+                        <p className="text-gray-400 text-sm mt-1 max-w-xs">Start by adding a service name above to populate your directory listing.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {services.map((service) => (
-                            <div 
-                                key={service.id} 
+                            <div
+                                key={service.id}
                                 className={`
-                                    relative p-4 rounded-xl border transition group bg-white
-                                    ${editingId === service.id ? 'border-orange-400 ring-4 ring-orange-50 shadow-md z-10' : 'border-gray-200 hover:border-orange-200 hover:shadow-sm'}
+                                    relative p-5 rounded-xl border transition-all duration-200 group bg-white
+                                    ${editingId === service.id
+                                        ? 'border-orange-500 ring-4 ring-orange-50/50 shadow-lg z-10'
+                                        : 'border-gray-100 hover:border-orange-200 hover:shadow-md hover:shadow-orange-500/5'
+                                    }
                                 `}
                             >
                                 {editingId === service.id ? (
                                     // EDIT MODE
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-bold text-orange-500 uppercase">Editing Service</span>
+                                    <div className="space-y-3 animate-in fade-in duration-200">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-bold text-orange-500 uppercase tracking-wide">Editing Service</span>
+                                            <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
                                         </div>
                                         <input
                                             value={editForm.name}
-                                            onChange={(e) => setEditForm(prev => ({...prev, name: e.target.value}))}
-                                            className={inputClasses}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-sm font-medium"
                                             placeholder="Service Name"
                                             autoFocus
                                         />
                                         <textarea
                                             value={editForm.description}
-                                            onChange={(e) => setEditForm(prev => ({...prev, description: e.target.value}))}
-                                            className={`${inputClasses} resize-none`}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-sm resize-none"
                                             placeholder="Description"
                                             rows={2}
                                         />
-                                        <div className="flex items-center justify-between pt-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={editForm.showInAppointment}
-                                                    onChange={(e) => setEditForm(prev => ({...prev, showInAppointment: e.target.checked}))}
-                                                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
-                                                />
-                                                <span className="text-sm text-gray-700">Active</span>
-                                            </label>
-                                            <div className="flex gap-2">
-                                                <button onClick={cancelEdit} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition"><X className="w-4 h-4" /></button>
-                                                <button onClick={saveEdit} className="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition">Save</button>
-                                            </div>
+                                        <div className="flex justify-end pt-2">
+                                            <button
+                                                onClick={saveEdit}
+                                                className="px-4 py-1.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition flex items-center gap-1.5"
+                                            >
+                                                <Check size={14} /> Save Changes
+                                            </button>
                                         </div>
                                     </div>
                                 ) : (
                                     // VIEW MODE
                                     <>
                                         <div className="flex justify-between items-start mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-bold text-gray-800">{service.name}</h4>
-                                                {service.showInAppointment ? (
-                                                    <span className="w-2 h-2 rounded-full bg-green-500" title="Active"></span>
-                                                ) : (
-                                                    <span className="w-2 h-2 rounded-full bg-red-500" title="Inactive"></span>
-                                                )}
-                                            </div>
-                                            
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition duration-200">
-                                                <button 
-                                                    onClick={() => startEdit(service)} 
-                                                    className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                                            <h4 className="font-bold text-gray-900 text-lg">{service.name}</h4>
+
+                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 transform translate-x-2 group-hover:translate-x-0">
+                                                <button
+                                                    onClick={() => startEdit(service)}
+                                                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                    title="Edit"
                                                 >
-                                                    <Edit2 className="w-4 h-4" />
+                                                    <Edit2 size={16} />
                                                 </button>
-                                                <button 
-                                                    onClick={() => handleDelete(service.id)} 
-                                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                <button
+                                                    onClick={() => handleDelete(service.id)}
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    title="Delete"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </div>
-                                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">
+                                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 min-h-[40px]">
                                             {service.description || "No description provided."}
                                         </p>
                                     </>
@@ -304,7 +266,7 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: C
                 )}
             </div>
 
-            {/* FOOTER ACTIONS */}
+            {/* Footer Actions */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
@@ -315,9 +277,16 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: C
                 </button>
                 <button
                     onClick={handleSaveAndNext}
-                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition disabled:opacity-50 flex items-center gap-2"
                 >
-                    Save & Next
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                        </>
+                    ) : (
+                        'Save & Next'
+                    )}
                 </button>
             </div>
         </div>
