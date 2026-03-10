@@ -3,23 +3,15 @@ import {
   Printer,
   Calendar as CalendarIcon,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   X,
   RefreshCw,
   BarChart3,
   PieChart as PieChartIcon,
   Activity,
   UserPlus,
-  TrendingUp,
-  TrendingDown,
   Zap,
   Users,
-  CheckCircle2,
-  ArrowUpRight,
-  ArrowDownRight,
-  Sparkles
-} from 'lucide-react';
+  CheckCircle2} from 'lucide-react';
 
 // --- MOCK DATABASE ---
 const MOCK_DB = [
@@ -93,51 +85,6 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number; duration?: 
 };
 
 // --- SPARKLINE COMPONENT ---
-const Sparkline = ({ data, color = '#f97316' }: { data: number[]; color?: string }) => {
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const width = 80;
-  const height = 30;
-  const padding = 2;
-
-  const points = data.map((val, i) => {
-    const x = padding + (i / (data.length - 1)) * (width - 2 * padding);
-    const y = height - padding - ((val - min) / range) * (height - 2 * padding);
-    return `${x},${y}`;
-  }).join(' ');
-
-  const areaPoints = `${padding},${height - padding} ${points} ${width - padding},${height - padding}`;
-
-  return (
-    <svg width={width} height={height} className="overflow-visible">
-      <defs>
-        <linearGradient id={`gradient-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={areaPoints}
-        fill={`url(#gradient-${color.replace('#', '')})`}
-      />
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle
-        cx={width - padding}
-        cy={height - padding - ((data[data.length - 1] - min) / range) * (height - 2 * padding)}
-        r="3"
-        fill={color}
-      />
-    </svg>
-  );
-};
 
 // --- ENHANCED STAT CARD ---
 const ModernStatCard = ({
@@ -537,7 +484,6 @@ const ModernDonutChart = ({
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
-  let cumulativePercent = 0;
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -696,9 +642,6 @@ const ModernDoctorChart = ({
   const maxVal = Math.max(...data.map(d => d.value), 1);
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
-  const getInitials = (name: string) => {
-    return name.replace('Dr. ', '').split(' ').map(n => n[0]).join('');
-  };
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">

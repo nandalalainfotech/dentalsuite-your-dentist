@@ -98,6 +98,7 @@ export const useHomeSearch = () => {
         specialty: selectedSpecialty.length > 0 ? selectedSpecialty.join(',') : undefined,
         insurance: selectedInsurance.length > 0 ? selectedInsurance.join(',') : undefined,
         availableDays: selectedAvailableDays.length > 0 ? selectedAvailableDays.join(',') : undefined,
+        query: ''
       };
 
       return {

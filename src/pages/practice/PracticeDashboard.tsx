@@ -1,277 +1,152 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation, Navigate } from 'react-router-dom'; // Added Navigate
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { logout as logoutAction } from '../../store/slices/practiceSlice';
-import PracticeAppointmentsView from './PracticeAppointmentsView';
-import PracticeDirectoryView from './PracticeDirectoryView';
-import { Icons } from '../../components/dashboard/Icons';
-import { LogOut, FileText } from 'lucide-react';
-import PracticeBookingCalender from './PracticeBookingCalender';
-import PracticeNewsFeeds from './PracticeNewsFeeds';
-import PractiveViewProfile from './PractiveViewProfile';
+import { setUser } from '../../store/slices/userSlice';
+import PracticeSidebar from './PracticeSidebar';
 import ConfirmLogoutModal from '../../components/layout/ConfirmLogoutModal';
-import PracticeAppointmentType from './PracticeAppointmentType';
-import PracticeAnalyticsView from './PracticeAnalyticsView';
-import PracticeInvoiceHistoryView from './PracticeInvoiceHistoryView';
-
-type ActiveViewType =
-  | 'directory'
-  | 'appointments'
-  | 'appointmenttype'
-  | 'bookingcalender'
-  | 'analytics'
-  | 'invoicehistory'
-  | 'newsfeeds'
-  | 'viewprofile'
-  | 'mylearningHub'
-  | 'payments'
-  | 'accountpayrequests'
-  | 'supportrequest';
-
-const isValidView = (v: any): v is ActiveViewType =>
-  [
-    'directory',
-    'appointments',
-    'appointmenttype',
-    'bookingcalender',
-    'analytics',
-    'invoicehistory',
-    'newsfeeds',
-    'viewprofile',
-    'mylearningHub',
-    'accountpayrequests',
-    'supportrequest'
-  ].includes(v);
-
-interface SidebarLinkProps {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-}
-
-const SidebarLink: React.FC<SidebarLinkProps> = ({ icon, label, active = false, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${active ? 'border-orange-500 text-gray-900 bg-orange-50/30' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
-  >
-    <div className={`${active ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-600'}`}>{icon}</div>
-    <span className={`text-sm font-medium ${active ? 'font-semibold' : ''}`}>{label}</span>
-  </button>
-);
-
+import { Loader2 } from 'lucide-react';
 interface ContentTabProps {
-  label: string;
-  count?: number;
-  active: boolean;
-  onClick: () => void;
-}
-
-const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`relative pb-4 px-1 text-sm font-medium transition-all duration-200 ${active ? 'text-gray-800 border-b-2 border-orange-500' : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'}`}
-  >
-    <div className="flex items-center gap-2">
-      {label}
-      {count !== undefined && (
-        <span className={`text-xs px-2 py-0.5 rounded-full border ${active ? 'border-orange-500 text-orange-500' : 'border-gray-200 text-gray-400'}`}>
-          {count}
-        </span>
-      )}
-    </div>
-  </button>
-);
+    label: string;
+    count?: number;
+    active: boolean;
+    onClick: () => void;
+  }
+  
+  const ContentTab: React.FC<ContentTabProps> = ({ label, count, active, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`relative pb-4 px-1 text-sm font-medium transition-all duration-200 ${active
+        ? 'text-gray-800 border-b-2 border-orange-500'
+        : 'text-gray-400 hover:text-gray-600 border-b-2 border-transparent'
+        }`}
+    >
+      <div className="flex items-center gap-2">
+        {label}
+        {count !== undefined && (
+          <span className={`text-xs px-2 py-0.5 rounded-full border ${active ? 'border-orange-500 text-orange-500' : 'border-gray-200 text-gray-400'}`}>
+            {count}
+          </span>
+        )}
+      </div>
+    </button>
+  );
 
 export default function PracticeDashboard() {
-  const practice = useAppSelector((state) => state.practice.auth.practice);
   const dispatch = useAppDispatch();
-  const [,] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
-  const [activeView, setActiveView] = useState<ActiveViewType>('appointments');
+  const navigate = useNavigate();
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
+
+  const user = useAppSelector((state) => state.user.auth.user );
+ 
+  
+  const Practice = user as any;
+  
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const viewParam = params.get('view');
-
-    if (viewParam && isValidView(viewParam)) {
-      setActiveView(viewParam);
-    } else {
-      setActiveView('appointments');
+    if (!Practice) {
+      const storedUser = sessionStorage.getItem('user');
+      const storedToken = sessionStorage.getItem('token');
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          dispatch(setUser(parsedUser));
+        } catch (err) {
+          console.error('Failed to parse stored user', err);
+        }
+      }
     }
-  }, [location.search]);
+    setIsRestoring(false);
+  }, [Practice, dispatch]);
 
-  // Handle Authentication Redirect
-  // Since we updated practiceSlice to read from localStorage, 
-  // 'practice' will only be null if truly logged out.
-  if (!practice) {
-    return <Navigate to="/practice/login" replace />; // Adjust route path if your login URL is different
+  if (isRestoring) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 pt-20">
+        <Loader2 className="w-10 h-10 animate-spin text-orange-500 mb-4" />
+        <h2 className="text-xl font-semibold text-gray-700">Restoring Dashboard...</h2>
+      </div>
+    );
   }
 
-  const renderContent = () => {
-    switch (activeView) {
-      case 'appointments': return <PracticeAppointmentsView />;
-      case 'appointmenttype': return <PracticeAppointmentType />;
-      case 'bookingcalender': return <PracticeBookingCalender />;
-      case 'analytics': return <PracticeAnalyticsView />;
-      case 'invoicehistory': return <PracticeInvoiceHistoryView />;
-      case 'newsfeeds': return <PracticeNewsFeeds />;
-      case 'mylearningHub': return <PracticeNewsFeeds />; // Assuming placeholder
-      case 'accountpayrequests': return <PracticeNewsFeeds />; // Assuming placeholder
-      case 'supportrequest': return <PracticeNewsFeeds />; // Assuming placeholder
-      case 'viewprofile': return <PractiveViewProfile />;
-      case 'directory': default: return <PracticeDirectoryView />;
-    }
-  };
-
-  const handleNavClick = (view: ActiveViewType) => {
-    setActiveView(view);
-    const url = new URL(window.location.href);
-    url.searchParams.set('view', view);
-    window.history.pushState({}, '', url.toString());
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const logo = Practice?.logo;
+  const business_name = Practice?.business_name || Practice?.email;
+  const isTabbedView = location.pathname.includes('/directory') || location.pathname.includes('/appointments');
+  
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900 font-sans">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-6 lg:py-10">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="bg-white rounded-[20px] shadow-sm overflow-hidden sticky top-18">
-              {/* Profile Header */}
-              <div className="p-8 pb-6">
+    <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-6 lg:py-10">
+
+      <div className="flex flex-col lg:flex-row gap-6">
+
+        {/* --- LEFT SIDEBAR COLUMN (DESKTOP) --- */}
+        <aside className="hidden lg:block w-72 flex-shrink-0">
+          
+          {/* We define the white box wrapper here now */}
+          <div className="bg-white rounded-[20px] shadow-sm overflow-hidden sticky top-26">
+            
+            {/* 1. PROFILE SECTION (HIDDEN ON MOBILE, VISIBLE LG UP) */}
+            <div className="hidden lg:flex flex-col p-8 pb-6 border-b border-gray-100">
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="w-16 h-14 rounded-full flex items-center justify-center shadow-md relative overflow-hidden">
-                    <img
-                      src={practice.practiceLogo}
-                      alt={practice.practiceName}
-                      className="w-10 h-10 sm:w-16 sm:h-14 rounded-full flex-shrink-0"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">Welcome Back!</p>
-                    <h2 className="font-bold text-gray-900 text-lg leading-tight">{practice.practiceName}</h2>
-                  </div>
+                    <div className="w-16 h-14 rounded-full flex items-center justify-center shadow-md relative overflow-hidden bg-gray-100">
+                        <img src={logo.url} alt={business_name} className="w-10 h-10 sm:w-16 sm:h-14 rounded-full flex-shrink-0 object-cover" />
+                    </div>
+                    <div>
+                        <p className="text-gray-500 text-sm font-medium">Welcome Back!</p>
+                        <h2 className="font-bold text-gray-900 text-lg leading-tight truncate max-w-[150px]">
+                            {business_name}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. NAVIGATION LINKS */}
+            <PracticeSidebar onLogout={() => setShowLogoutModal(true)} />
+          </div>
+        </aside>
+
+        {/* --- MAIN CONTENT --- */}
+        <main className="flex-1 min-w-0">
+          <div className="bg-white rounded-[20px] shadow-sm min-h-[600px] flex flex-col">
+            
+            {isTabbedView && (
+              <div className="px-8 pt-8 border-b border-gray-100 overflow-x-auto">
+                <div className="flex items-center gap-8 min-w-max">
+                  <ContentTab 
+                    label="Directory Details" 
+                    active={location.pathname.includes('/directory')} 
+                    onClick={() => navigate('directory')} 
+                  />
+                  <ContentTab 
+                    label="Appointments" 
+                    active={location.pathname.includes('/appointments')} 
+                    onClick={() => navigate('appointments')} 
+                  />
                 </div>
               </div>
+            )}
 
-              {/* Navigation */}
-              <div>
-                <nav className="flex flex-col pb-4">
-                  <SidebarLink
-                    icon={<Icons.News />}
-                    label="News Feeds"
-                    active={activeView === 'newsfeeds'}
-                    onClick={() => handleNavClick('newsfeeds')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.User />}
-                    label="View Profile"
-                    active={activeView === 'viewprofile'}
-                    onClick={() => handleNavClick('viewprofile')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.Folder />}
-                    label="My Directory"
-                    active={activeView === 'directory'}
-                    onClick={() => handleNavClick('directory')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.Appointment />}
-                    label="Online Bookings"
-                    active={activeView === 'appointments'}
-                    onClick={() => handleNavClick('appointments')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.AppointmentType />}
-                    label="Appointment Type"
-                    active={activeView === 'appointmenttype'}
-                    onClick={() => handleNavClick('appointmenttype')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.Calendar />}
-                    label="Booking Calender"
-                    active={activeView === 'bookingcalender'}
-                    onClick={() => handleNavClick('bookingcalender')}
-                  />
-
-                  {/* Analytics Sidebar Link */}
-                  <SidebarLink
-                    icon={<Icons.BarChart />}
-                    label="Analytics"
-                    active={activeView === 'analytics'}
-                    onClick={() => handleNavClick('analytics')}
-                  />
-
-                  {/* Invoice History Sidebar Link */}
-                  <SidebarLink
-                    icon={<FileText size={18} />}
-                    label="Invoice History"
-                    active={activeView === 'invoicehistory'}
-                    onClick={() => handleNavClick('invoicehistory')}
-                  />
-
-                  <SidebarLink
-                    icon={<Icons.LearningHub />}
-                    label="My LearningHub"
-                    active={activeView === 'mylearningHub'}
-                    onClick={() => handleNavClick('mylearningHub')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.AccountPay />}
-                    label="Account Pay Requests"
-                    active={activeView === 'accountpayrequests'}
-                    onClick={() => handleNavClick('accountpayrequests')}
-                  />
-                  <SidebarLink
-                    icon={<Icons.Support />}
-                    label="Support Request"
-                    active={activeView === 'supportrequest'}
-                    onClick={() => handleNavClick('supportrequest')}
-                  />
-                  {/* Logout Action */}
-                  <div className="mt-4 pt-4 border-t border-gray-50 mx-6">
-                    <button
-                      onClick={() => setShowLogoutModal(true)}
-                      className="flex items-center gap-4 text-gray-400 hover:text-red-500 transition-colors text-sm font-medium w-full py-2"
-                    >
-                      <LogOut size={18} />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </nav>
-              </div>
+            <div className="p-4 lg:p-6 flex-1">
+              <Outlet />
             </div>
-          </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 min-w-0">
-            <div className="bg-white rounded-[20px] shadow-sm min-h-[600px] flex flex-col">
-              {/* Only show tabs for directory/appointments */}
-              {(activeView === 'appointments' || activeView === 'directory') && (
-                <div className="px-8 pt-8 border-b border-gray-100">
-                  <div className="flex items-center gap-8">
-                    <ContentTab label="Directory Details" active={activeView === 'directory'} onClick={() => handleNavClick('directory')} />
-                    <ContentTab label="Appointments" active={activeView === 'appointments'} onClick={() => handleNavClick('appointments')} />
-                  </div>
-                </div>
-              )}
-              <div className="p-6 lg:p-8 flex-1">{renderContent()}</div>
-            </div>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
 
-      {/* Logout Modal */}
-      {showLogoutModal && createPortal(
-        <ConfirmLogoutModal open={showLogoutModal} onClose={() => setShowLogoutModal(false)} onConfirm={() => dispatch(logoutAction())} />,
-        document.body
-      )}
+      {showLogoutModal &&
+        createPortal(
+          <ConfirmLogoutModal
+            open={showLogoutModal}
+            onClose={() => setShowLogoutModal(false)}
+            onConfirm={() => dispatch(logoutAction())}
+          />,
+          document.body
+        )}
     </div>
   );
 }

@@ -1,25 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useAppDispatch } from "../../store/hooks";
 import loginimg from "../../assets/login.png";
 import { loginService } from "../../services/practiceAuth.service";
-// import { useAppDispatch } from "../../store/hooks";
-// import { loginSuccess } from "../../store/slices/practiceSlice";
-
+import { loginSuccess } from "../../store/slices/userSlice";
 
 export default function PracticeSignIn() {
-  // const navigate = useNavigate();
-  // const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const [formData, setFormData] = useState({
     emailOrMobile: "",
     password: ""
   });
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Clear alerts
+  // Clear alerts after 3s
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
@@ -47,38 +45,61 @@ export default function PracticeSignIn() {
     setError("");
     setSuccess("");
 
-    // const result = await practiceLoginService(formData);
-    const result = await loginService(formData);
-    console.log("result=============>", result);
+    try {
 
-    setLoading(false);
+      const result = await loginService(formData);
+      const loginData = result?.login_api;
+      
 
-    // if (!result.success) {
-    //   setError(result.message);
-    //   return;
-    // }
+      if (!loginData) throw new Error("Login data missing");
 
-    // // Save user session
-    // if (result.user) {
-    //   // Update Redux
-    //   dispatch(loginSuccess({
-    //     practice: result.user,
-    //     token: result.user.token || '',
-    //     refreshToken: result.user.refreshToken
-    //   }));
+      // Map API → Redux user model
+      const mappedUser = {
+        id: loginData?.id,
+        name: loginData?.name,
+        email: loginData?.email,
+        phone:loginData?.phone,
+        business_name: loginData?.business_name,
+        role: loginData?.type === "SUPERADMIN" ? "superadmin" : "practice",
+        password: "",
+        firstName: "",
+        lastName: "",
+        mobileNumber: "",
+        dateOfBirth: "",
+        address: loginData.address,
+        logo: loginData.logo,
+        createdAt: new Date().toISOString(),
+        profileCompleted: false,
+        token: loginData.accessToken,
+      };
+      
+      // Update Redux
+      dispatch(loginSuccess({
+        user: mappedUser,
+        token: loginData.accessToken,
+      }));
 
-    //   console.log("result.user===============>", result.user)
+      // Save to sessionStorage for persistence on refresh
+      sessionStorage.setItem("user", JSON.stringify(mappedUser));
+      sessionStorage.setItem("token", loginData.accessToken);
 
-    // }
+      setSuccess("Login successful!");
 
-    // // Role-based redirect
-    // if (result.user?.role === "superadmin") {
-    //   setSuccess("Welcome Super Admin!");
-    //   setTimeout(() => navigate("/superadmin/dashboard"), 1200);
-    // } else {
-    //   setSuccess("Login successful!");
-    //   setTimeout(() => navigate("/practice/dashboard"), 1200);
-    // }
+      // 🔹 Role-based navigation
+      if (loginData.type === "PRACTICE") {
+        navigate("/practice/dashboard", { replace: true });
+      } else if (loginData.type === "SUPERADMIN") {
+        navigate("/superadmin/dashboard", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,7 +124,6 @@ export default function PracticeSignIn() {
       {/* LEFT */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="max-w-md w-full">
-
           <h1 className="text-4xl font-bold mb-2">Practice Login</h1>
           <p className="text-gray-500 text-sm mb-6">Access your dashboard</p>
 

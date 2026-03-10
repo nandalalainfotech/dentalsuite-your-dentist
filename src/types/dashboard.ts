@@ -15,7 +15,6 @@ export interface Appointment {
   treatment: string;
   notes?: string;
   price?: number;
-  // Practice-side fields
   patientName?: string;
   patientEmail?: string;
   patientPhone?: string;
@@ -54,6 +53,12 @@ export interface Notification {
 }
 
 export interface SearchFilters {
+  specialty: any;
+  language: any;
+  gender: any;
+  insurance: any;
+  availableDays: any;
+  service?: string;
   query: string;
   location?: string;
   treatment?: string;

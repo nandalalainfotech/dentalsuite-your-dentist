@@ -155,7 +155,8 @@ export const staticPractices: PracticeWithDashboard[] = [
     profileImage: "https://images.unsplash.com/photo-1600988331234-46285d424d71?w=300&h=200&fit=crop",
     isActive: true,
     rating: 4.8,
-    totalReviews: 156
+    totalReviews: 156,
+    business_name: ''
   },
   {
     id: 'practice2',
@@ -179,7 +180,8 @@ export const staticPractices: PracticeWithDashboard[] = [
     profileImage: "https://images.unsplash.com/photo-1588776814546-1ffcfb5b0e2e?w=300&h=200&fit=crop",
     isActive: true,
     rating: 4.9,
-    totalReviews: 203
+    totalReviews: 203,
+    business_name: ''
   },
   {
     id: 'practice3',
@@ -203,7 +205,8 @@ export const staticPractices: PracticeWithDashboard[] = [
     profileImage: "https://images.unsplash.com/photo-1600988331234-46285d424d71?w=300&h=200&fit=crop",
     isActive: true,
     rating: 4.7,
-    totalReviews: 89
+    totalReviews: 89,
+    business_name: ''
   },
   {
     id: 'practice4',
@@ -227,7 +230,8 @@ export const staticPractices: PracticeWithDashboard[] = [
     profileImage: "https://images.unsplash.com/photo-1588776814546-1ffcfb5b0e2e?w=300&h=200&fit=crop",
     isActive: true,
     rating: 4.6,
-    totalReviews: 124
+    totalReviews: 124,
+    business_name: ''
   },
   {
     id: 'practice5',
@@ -251,7 +255,8 @@ export const staticPractices: PracticeWithDashboard[] = [
     profileImage: "https://images.unsplash.com/photo-1600988331234-46285d424d71?w=300&h=200&fit=crop",
     isActive: true,
     rating: 4.9,
-    totalReviews: 67
+    totalReviews: 67,
+    business_name: ''
   }
 ];
 
@@ -376,7 +381,8 @@ export const validateAllPracticeCredentials = (emailOrMobile: string, password: 
       practiceCity: clinic.address.split(",")[1]?.trim() || "",
       practiceState: "NSW",
       practicePostcode: clinic.address.split(",")[2]?.trim() || "2000",
-      createdAt: new Date(clinic.establishedYear?.toString() || "2024").toISOString()
+      createdAt: new Date(clinic.establishedYear?.toString() || "2024").toISOString(),
+      business_name: ''
     };
   }
 

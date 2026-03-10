@@ -1,30 +1,56 @@
 import type { ReactNode } from 'react';
-import { useAppSelector } from '../../store/hooks';
-import { Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { Navigate, useLocation } from 'react-router-dom';
+import { setUser, setToken, setAuthenticated } from '../../store/slices/userSlice';
 
 interface PracticeProtectedRouteProps {
   children: ReactNode;
 }
 
-function PracticeProtectedRoute({ children }: PracticeProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.practice.auth);
+export default function PracticeProtectedRoute({ children }: PracticeProtectedRouteProps) {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+  const { user, token, isAuthenticated } = useAppSelector(
+    (state) => state.user.auth
+  );
+
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // 🔹 Hydrate Redux from  sessionStorage on refresh
+  useEffect(() => {
+    const storedUser =  sessionStorage.getItem('user');
+    const storedToken =  sessionStorage.getItem('token');
+
+    if ((!user || !token) && storedUser && storedToken) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+
+        dispatch(setUser(parsedUser));        // ✅ restore user
+        dispatch(setToken(storedToken));      // ✅ restore token
+        dispatch(setAuthenticated(true));     // ✅ restore auth flag
+
+      } catch (err) {
+      }
+    }
+
+    setIsHydrated(true);
+  }, [dispatch]);
+
+  //  Wait until hydration finishes
+  if (!isHydrated) return null;
+
+  //  Auth guard
+  if (!isAuthenticated || !token || !user) {
+    
+    return <Navigate to="/practice/signin" replace state={{ from: location }} />;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/practice/signin" replace />;
+  // Role guard
+  if (user.role !== 'practice') {
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
 }
-
-export default PracticeProtectedRoute;

@@ -29,6 +29,8 @@ interface EnrichedAppointment {
   patientNotes: string;
   bookedBy: string;
   lastUpdated: Date;
+  // NEW FIELD: Tracks if this has been rescheduled
+  isRescheduled?: boolean; 
 }
 
 interface FilterState {
@@ -40,7 +42,7 @@ interface FilterState {
   endDate: string;
 }
 
-// --- Static Data Generation ---
+// --- Static Data Helpers ---
 const getRelativeDate = (daysOffset: number, hour: number, minute: number): string => {
   const date = new Date();
   date.setDate(date.getDate() + daysOffset);
@@ -77,6 +79,7 @@ const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
     patientNotes: 'Patient requests a gentle cleaning due to sensitivity.',
     bookedBy: 'Sarah Johnson',
     lastUpdated: getRelativePastDate(0),
+    isRescheduled: false,
   },
   {
     id: 'apt-2',
@@ -87,12 +90,13 @@ const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
     bookedAt: getRelativePastDate(5),
     isNewPatient: false,
     isDependent: false,
-    status: 'confirmed',
+    status: 'reception_cancelled',
     mobile: '0498 765 432',
     dob: '05 Nov 1985',
     patientNotes: 'Experiencing pain in lower left molar.',
     bookedBy: 'Michael Brown',
     lastUpdated: getRelativePastDate(1),
+    isRescheduled: false,
   },
   {
     id: 'apt-3',
@@ -109,22 +113,7 @@ const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
     patientNotes: '',
     bookedBy: 'Sarah Chen',
     lastUpdated: getRelativePastDate(1),
-  },
-  {
-    id: 'apt-4',
-    patientName: 'Emma Davis',
-    treatment: 'Teeth Whitening',
-    dentistName: 'Dr. Sarah Connor',
-    dateTime: getRelativeDate(-1, 11, 0),
-    bookedAt: getRelativePastDate(10),
-    isNewPatient: false,
-    isDependent: false,
-    status: 'completed',
-    mobile: '0455 123 456',
-    dob: '18 Sep 1992',
-    patientNotes: 'Follow up on previous whitening session.',
-    bookedBy: 'Emma Davis',
-    lastUpdated: getRelativePastDate(1),
+    isRescheduled: false,
   },
   {
     id: 'apt-5',
@@ -135,47 +124,17 @@ const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
     bookedAt: getRelativePastDate(0),
     isNewPatient: true,
     isDependent: false,
-    status: 'pending',
+    status: 'patient_cancelled',
     mobile: '0488 999 111',
     dob: '30 Jan 1980',
     patientNotes: 'Chipped tooth from sports injury.',
     bookedBy: 'Robert Wilson',
     lastUpdated: getRelativePastDate(0),
-  },
-  {
-    id: 'apt-6',
-    patientName: 'Jessica Lo',
-    treatment: 'Fillings',
-    dentistName: 'Dr. Emily Smith',
-    dateTime: getRelativeDate(-2, 13, 0),
-    bookedAt: getRelativePastDate(7),
-    isNewPatient: false,
-    isDependent: false,
-    status: 'patient_cancelled',
-    mobile: '0433 222 111',
-    dob: '14 Feb 1995',
-    patientNotes: 'Called to cancel due to illness.',
-    bookedBy: 'Jessica Lo',
-    lastUpdated: getRelativePastDate(2),
-  },
-  {
-    id: 'apt-7',
-    patientName: 'Thomas Anderson',
-    treatment: 'Extraction',
-    dentistName: 'Dr. James Wilson',
-    dateTime: getRelativeDate(3, 10, 30),
-    bookedAt: getRelativePastDate(14),
-    isNewPatient: false,
-    isDependent: false,
-    status: 'reception_cancelled',
-    mobile: '0411 111 222',
-    dob: '11 Nov 1970',
-    patientNotes: 'Dentist unavailable, need to reschedule.',
-    bookedBy: 'Reception',
-    lastUpdated: getRelativePastDate(0),
+    isRescheduled: false,
   },
 ];
 
+// --- Configuration ---
 const STATUS_LABELS: Record<ValidStatus, string> = {
   confirmed: 'Confirmed',
   pending: 'Pending',
@@ -251,11 +210,6 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
     </svg>
   ),
-  Users: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-    </svg>
-  ),
   Phone: ({ className = "w-4 h-4" }: { className?: string }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -264,11 +218,6 @@ const Icons = {
   Clock: ({ className = "w-4 h-4" }: { className?: string }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  FileText: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
     </svg>
   ),
   Refresh: ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -377,15 +326,29 @@ const isCancelledStatus = (status: ValidStatus): boolean => {
   return ['patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
 };
 
-// --- Status Badge Component ---
-const StatusBadge = ({ status, size = 'default' }: { status: ValidStatus; size?: 'small' | 'default' }) => {
+// --- Updated Status Badge Component ---
+// Added blue border/ring support for rescheduled appointments
+const StatusBadge = ({ 
+  status, 
+  size = 'default',
+  isRescheduled 
+}: { 
+  status: ValidStatus; 
+  size?: 'small' | 'default';
+  isRescheduled?: boolean;
+}) => {
   const config = STATUS_CONFIG[status];
   const sizeClasses = size === 'small'
     ? 'px-1.5 py-0.5 text-[10px]'
     : 'px-2 py-0.5 text-xs';
 
+  // If rescheduled, add a distinct blue ring/border
+  const rescheduledClasses = isRescheduled 
+    ? 'ring-2 ring-blue-500 ring-offset-1 border-white shadow-sm' 
+    : '';
+
   return (
-    <span className={`inline-flex items-center gap-1 ${sizeClasses} rounded font-medium ${config.bg} ${config.text}`}>
+    <span className={`inline-flex items-center gap-1 ${sizeClasses} rounded font-medium ${config.bg} ${config.text} ${rescheduledClasses}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
       {STATUS_LABELS[status]}
     </span>
@@ -460,7 +423,7 @@ const ToastNotification = ({ message, show, onClose }: { message: string; show: 
   );
 };
 
-// --- New 2-Column Reschedule Modal Component ---
+// --- Reschedule Modal Component ---
 const RescheduleModal = ({
   apt,
   isOpen,
@@ -517,56 +480,36 @@ const RescheduleModal = ({
       d1.getDate() === d2.getDate();
   };
 
-  // Generate time slots for a specific date (mock data - replace with API call)
+  // Generate time slots (mock)
   const generateSlotsForDate = (dateStr: string): string[] => {
     if (!dateStr) return [];
-
     const date = new Date(dateStr);
     const dayOfWeek = date.getDay();
-
-    // Sunday - no slots
     if (dayOfWeek === 0) return [];
-
-    // Saturday - limited slots
-    if (dayOfWeek === 6) {
-      return ['09:00', '09:30', '10:00', '10:30', '11:00'];
-    }
-
-    // Weekdays - full availability (simulated with some variation)
+    if (dayOfWeek === 6) return ['09:00', '09:30', '10:00', '10:30', '11:00'];
     const baseSlots = [
       '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
       '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
     ];
-
-    // Remove some slots randomly based on date to simulate bookings
     const dateNum = date.getDate();
     return baseSlots.filter((_, index) => {
       const hash = (dateNum + index) % 5;
-      return hash !== 0; // Remove ~20% of slots
+      return hash !== 0; 
     });
   };
 
-  // Check if a date has available slots
-
-  // Generate 7 days of availability starting from selected date
+  // Generate 7 days of availability
   const weekAvailability = useMemo(() => {
     if (!selectedDate) return [];
-
     const startDate = new Date(selectedDate);
     const days: { date: Date; dateStr: string; slots: string[] }[] = [];
-
     for (let i = 0; i < 7; i++) {
       const currentDate = addDays(startDate, i);
       const dateStr = currentDate.toISOString().split('T')[0];
-
-      // Skip past dates
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (currentDate < today) continue;
-
       const slots = generateSlotsForDate(dateStr);
-
-      // Filter out past times if it's today
       const now = new Date();
       const filteredSlots = slots.filter(time => {
         if (!isSameDay(currentDate, now)) return true;
@@ -575,18 +518,15 @@ const RescheduleModal = ({
         slotTime.setHours(hours, minutes, 0, 0);
         return slotTime > now;
       });
-
       days.push({
         date: currentDate,
         dateStr,
         slots: filteredSlots
       });
     }
-
     return days;
   }, [selectedDate, selectedPractitioner]);
 
-  // Format time for display (24h to 12h)
   const formatTimeDisplay = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     const period = hours >= 12 ? 'PM' : 'AM';
@@ -600,15 +540,10 @@ const RescheduleModal = ({
     const month = calendarViewDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
-
     const days = [];
-
-    // Empty cells for days before the first day of month
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-9 w-9" />);
     }
-
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(year, month, day);
       const dateStr = dateObj.toISOString().split('T')[0];
@@ -643,7 +578,6 @@ const RescheduleModal = ({
         </button>
       );
     }
-
     return days;
   };
 
@@ -654,7 +588,7 @@ const RescheduleModal = ({
 
   const handleConfirm = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulating network
     onConfirm(selectedDate, selectedTime);
     setIsLoading(false);
   };
@@ -664,10 +598,8 @@ const RescheduleModal = ({
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
-
       {/* 2-Column Modal Layout */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20 flex-shrink-0">
           <div>
@@ -685,97 +617,44 @@ const RescheduleModal = ({
 
         {/* Content Grid */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-
           {/* LEFT COLUMN: Full Calendar & Practitioner */}
           <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-b from-gray-50 to-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
-
-            {/* Full Calendar */}
             <div className="mb-6">
-              {/* Calendar Header */}
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-gray-800 text-base">
                   {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </h4>
                 <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => changeMonth(-1)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => changeMonth(1)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                  <button type="button" onClick={() => changeMonth(-1)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => changeMonth(1)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
                 </div>
               </div>
-
-              {/* Day Headers */}
               <div className="grid grid-cols-7 gap-1 text-center mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
-                  <span
-                    key={i}
-                    className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-400' : 'text-gray-400'
-                      }`}
-                  >
-                    {d}
-                  </span>
+                  <span key={i} className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-400' : 'text-gray-400'}`}>{d}</span>
                 ))}
               </div>
-
-              {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-1">
                 {renderCalendar()}
               </div>
             </div>
 
-            {/* Practitioner Selection */}
             <div className="mt-auto">
               <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                <Icons.User className="w-4 h-4" />
-                Practitioner
+                <Icons.User className="w-4 h-4" /> Practitioner
               </label>
-
               <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsPractitionerOpen(!isPractitionerOpen)}
-                  className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left"
-                >
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                    <Icons.User className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 text-sm truncate">{selectedPractitioner || 'Select Dentist'}</p>
-                  </div>
+                <button type="button" onClick={() => setIsPractitionerOpen(!isPractitionerOpen)} className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><Icons.User className="w-5 h-5" /></div>
+                  <div className="flex-1 min-w-0"><p className="font-semibold text-gray-800 text-sm truncate">{selectedPractitioner || 'Select Dentist'}</p></div>
                   <Icons.ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${isPractitionerOpen ? 'rotate-180' : ''}`} />
                 </button>
-
-                {/* Dropdown */}
                 {isPractitionerOpen && (
                   <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 max-h-48 overflow-y-auto">
                     {practitioners.map((name) => (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPractitioner(name);
-                          setIsPractitionerOpen(false);
-                          setSelectedTime('');
-                        }}
-                        className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitioner === name ? 'bg-blue-50/50' : ''
-                          }`}
-                      >
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
-                          <span className="text-xs font-bold">{name.charAt(4)}</span>
-                        </div>
-                        <div className="text-left flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p>
-                        </div>
+                      <button key={name} type="button" onClick={() => { setSelectedPractitioner(name); setIsPractitionerOpen(false); setSelectedTime(''); }} className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitioner === name ? 'bg-blue-50/50' : ''}`}>
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><span className="text-xs font-bold">{name.charAt(4)}</span></div>
+                        <div className="text-left flex-1 min-w-0"><p className={`text-sm font-medium truncate ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p></div>
                         {selectedPractitioner === name && <Icons.Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                       </button>
                     ))}
@@ -787,107 +666,52 @@ const RescheduleModal = ({
 
           {/* RIGHT COLUMN: 7-Day Time Slots View */}
           <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
-
-            {/* Header */}
             <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-gray-800">Available Time Slots</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Showing 7 days from {selectedDate ? formatDate(selectedDate) : 'selected date'}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">Showing 7 days from {selectedDate ? formatDate(selectedDate) : 'selected date'}</p>
                 </div>
               </div>
             </div>
 
-            {/* Slots Grid - 7 Days View */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {weekAvailability.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
                   <Icons.Calendar className="w-12 h-12 mb-4 opacity-50" />
                   <p className="font-medium">Select a date to view availability</p>
-                  <p className="text-sm mt-1">Choose a date from the calendar</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {weekAvailability.map((dayData) => {
                     const isSelectedDay = selectedDate === dayData.dateStr;
                     const isToday = isSameDay(dayData.date, new Date());
-
                     return (
-                      <div
-                        key={dayData.dateStr}
-                        className={`rounded-xl border transition-all ${isSelectedDay
-                          ? 'border-blue-200 bg-blue-50/30'
-                          : 'border-gray-100 bg-white hover:border-gray-200'
-                          }`}
-                      >
-                        {/* Day Header */}
-                        <div className={`px-4 py-3 border-b flex items-center justify-between ${isSelectedDay ? 'border-blue-100' : 'border-gray-100'
-                          }`}>
+                      <div key={dayData.dateStr} className={`rounded-xl border transition-all ${isSelectedDay ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                        <div className={`px-4 py-3 border-b flex items-center justify-between ${isSelectedDay ? 'border-blue-100' : 'border-gray-100'}`}>
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${isToday
-                              ? 'bg-blue-600 text-white'
-                              : isSelectedDay
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-gray-100 text-gray-700'
-                              }`}>
-                              <span className="text-[10px] font-bold uppercase leading-none">
-                                {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
-                              </span>
-                              <span className="text-sm font-bold leading-none mt-0.5">
-                                {dayData.date.getDate()}
-                              </span>
+                            <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${isToday ? 'bg-blue-600 text-white' : isSelectedDay ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                              <span className="text-[10px] font-bold uppercase leading-none">{dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                              <span className="text-sm font-bold leading-none mt-0.5">{dayData.date.getDate()}</span>
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-800 text-sm flex items-center gap-2">
-                                {dayData.date.toLocaleDateString('en-US', { weekday: 'long' })}
-                                {isToday && (
-                                  <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                                    Today
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {dayData.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                              </p>
+                              <p className="font-semibold text-gray-800 text-sm flex items-center gap-2">{dayData.date.toLocaleDateString('en-US', { weekday: 'long' })} {isToday && (<span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Today</span>)}</p>
+                              <p className="text-xs text-gray-500">{dayData.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${dayData.slots.length > 0
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-500'
-                              }`}>
-                              {dayData.slots.length} {dayData.slots.length === 1 ? 'slot' : 'slots'}
-                            </span>
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${dayData.slots.length > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{dayData.slots.length} slots</span>
                           </div>
                         </div>
-
-                        {/* Time Slots */}
                         <div className="p-4">
                           {dayData.slots.length === 0 ? (
-                            <div className="flex items-center justify-center py-4 text-gray-400">
-                              <Icons.Clock className="w-4 h-4 mr-2 opacity-50" />
-                              <span className="text-sm">No available slots</span>
-                            </div>
+                            <div className="flex items-center justify-center py-4 text-gray-400"><Icons.Clock className="w-4 h-4 mr-2 opacity-50" /><span className="text-sm">No available slots</span></div>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               {dayData.slots.map((time) => {
                                 const isSelected = selectedDate === dayData.dateStr && selectedTime === time;
-
                                 return (
-                                  <button
-                                    key={`${dayData.dateStr}-${time}`}
-                                    type="button"
-                                    onClick={() => handleSlotSelect(dayData.dateStr, time)}
-                                    className={`
-                                      px-3 py-2 rounded-lg text-sm font-medium transition-all border
-                                      ${isSelected
-                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20'
-                                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
-                                      }
-                                    `}
-                                  >
+                                  <button key={`${dayData.dateStr}-${time}`} type="button" onClick={() => handleSlotSelect(dayData.dateStr, time)} className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border ${isSelected ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-600/20' : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'}`}>
                                     {formatTimeDisplay(time)}
                                   </button>
                                 );
@@ -902,69 +726,24 @@ const RescheduleModal = ({
               )}
             </div>
 
-            {/* Reason Input & Actions (Pinned to bottom) */}
             <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              {/* Reason Input */}
               <div className="mb-4">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Reason for Reschedule (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="e.g., Patient requested later time..."
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Reason for Reschedule (Optional)</label>
+                <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g., Patient requested later time..." className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
               </div>
-
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
-                {/* Selected Time Summary */}
                 <div className="text-sm">
                   {selectedTime && selectedDate ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Icons.Check className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">New Time</p>
-                        <p className="font-semibold text-gray-900">
-                          {formatDate(selectedDate)} at {formatTimeDisplay(selectedTime)}
-                        </p>
-                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Icons.Check className="w-4 h-4 text-blue-600" /></div>
+                      <div><p className="text-xs text-gray-500">New Time</p><p className="font-semibold text-gray-900">{formatDate(selectedDate)} at {formatTimeDisplay(selectedTime)}</p></div>
                     </div>
-                  ) : (
-                    <span className="text-gray-400 text-sm">Select a time slot to continue</span>
-                  )}
+                  ) : (<span className="text-gray-400 text-sm">Select a time slot to continue</span>)}
                 </div>
-
-                {/* Buttons */}
                 <div className="flex gap-3">
-                  <button
-                    onClick={onClose}
-                    className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirm}
-                    disabled={!selectedDate || !selectedTime || isLoading}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${selectedDate && selectedTime && !isLoading
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                      }`}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Icons.Spinner className="w-4 h-4 animate-spin" />
-                        <span>Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Confirm Reschedule</span>
-                      </>
-                    )}
+                  <button onClick={onClose} className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm">Cancel</button>
+                  <button onClick={handleConfirm} disabled={!selectedDate || !selectedTime || isLoading} className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${selectedDate && selectedTime && !isLoading ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'}`}>
+                    {isLoading ? (<><Icons.Spinner className="w-4 h-4 animate-spin" /><span>Processing...</span></>) : (<span>Confirm Reschedule</span>)}
                   </button>
                 </div>
               </div>
@@ -976,8 +755,6 @@ const RescheduleModal = ({
     document.body
   );
 };
-
-
 
 // --- Mobile Bottom Sheet Component (Portal) ---
 const MobileBottomSheet = ({
@@ -1004,8 +781,7 @@ const MobileBottomSheet = ({
   };
 
   const handleReschedule = () => {
-    onClose(); // Close sheet first
-    // Small timeout to allow sheet to close before modal logic triggers
+    onClose(); 
     setTimeout(() => onReschedule(apt), 100);
   };
 
@@ -1034,15 +810,18 @@ const MobileBottomSheet = ({
                   <div className="text-xs text-gray-400">Accept this booking request</div>
                 </div>
               </button>
-              <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="font-semibold">Reschedule</div>
-                  <div className="text-xs text-gray-400">Change date or time</div>
-                </div>
-              </button>
+              {/* Only show Reschedule if NOT already rescheduled */}
+              {!apt.isRescheduled && (
+                <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Reschedule</div>
+                    <div className="text-xs text-gray-400">Change date or time</div>
+                  </div>
+                </button>
+              )}
               <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
                   <Icons.Archive className="w-5 h-5 text-gray-600" />
@@ -1065,15 +844,18 @@ const MobileBottomSheet = ({
                   <div className="text-xs text-gray-400">Appointment has been done</div>
                 </div>
               </button>
-              <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="font-semibold">Reschedule</div>
-                  <div className="text-xs text-gray-400">Change date or time</div>
-                </div>
-              </button>
+              {/* Only show Reschedule if NOT already rescheduled */}
+              {!apt.isRescheduled && (
+                <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Reschedule</div>
+                    <div className="text-xs text-gray-400">Change date or time</div>
+                  </div>
+                </button>
+              )}
               <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-4 text-sm text-red-600 active:bg-red-50 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
                   <Icons.X className="w-5 h-5 text-red-600" />
@@ -1098,7 +880,7 @@ const MobileBottomSheet = ({
   );
 };
 
-// --- Desktop Dropdown Component (Inline Absolute) ---
+// --- Desktop Dropdown Component ---
 const DesktopDropdown = ({
   apt,
   onUpdate,
@@ -1157,15 +939,20 @@ const DesktopDropdown = ({
               <div className="text-xs text-gray-400">Accept booking</div>
             </div>
           </button>
-          <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <div className="font-medium">Reschedule</div>
-              <div className="text-xs text-gray-400">Change date/time</div>
-            </div>
-          </button>
+          
+          {/* Prevent rescheduling if already rescheduled */}
+          {!apt.isRescheduled && (
+            <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-medium">Reschedule</div>
+                <div className="text-xs text-gray-400">Change date/time</div>
+              </div>
+            </button>
+          )}
+
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -1189,15 +976,20 @@ const DesktopDropdown = ({
               <div className="text-xs text-gray-400">Mark as done</div>
             </div>
           </button>
-          <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <div className="font-medium">Reschedule</div>
-              <div className="text-xs text-gray-400">Change date/time</div>
-            </div>
-          </button>
+
+          {/* Prevent rescheduling if already rescheduled */}
+          {!apt.isRescheduled && (
+            <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-medium">Reschedule</div>
+                <div className="text-xs text-gray-400">Change date/time</div>
+              </div>
+            </button>
+          )}
+
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
@@ -1343,9 +1135,12 @@ export default function PracticeAppointmentsView() {
 
     setAppointments(prev => prev.map(apt => {
       if (apt.id === rescheduleApt.id) {
+        // UPDATE THE DATA PERMANENTLY IN STATE
         return {
           ...apt,
           dateTime: newDateTime.toISOString(),
+          status: 'confirmed', // Requirement: Status becomes confirmed
+          isRescheduled: true, // Requirement: Mark as rescheduled
           lastUpdated: new Date()
         };
       }
@@ -1473,16 +1268,13 @@ export default function PracticeAppointmentsView() {
     }
   };
 
-
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-
     setTimeout(() => {
       setIsRefreshing(false);
-      // Add your actual data fetch function here if needed
-    }, 800); // 800ms delay for smooth effect
+    }, 800); 
   };
 
   if (isLoading) {
@@ -1537,7 +1329,6 @@ export default function PracticeAppointmentsView() {
                   : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 shadow-sm'
                 }`}
             >
-              {/* Wrap icon in a div to apply style/animation without TypeScript errors */}
               <div
                 className={isRefreshing ? 'animate-spin' : ''}
                 style={isRefreshing ? { animationDuration: '0.5s' } : undefined}
@@ -1675,7 +1466,8 @@ export default function PracticeAppointmentsView() {
                           className={`px-3 sm:px-4 py-3 cursor-pointer active:bg-gray-50 transition-colors ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <StatusBadge status={apt.status} size="small" />
+                            {/* Pass isRescheduled prop to StatusBadge */}
+                            <StatusBadge status={apt.status} size="small" isRescheduled={apt.isRescheduled} />
                             <div className="flex items-center gap-1">
                               <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} size="small" />
                               {!isTerminalState(apt.status) && (
@@ -1718,8 +1510,6 @@ export default function PracticeAppointmentsView() {
                           {/* Mobile/Tablet Expanded Details */}
                           {isExpanded && <ExpandedDetailsCard apt={apt} />}
                         </div>
-
-
                       </div>
 
                       {/* ============ DESKTOP VIEW (>= 1024px) ============ */}
@@ -1757,7 +1547,8 @@ export default function PracticeAppointmentsView() {
 
                           {/* 4. Status */}
                           <div className="flex-1 pr-4">
-                            <StatusBadge status={apt.status} />
+                            {/* Pass isRescheduled prop to StatusBadge */}
+                            <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
                           </div>
 
                           {/* 5. Booked At */}

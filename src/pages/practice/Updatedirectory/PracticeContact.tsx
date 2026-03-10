@@ -1,9 +1,9 @@
 import { useState, type ChangeEvent, type ComponentType, } from 'react';
 import {
     MapPin, Globe, Facebook, Instagram, Twitter, Youtube,
-    Plus, Trash2, X, Clock, Phone, Mail, Navigation,
+    Plus, Trash2, X, Clock, Phone, Mail, Navigation, Save, Calendar
 } from 'lucide-react';
-import type { Clinic } from '../../../types';
+import type { PracticeInfo } from '../../../types/clinic';
 
 // ----------------------------------------------------------------------
 // Interfaces
@@ -34,7 +34,7 @@ interface ContactFormData {
     // Location
     address: string;
     suburb: string;
-    postalCode: string;
+    zipcode: string;
     directions: string;
 
     // Contact
@@ -63,67 +63,44 @@ interface ContactFormData {
 }
 
 // ----------------------------------------------------------------------
-// Helper Functions for Time Parsing
+// Helper Functions for Time Parsing (UNCHANGED)
 // ----------------------------------------------------------------------
 
-// Generate unique ID
 const generateId = (): string => Math.random().toString(36).substr(2, 9);
 
-// Convert 12-hour time format (e.g., "9:00 AM") to 24-hour format (e.g., "09:00")
 const convertTo24Hour = (time12h: string): string => {
     if (!time12h) return '09:00';
-
     const timeStr = time12h.trim();
-
-    // If already in 24-hour format (no AM/PM)
     if (!timeStr.toLowerCase().includes('am') && !timeStr.toLowerCase().includes('pm')) {
-        // Ensure proper formatting (e.g., "9:00" -> "09:00")
         const [hours, minutes] = timeStr.split(':');
         return `${hours.padStart(2, '0')}:${minutes || '00'}`;
     }
-
     const isPM = timeStr.toLowerCase().includes('pm');
     const cleanTime = timeStr.replace(/[aApP][mM]/g, '').trim();
     const [hours, minutes] = cleanTime.split(':').map(s => s.trim());
-
     let hour = parseInt(hours, 10);
     if (isPM && hour !== 12) hour += 12;
     if (!isPM && hour === 12) hour = 0;
-
     return `${hour.toString().padStart(2, '0')}:${minutes || '00'}`;
 };
 
-// Parse time string from clinic data to DayHours object
 const parseTimeString = (timeStr: string | undefined): DayHours => {
-    // Handle closed or empty cases
     if (!timeStr || timeStr.toLowerCase() === 'closed' || timeStr.toLowerCase() === 'close') {
         return {
             isOpen: false,
             slots: [{ id: generateId(), start: '09:00', end: '17:00' }]
         };
     }
-
-    // Handle multiple time ranges (e.g., "9:00 AM - 12:00 PM, 2:00 PM - 5:00 PM")
     const ranges = timeStr.split(',').map(r => r.trim());
-
     const slots: TimeSlot[] = ranges.map(range => {
-        // Split by '-' handling various formats with or without spaces
         const parts = range.split(/\s*[-–]\s*/);
-
         if (parts.length >= 2) {
             const start = convertTo24Hour(parts[0]);
             const end = convertTo24Hour(parts[1]);
-            return {
-                id: generateId(),
-                start,
-                end
-            };
+            return { id: generateId(), start, end };
         }
-
-        // Fallback for malformed data
         return { id: generateId(), start: '09:00', end: '17:00' };
     });
-
     return { isOpen: true, slots };
 };
 
@@ -131,16 +108,14 @@ const parseTimeString = (timeStr: string | undefined): DayHours => {
 // Main Component
 // ----------------------------------------------------------------------
 
-export default function PracticeContact({ clinicData, onNext }: { clinicData: Clinic, onNext: () => void }) {
-    // --- State ---
+export default function PracticeContact({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+    // --- State (UNCHANGED) ---
     const [formData, setFormData] = useState<ContactFormData>(() => {
-        // Parse clinic time data on initialization
         const timeData = clinicData.time || {};
-
         return {
             address: clinicData.address || '',
-            suburb: 'Macquarie', // Mock default
-            postalCode: '2000',
+            suburb: '',
+            zipcode: clinicData.zipcode || '',
             directions: '',
             phone: clinicData.phone || '',
             email: clinicData.email || '',
@@ -163,7 +138,7 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // --- Handlers ---
+    // --- Handlers (UNCHANGED) ---
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleInputChange = (field: keyof ContactFormData, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -187,29 +162,29 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
         onNext();
     };
 
-    // --- Common Input Styles ---
-    const inputClasses = "w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-100 focus:border-orange-500 outline-none transition text-gray-700 bg-white";
-    const labelClasses = "text-sm font-medium text-gray-700 block mb-2";
+    // --- New Premium Styles ---
+    const inputClasses = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/30 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all shadow-sm text-sm";
+    const labelClasses = "text-sm font-bold text-gray-900 block mb-1.5";
 
     return (
-        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-in fade-in zoom-in-95 duration-300">
 
             {/* HEADER */}
-            <div className="flex items-center gap-3 mb-8">
-                <div className="p-2 bg-orange-100 rounded-lg">
+            <div className="flex items-start gap-4 mb-8 border-b border-gray-100 pb-6">
+                <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
                     <MapPin className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Practice Details</h2>
-                    <p className="text-sm text-gray-500">Manage location, contact info, and hours.</p>
+                    <h2 className="text-xl font-bold text-gray-900">Practice Details</h2>
+                    <p className="text-gray-500 text-sm mt-1">Manage location, contact info, and hours.</p>
                 </div>
             </div>
 
             {/* 1. LOCATION & MAP */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                <div className="space-y-5">
-                    <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                        <Navigation className="w-4 h-4 text-orange-500" /> Location
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+                <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-wider text-gray-400">
+                        <Navigation className="w-4 h-4" /> Location
                     </h3>
 
                     <div>
@@ -222,30 +197,21 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                             placeholder="e.g. 123 Health St"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className={labelClasses}>Suburb</label>
-                            <input
-                                type="text"
-                                value={formData.suburb}
-                                onChange={(e) => handleInputChange('suburb', e.target.value)}
-                                className={inputClasses}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClasses}>Postcode</label>
-                            <input
-                                type="text"
-                                value={formData.postalCode}
-                                onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                                className={inputClasses}
-                            />
-                        </div>
+
+                    <div>
+                        <label className={labelClasses}>Postcode</label>
+                        <input
+                            type="text"
+                            value={formData.zipcode}
+                            onChange={(e) => handleInputChange('zipcode', e.target.value)}
+                            className={inputClasses}
+                        />
                     </div>
+
                     <div>
                         <label className={labelClasses}>Directions / Parking Info</label>
                         <textarea
-                            rows={3}
+                            rows={4}
                             value={formData.directions}
                             onChange={(e) => handleInputChange('directions', e.target.value)}
                             className={`${inputClasses} resize-none`}
@@ -255,29 +221,27 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                 </div>
 
                 {/* Visual Map Placeholder */}
-                <div className="flex flex-col h-full pt-11">
-                    <div className="flex-1 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden group min-h-[250px]">
-                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full">
-                            <MapPin className="w-12 h-12 text-red-500 drop-shadow-lg fill-red-500 animate-bounce" />
+                <div className="flex flex-col h-full pt-8">
+                    <div className="flex-1 bg-blue-50/50 rounded-2xl border border-blue-100 relative overflow-hidden group min-h-[300px]">
+                        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#3b82f6_1.5px,transparent_1.5px)] [background-size:20px_20px]"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full transform group-hover:-translate-y-[110%] transition-transform duration-500">
+                            <MapPin className="w-12 h-12 text-orange-500 drop-shadow-xl fill-orange-500" />
                         </div>
-                        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 shadow-sm border border-gray-200">
+                        <div className="absolute bottom-5 left-5 bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold text-gray-700 shadow-sm border border-white/50">
                             Map Preview
                         </div>
                     </div>
                 </div>
             </div>
 
-            <hr className="border-gray-100 my-8" />
-
             {/* 2. OPENING HOURS */}
-            <div className="mb-10">
-                <h3 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-6">
-                    <Clock className="w-4 h-4 text-orange-500" /> Opening Hours
+            <div className="mb-12">
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-6 uppercase tracking-wider text-gray-400">
+                    <Clock className="w-4 h-4" /> Opening Hours
                 </h3>
 
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div className="space-y-1">
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="divide-y divide-gray-100">
                         {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
                             <DayRow
                                 key={day}
@@ -292,70 +256,82 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
             </div>
 
             {/* 3. EXCEPTIONS & ALERTS */}
-            <div className="space-y-8 mb-12 pt-8">
+            <div className="space-y-10 mb-12">
                 {/* Exceptions */}
-                <div>
-                    <h3 className="text-base font-bold text-gray-700 mb-2">Exceptions</h3>
-                    <p className="text-sm text-gray-500 mb-4">Add Public Holiday closures or any other exception to your clinic's opening hours.</p>
+                <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-200">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900">Exceptions</h3>
+                            <p className="text-sm text-gray-500 mt-1">Public Holiday closures or specific date changes.</p>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="flex items-center gap-2 text-orange-600 bg-white border border-orange-200 font-bold text-xs px-4 py-2 rounded-xl hover:bg-orange-50 hover:border-orange-300 transition shadow-sm"
+                        >
+                            <Plus className="w-4 h-4" /> Add Exception
+                        </button>
+                    </div>
 
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="mb-4 flex items-center gap-2 text-orange-500 font-bold text-sm border border-orange-500 rounded px-3 py-1.5 hover:bg-orange-50 transition"
-                    >
-                        <Plus className="w-4 h-4" /> Add exception
-                    </button>
-
-                    {formData.exceptions.length > 0 && (
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    {formData.exceptions.length > 0 ? (
+                        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-white border-b border-gray-200 text-gray-700 font-bold">
+                                <thead className="bg-gray-50 border-b border-gray-200 text-gray-700 font-bold">
                                     <tr>
-                                        <th className="px-4 py-3">Date</th>
-                                        <th className="px-4 py-3">Opening Hours</th>
-                                        <th className="px-4 py-3">Label</th>
-                                        <th className="px-4 py-3">Note</th>
-                                        <th className="px-4 py-3 text-right"></th>
+                                        <th className="px-5 py-3">Date</th>
+                                        <th className="px-5 py-3">Hours</th>
+                                        <th className="px-5 py-3">Label</th>
+                                        <th className="px-5 py-3">Note</th>
+                                        <th className="px-5 py-3 text-right">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 bg-white">
+                                <tbody className="divide-y divide-gray-100">
                                     {formData.exceptions.map((ex) => (
-                                        <tr key={ex.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-gray-600">{ex.date}</td>
-                                            <td className="px-4 py-3 text-gray-600">
-                                                {ex.isClosed ? 'Closed' : `${ex.startTime} - ${ex.endTime}`}
+                                        <tr key={ex.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-5 py-4 font-medium text-gray-900">{ex.date}</td>
+                                            <td className="px-5 py-4 text-gray-600">
+                                                {ex.isClosed ? (
+                                                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Closed</span>
+                                                ) : (
+                                                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">{ex.startTime} - {ex.endTime}</span>
+                                                )}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-600">{ex.label}</td>
-                                            <td className="px-4 py-3 text-gray-600">{ex.note}</td>
-                                            <td className="px-4 py-3 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleDeleteException(ex.id)}
-                                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-full border border-red-200 transition"
-                                                    >
-                                                        <Trash2 className="w-3 h-3" />
-                                                    </button>
-                                                </div>
+                                            <td className="px-5 py-4 text-gray-600">{ex.label}</td>
+                                            <td className="px-5 py-4 text-gray-500 italic">{ex.note}</td>
+                                            <td className="px-5 py-4 text-right">
+                                                <button
+                                                    onClick={() => handleDeleteException(ex.id)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                    title="Remove"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
+                    ) : (
+                        <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl bg-white">
+                            <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-gray-400 text-sm">No exceptions added yet.</p>
+                        </div>
                     )}
                 </div>
 
                 {/* Alert Message */}
                 <div>
-                    <h3 className="text-base font-bold text-gray-700 mb-2">Alert Message</h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <h3 className="text-base font-bold text-gray-900 mb-2">Global Alert Message</h3>
+                    <div className="grid grid-cols-1 gap-4">
                         <p className="text-sm text-gray-500">
-                            Display a short message about any important changes at your practice (e.g. a new policy, temporary closure or holidays).
+                            This message will appear prominently on your profile to notify patients of important updates.
                         </p>
                         <textarea
                             rows={3}
                             value={formData.alertMessage}
                             onChange={(e) => handleInputChange('alertMessage', e.target.value)}
-                            className="w-full px-3 py-2.5 rounded border border-gray-300 text-sm focus:border-orange-500 outline-none"
+                            className={`${inputClasses} bg-orange-50/30 border-orange-100 focus:bg-white`}
+                            placeholder="e.g. We will be closed for renovations until..."
                         ></textarea>
                     </div>
                 </div>
@@ -364,16 +340,16 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
             <hr className="border-gray-100 my-8" />
 
             {/* 4. CONTACT & SOCIALS */}
-            <div className="space-y-6 mb-10">
-                <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-orange-500" /> Online Presence
+            <div className="space-y-8 mb-4">
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 uppercase tracking-wider text-gray-400">
+                    <Globe className="w-4 h-4" /> Online Presence
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label className={labelClasses}>Phone Number</label>
-                        <div className="relative">
-                            <Phone className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+                        <div className="relative group">
+                            <Phone className="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                             <input
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
@@ -384,8 +360,8 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                     </div>
                     <div>
                         <label className={labelClasses}>Email Address</label>
-                        <div className="relative">
-                            <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+                        <div className="relative group">
+                            <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                             <input
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
@@ -396,8 +372,8 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                     </div>
                     <div>
                         <label className={labelClasses}>Website</label>
-                        <div className="relative">
-                            <Globe className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+                        <div className="relative group">
+                            <Globe className="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                             <input
                                 value={formData.website}
                                 onChange={(e) => handleInputChange('website', e.target.value)}
@@ -408,14 +384,13 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <SocialInput Icon={Facebook} color="text-blue-600" placeholder="Facebook URL" value={formData.facebook} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('facebook', e.target.value)} inputClasses={inputClasses} />
                     <SocialInput Icon={Instagram} color="text-pink-600" placeholder="Instagram URL" value={formData.instagram} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('instagram', e.target.value)} inputClasses={inputClasses} />
                     <SocialInput Icon={Twitter} color="text-sky-500" placeholder="Twitter URL" value={formData.twitter} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('twitter', e.target.value)} inputClasses={inputClasses} />
                     <SocialInput Icon={Youtube} color="text-red-600" placeholder="Youtube URL" value={formData.youtube} onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('youtube', e.target.value)} inputClasses={inputClasses} />
                 </div>
             </div>
-
 
             {/* FOOTER ACTIONS */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
@@ -448,9 +423,9 @@ export default function PracticeContact({ clinicData, onNext }: { clinicData: Cl
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SocialInput = ({ Icon, color, placeholder, value, onChange, inputClasses }: { Icon: ComponentType<any>, color: string, placeholder: string, value: string, onChange: (e: ChangeEvent<HTMLInputElement>) => void, inputClasses: string }) => (
-    <div className="relative">
+    <div className="relative group">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Icon className={`w-5 h-5 ${color}`} />
+            <Icon className={`w-5 h-5 ${color} opacity-70 group-focus-within:opacity-100 transition-opacity`} />
         </div>
         <input
             type="url"
@@ -482,42 +457,42 @@ const DayRow = ({
     };
 
     return (
-        <div className="flex items-start justify-between py-3 border-b border-gray-200 last:border-0 rounded-lg px-2 transition">
-            <div className="flex items-center gap-3 w-32 pt-1.5">
+        <div className={`flex items-start justify-between py-4 px-6 transition-colors ${dayHours.isOpen ? 'bg-white' : 'bg-gray-50/50'}`}>
+            <div className="flex items-center gap-4 w-40 pt-1.5">
                 <input
                     type="checkbox"
                     checked={dayHours.isOpen}
                     onChange={(e) => handleToggleOpen(e.target.checked)}
                     className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500 border-gray-300 cursor-pointer"
                 />
-                <span className={`text-sm font-medium ${dayHours.isOpen ? 'text-gray-800' : 'text-gray-400'}`}>
+                <span className={`text-sm font-bold ${dayHours.isOpen ? 'text-gray-900' : 'text-gray-400'}`}>
                     {day}
                 </span>
             </div>
 
             <div className="flex-1 flex justify-end">
                 {dayHours.isOpen ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         {dayHours.slots.map((slot) => (
-                            <div key={slot.id} className="flex items-center gap-2">
+                            <div key={slot.id} className="flex items-center gap-3">
                                 <input
                                     type="time"
                                     value={slot.start}
                                     onChange={(e) => handleSlotChange(slot.id, 'start', e.target.value)}
-                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white shadow-sm font-medium text-gray-700"
                                 />
-                                <span className="text-gray-400 text-xs">-</span>
+                                <span className="text-gray-400 text-xs font-medium">TO</span>
                                 <input
                                     type="time"
                                     value={slot.end}
                                     onChange={(e) => handleSlotChange(slot.id, 'end', e.target.value)}
-                                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white shadow-sm font-medium text-gray-700"
                                 />
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <span className="text-sm text-red-600 font-medium py-1.5 px-3 bg-red-100 rounded-lg">
+                    <span className="text-xs font-bold text-red-500 py-1.5 px-3 bg-red-100 rounded-lg uppercase tracking-wide">
                         Closed
                     </span>
                 )}
@@ -557,101 +532,99 @@ const ExceptionModal = ({ onClose, onSave }: { onClose: () => void, onSave: (ex:
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100">
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-800">Edit Opening Hours</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                    <h3 className="text-xl font-bold text-gray-900">Add Date Exception</h3>
+                    <button onClick={onClose} className="p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
+                        <label className="block text-sm font-bold text-gray-900 mb-2">Date</label>
                         <input
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded border border-gray-300 text-gray-600 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-700 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-gray-50/50"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Opening Hours</label>
-                        <div className="h-[42px] flex items-center">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <label className="block text-sm font-bold text-gray-900 mb-2">Status</label>
+                        <div className="h-[46px] flex items-center">
+                            <label className="flex items-center gap-3 cursor-pointer select-none p-3 border border-gray-200 rounded-xl hover:border-orange-300 transition w-full">
                                 <input
                                     type="checkbox"
                                     checked={isClosed}
                                     onChange={(e) => setIsClosed(e.target.checked)}
                                     className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500 border-gray-300"
                                 />
-                                <span className="text-sm text-gray-700">Closed</span>
+                                <span className="text-sm font-medium text-gray-700">Closed All Day</span>
                             </label>
                         </div>
 
                         {!isClosed && (
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex items-center gap-2 mt-4 animate-in slide-in-from-top-2">
                                 <input
                                     type="time"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
-                                    className="px-2 py-1.5 rounded border border-gray-300 text-sm"
+                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-orange-500 outline-none"
                                 />
-                                <span className="text-gray-400">-</span>
+                                <span className="text-gray-400 text-xs font-bold">TO</span>
                                 <input
                                     type="time"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
-                                    className="px-2 py-1.5 rounded border border-gray-300 text-sm"
+                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-orange-500 outline-none"
                                 />
                             </div>
                         )}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                            Label
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="(e.g. New Year's Day)"
-                            value={label}
-                            onChange={(e) => setLabel(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded border border-gray-300 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none placeholder:text-gray-400"
-                        />
-                    </div>
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-900 mb-2">Label</label>
+                            <input
+                                type="text"
+                                placeholder="(e.g. New Year's Day)"
+                                value={label}
+                                onChange={(e) => setLabel(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none placeholder:text-gray-400"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                            Note
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="(e.g. Early close)"
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded border border-gray-300 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none placeholder:text-gray-400"
-                        />
+                        <div>
+                            <label className="block text-sm font-bold text-gray-900 mb-2">Note (Optional)</label>
+                            <input
+                                type="text"
+                                placeholder="(e.g. Early close)"
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none placeholder:text-gray-400"
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+                <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 rounded border border-gray-300 text-gray-700 font-bold text-sm hover:bg-gray-50 transition"
+                        className="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold text-sm hover:bg-white transition"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-8 py-2.5 rounded bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition shadow-sm"
+                        className="px-8 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:bg-black transition shadow-lg shadow-gray-900/10 flex items-center gap-2"
                     >
-                        Done
+                        <Save className="w-4 h-4" /> Save Exception
                     </button>
                 </div>
             </div>

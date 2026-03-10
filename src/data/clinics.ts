@@ -519,3 +519,178 @@ export const clinics: Clinic[] = [
     ],
   }
 ];
+
+export const directory = [
+  {
+    "data": {
+        "directories": [
+            {
+                "id": "e2c7aecf-5529-491e-972e-50b5a70b0d47",
+                "description": "<font face=\"Arial\">Testing</font>",
+                "name": "Surender",
+                "email": "surender@yopmail.com",
+                "phone": "8776654322",
+                "address": "Madrid, Spain",
+                "latitude": 40.41672790000001,
+                "longitude": -3.7032905,
+                "alt_phone": null,
+                "type": "PRACTICE",
+                "abn_acn": "1234567895",
+                "company_name": "Practice Your dentist",
+                "profession_type": "Dental Specialist Practice",
+                "directory_category_id": "9dfa1ec4-c136-4939-af84-b2a84747f5f9",
+                "logo": {
+                    "url": "https://dentalerp-dev.s3-ap-southeast-2.amazonaws.com/uploads360/project/7768fffa-2ef7-4902-8797-b2f2b77c9fe8",
+                    "name": "ChatGPT Image Jan 19, 2026, 10_48_29 AM.png",
+                    "size": 1290983,
+                    "status": "success",
+                    "file_id": "7768fffa-2ef7-4902-8797-b2f2b77c9fe8",
+                    "isPublic": true,
+                    "directory": "project",
+                    "extension": "png",
+                    "mime_type": "image/png"
+                },
+                "banner_image": {
+                    "url": "https://dentalerp-dev.s3-ap-southeast-2.amazonaws.com/uploads360/project/0fe52d69-876a-4b01-9b2b-376e9240d295",
+                    "name": "cropped-image.png",
+                    "size": 1150111,
+                    "status": "success",
+                    "file_id": "0fe52d69-876a-4b01-9b2b-376e9240d295",
+                    "isPublic": true,
+                    "directory": "project",
+                    "extension": "png",
+                    "mime_type": "image/png"
+                },
+                "dental_practice": {
+                    "id": "13c34b88-e736-422d-8677-d8c5f8f5ce18",
+                    "business_name": "Practice Your dentist",
+                    "__typename": "dental_practices"
+                },
+                "directory_documents": [],
+                "directory_locations": [
+                    {
+                        "id": "37562548-9b2b-41da-a4b4-009ed75785e3",
+                        "media_name": null,
+                        "media_link": null,
+                        "status": "TIME",
+                        "week_name": "Tuesday",
+                        "clinic_time": "9:30 AM - 6:30 PM",
+                        "__typename": "directory_locations"
+                    }
+                ],
+                "directory_services": [
+                    {
+                        "id": "3f7029c3-4efd-4d8e-a7db-f94bb7160108",
+                        "name": "dental",
+                        "image": null,
+                        "description": null,
+                        "__typename": "directory_services"
+                    },
+                    {
+                        "id": "d1cc403e-1834-4986-a2a8-3b7732628f8a",
+                        "name": "Teeth Cleaning",
+                        "image": null,
+                        "description": null,
+                        "__typename": "directory_services"
+                    },
+                    {
+                        "id": "a45abcda-6ceb-4669-bc3e-daf35b9c0536",
+                        "name": "Teeth Cleaning Testing ",
+                        "image": null,
+                        "description": null,
+                        "__typename": "directory_services"
+                    },
+                    {
+                        "id": "9ebd41fa-c452-4c8a-a1cf-3cdb00b90d0a",
+                        "name": "vishwa",
+                        "image": null,
+                        "description": "vishwa",
+                        "__typename": "directory_services"
+                    }
+                ],
+                "directory_certifications": [
+                    {
+                        "id": "5230aa1b-7454-4541-a9d7-cb2abeb69f5e",
+                        "title": "BASIC INFORMATION",
+                        "attachments": {
+                            "url": "https://dentalerp-dev.s3-ap-southeast-2.amazonaws.com/uploads360/project/8249998b-2b40-41f5-a62a-fd8755536d17",
+                            "name": "Blue and Orange Simple Pharmacy Store Instagram Post.png",
+                            "size": 673614,
+                            "status": "success",
+                            "file_id": "8249998b-2b40-41f5-a62a-fd8755536d17",
+                            "isPublic": true,
+                            "directory": "project",
+                            "extension": "png",
+                            "mime_type": "image/png"
+                        },
+                        "__typename": "directory_certifications"
+                    }
+                ],
+                "directory_achievements": [],
+                "directory_appointments": [
+                    {
+                        "id": "b119d21f-aa10-425c-87b2-db598ff5cb55",
+                        "__typename": "directory_appointments"
+                    },
+                    {
+                        "id": "61e7b513-5254-43a4-8d62-5d13620c2f79",
+                        "__typename": "directory_appointments"
+                    }
+                ],
+                "directory_team_members": [
+                    {
+                        "id": "6b70f8e7-aa92-4620-b5d9-6a8d3672f229",
+                        "name": "Viswa",
+                        "specialization": "Dentist",
+                        "image": {
+                            "url": "https://dentalerp-dev.s3-ap-southeast-2.amazonaws.com/uploads360/project/9fdb331c-d0b9-4074-91db-7a0a2a0821f4",
+                            "name": "660d2f5487880c4b5e0899e3_tTk7pTQOTzubYmq0Is9L3rP_Bq0_499U4_dAtj8CTejipyCUvSJK2CiEQ20w12xAJnkddwdpMqkAVl9lE37Fnl2HCnMofI2GMcXn0LMWwh602vnuFfVVoPl7B0_RmsQvEJnYsRCQJ_ffl3K4MrxVjc8.jpeg",
+                            "size": 107980,
+                            "status": "success",
+                            "file_id": "9fdb331c-d0b9-4074-91db-7a0a2a0821f4",
+                            "isPublic": true,
+                            "directory": "project",
+                            "extension": "jpeg",
+                            "mime_type": "image/jpeg"
+                        },
+                        "phone": null,
+                        "email": null,
+                        "subrub": null,
+                        "state": null,
+                        "__typename": "directory_team_members"
+                    }
+                ],
+                "directory_gallery_posts": [
+                    {
+                        "id": "fc2a6112-5a51-4d4a-9408-bf452d955a12",
+                        "image": [
+                            {
+                                "url": "https://dentalerp-dev.s3-ap-southeast-2.amazonaws.com/uploads360/project/e44ae031-0747-49a2-bdc5-b9915295ec7b",
+                                "name": "ChatGPT Image Jan 19, 2026, 10_48_29 AM.png",
+                                "size": 1290983,
+                                "type": "image",
+                                "status": "success",
+                                "file_id": "e44ae031-0747-49a2-bdc5-b9915295ec7b",
+                                "isPublic": true,
+                                "directory": "project",
+                                "extension": "png",
+                                "mime_type": "image/png"
+                            }
+                        ],
+                        "before_image": null,
+                        "after_image": null,
+                        "banner_image": null,
+                        "profile_image": null,
+                        "logo": null,
+                        "before_and_after": null,
+                        "__typename": "directory_gallery_posts"
+                    }
+                ],
+                "directory_testimonials": [],
+                "directory_faqs": [],
+                "__typename": "directories"
+            }
+        ]
+    }
+}
+]

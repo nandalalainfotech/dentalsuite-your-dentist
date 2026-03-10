@@ -75,16 +75,16 @@ export const clinicApi = {
           }
 
           if (filters.gender) {
-            const genders = filters.gender.split(',').map(g => g.trim().toLowerCase());
-            matchesGender = genders.some(filterGender =>
+            const genders = filters.gender.split(',').map((g: string) => g.trim().toLowerCase());
+            matchesGender = genders.some((filterGender: string | undefined) =>
               dentist.gender?.toLowerCase() === filterGender
             ) || false;
           }
 
           if (filters.insurance) {
-            const insurances = filters.insurance.split(',').map(i => i.trim().toLowerCase());
+            const insurances = filters.insurance.split(',').map((i: string) => i.trim().toLowerCase());
             matchesInsurance = clinic.insurance?.some(ins =>
-              insurances.some(filterIns => ins.toLowerCase().includes(filterIns))
+              insurances.some((filterIns: string) => ins.toLowerCase().includes(filterIns))
             ) || false;
           }
 
