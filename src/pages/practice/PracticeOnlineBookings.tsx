@@ -64,78 +64,6 @@ const addDays = (date: Date, days: number) => {
   return result;
 };
 
-// Hardcoded Static Data
-// const STATIC_APPOINTMENTS: EnrichedAppointment[] = [
-//   {
-//     id: 'apt-1',
-//     patientName: 'Sarah Johnson',
-//     treatment: 'Dental Cleaning',
-//     dentist_name: 'Dr. Emily Smith',
-//     appointment_date: getRelativeDate(1, 10, 0),
-//     bookedAt: getRelativePastDate(2),
-//     isNewPatient: true,
-//     isDependent: false,
-//     status: 'pending',
-//     mobile: '0412 345 678',
-//     dob: '12 Mar 1990',
-//     patient_notes: 'Patient requests a gentle cleaning due to sensitivity.',
-//     booked_by: 'Sarah Johnson',
-//     lastUpdated: getRelativePastDate(0),
-//     isRescheduled: false,
-//   },
-//   {
-//     id: 'apt-2',
-//     patientName: 'Michael Brown',
-//     treatment: 'Root Canal Consultation',
-//     dentist_name: 'Dr. James Wilson',
-//     appointment_date: getRelativeDate(0, 14, 30),
-//     bookedAt: getRelativePastDate(5),
-//     isNewPatient: false,
-//     isDependent: false,
-//     status: 'reception_cancelled',
-//     mobile: '0498 765 432',
-//     dob: '05 Nov 1985',
-//     patient_notes: 'Experiencing pain in lower left molar.',
-//     booked_by: 'Michael Brown',
-//     lastUpdated: getRelativePastDate(1),
-//     isRescheduled: false,
-//   },
-//   {
-//     id: 'apt-3',
-//     patientName: 'Leo Chen',
-//     treatment: 'General Checkup',
-//     dentist_name: 'Dr. Emily Smith',
-//     appointment_date: getRelativeDate(2, 9, 15),
-//     bookedAt: getRelativePastDate(1),
-//     isNewPatient: false,
-//     isDependent: true,
-//     status: 'confirmed',
-//     mobile: '0412 345 678',
-//     dob: '22 Jul 2015',
-//     patient_notes: '',
-//     booked_by: 'Sarah Chen',
-//     lastUpdated: getRelativePastDate(1),
-//     isRescheduled: false,
-//   },
-//   {
-//     id: 'apt-5',
-//     patientName: 'Robert Wilson',
-//     treatment: 'Emergency',
-//     dentist_name: 'Dr. James Wilson',
-//     appointment_date: getRelativeDate(0, 16, 45),
-//     bookedAt: getRelativePastDate(0),
-//     isNewPatient: true,
-//     isDependent: false,
-//     status: 'patient_cancelled',
-//     mobile: '0488 999 111',
-//     dob: '30 Jan 1980',
-//     patient_notes: 'Chipped tooth from sports injury.',
-//     booked_by: 'Robert Wilson',
-//     lastUpdated: getRelativePastDate(0),
-//     isRescheduled: false,
-//   },
-// ];
-
 // --- Configuration ---
 const STATUS_LABELS: Record<ValidStatus, string> = {
   confirmed: 'Confirmed',
@@ -177,13 +105,58 @@ const formatShortDate = (dateStr: string | Date): string => {
   return d.toLocaleString('en-GB', { day: 'numeric', month: 'short' });
 };
 
-const formatTime = (dateStr: string | Date): string => {
+const formatTime = (dateStr: string | Date, timeStr?: string): string => {
+  if (timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours || 0, minutes || 0, 0, 0);
+    return date.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
   const d = new Date(dateStr);
   return d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
+const formatAPIDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hr ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  } catch (error) {
+    return 'Unknown';
+  }
+};
+
 export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
-  const bookedAt = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
+  // Parse the appointment date and time
+  const appointmentDate = new Date(apt.appointment_date);
+  const [hours, minutes, seconds] = (apt.appointment_time || '00:00:00').split(':').map(Number);
+
+  // Parse dates from API
+  const bookedAt = apt.created_at ? new Date(apt.created_at) : new Date();
+  const lastUpdated = apt.updated_at ? new Date(apt.updated_at) : new Date();
+
+  const mapStatus = (apiStatus: string): ValidStatus => {
+    const statusMap: Record<string, ValidStatus> = {
+      'PENDING': 'pending',
+      'CONFIRMED': 'confirmed',
+      'COMPLETED': 'completed',
+      'DISMISSED': 'dismissed',
+      'PATIENT_CANCELLED': 'patient_cancelled',
+      'RECEPTION_CANCELLED': 'reception_cancelled',
+      'CANCELLED': 'reception_cancelled'
+    };
+    return statusMap[apiStatus?.toUpperCase()] || 'pending';
+  };
 
   return {
     id: apt.id,
@@ -191,19 +164,17 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
     treatment: apt.treatment,
     dentist_name: apt.dentist_name,
     appointment_date: apt.appointment_date,
-    appointment_time: apt.appointment_time,
-
-    bookedAt,
-
-    isNewPatient: apt.isNewPatient,
-    isDependent: apt.isDependent,
-    status: apt.status,
+    appointment_time: apt.appointment_time?.substring(0, 5) || '00:00',
+    bookedAt: bookedAt,
+    isNewPatient: apt.isNewPatient || false,
+    isDependent: apt.isDependent || false,
+    status: mapStatus(apt.status),
     mobile: apt.mobile,
     dob: apt.dob,
-    patient_notes: apt.patient_notes,
-    booked_by: apt.booked_by,
-    lastUpdated: new Date(apt.updated_at),
-    isRescheduled: apt.isRescheduled,
+    patient_notes: apt.patient_notes || '',
+    booked_by: apt.booked_by || apt.patient_name,
+    lastUpdated: lastUpdated,
+    isRescheduled: apt.is_rescheduled || false,
   };
 };
 
@@ -718,7 +689,7 @@ const MobileBottomSheet = ({
         <div className="px-4 pb-3 border-b border-gray-100">
           <div className="text-sm font-semibold text-gray-900">{apt.patient_name}</div>
           <div className="text-xs text-gray-500 mt-0.5">
-            {formatShortDate(apt.appointment_date)} at {formatTime(apt.appointment_time)}
+            {formatShortDate(apt.appointment_date)} at {formatTime(apt.appointment_date, apt.appointment_time)}
           </div>
         </div>
         <div className="p-2">
@@ -963,7 +934,11 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
             <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span>Booked: {formatRelativeTime(apt.appointment_date, apt.appointment_time)}</span>
+                <span>Booked: {formatAPIDate(apt.bookedAt.toString())}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-4 h-4 text-gray-400" />
+                <span>Updated: {formatAPIDate(apt.lastUpdated.toString())}</span>
               </div>
             </div>
           </div>
@@ -990,9 +965,10 @@ export default function PracticeAppointmentsView() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Reschedule State
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -1018,15 +994,17 @@ export default function PracticeAppointmentsView() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
+        setIsLoading(true);
         const practiceId = "13c34b88-e736-422d-8677-d8c5f8f5ce18";
-        console.log("----------------->", practiceId);
-
         const data = await getAppointmentsService(practiceId);
-        console.log("yyyyyyyyyyyyyyyyyyy------->", data);
 
-        setAppointments(data);
+        // Map the API response to EnrichedAppointment format
+        const mappedAppointments = data.map((apt: any) => mapAppointmentToEnriched(apt));
+        setAppointments(mappedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -1071,18 +1049,14 @@ export default function PracticeAppointmentsView() {
   const handleRescheduleConfirm = (newDate: string, newTime: string) => {
     if (!rescheduleApt) return;
 
-    // Create ISO string for new date/time
-    // Note: In real app ensure proper Timezone handling
-    const newappointment_date = new Date(`${newDate}T${newTime}`);
-
     setAppointments(prev => prev.map(apt => {
       if (apt.id === rescheduleApt.id) {
-        // UPDATE THE DATA PERMANENTLY IN STATE
         return {
           ...apt,
-          appointment_date: newappointment_date.toISOString(),
-          status: 'confirmed', // Requirement: Status becomes confirmed
-          isRescheduled: true, // Requirement: Mark as rescheduled
+          appointment_date: newDate,
+          appointment_time: newTime,
+          status: 'confirmed' as ValidStatus,
+          isRescheduled: true,
           lastUpdated: new Date()
         };
       }
@@ -1125,7 +1099,10 @@ export default function PracticeAppointmentsView() {
     return {
       all: appointments.length,
       pending: appointments.filter(a => a.status === 'pending').length,
-      upcoming: appointments.filter(a => new Date(a.appointment_date) > now && a.status === 'confirmed').length,
+      upcoming: appointments.filter(a => {
+        const aptDate = new Date(a.appointment_date);
+        return aptDate > now && a.status === 'confirmed';
+      }).length,
       completed: appointments.filter(a => a.status === 'completed').length,
       cancelled: appointments.filter(a => isCancelledStatus(a.status)).length,
     };
@@ -1210,23 +1187,6 @@ export default function PracticeAppointmentsView() {
     }
   };
 
-  // function formatRelativeTime(date: string, time: string) {
-  //   const appointment = new Date(`${date}T${time}`);
-  //   const now = new Date();
-
-  //   const diff = now.getTime() - appointment.getTime();
-
-  //   const minutes = Math.floor(diff / (1000 * 60));
-  //   const hours = Math.floor(diff / (1000 * 60 * 60));
-  //   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  //   if (minutes < 60) return `${minutes} minutes ago`;
-  //   if (hours < 24) return `${hours} hours ago`;
-  //   return `${days} days ago`;
-  // }
-
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
@@ -1274,7 +1234,7 @@ export default function PracticeAppointmentsView() {
         <div className="bg-white border-b border-gray-100">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
             <div>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Appointments</h1>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Online Bookings</h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Manage your practice bookings</p>
             </div>
             <button
@@ -1451,7 +1411,7 @@ export default function PracticeAppointmentsView() {
                               <div className="mt-1 space-y-0.5">
                                 <div className="flex items-center gap-1.5 text-xs text-gray-600">
                                   <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                  <span className="font-medium">{formatTime(apt.appointment_date)}</span>
+                                  <span className="font-medium">{formatTime(apt.appointment_date, apt.appointment_time)}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                   <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
@@ -1497,30 +1457,23 @@ export default function PracticeAppointmentsView() {
                           {/* 3. Appointment Details */}
                           <div className="flex-[1.2] min-w-0 pr-4">
                             <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                              {formatShortDate(apt.appointment_date)} <span className="text-gray-300">|</span> {apt.appointment_time}
+                              {formatShortDate(apt.appointment_date)} <span className="text-gray-300">|</span> {formatTime(apt.appointment_date, apt.appointment_time)}
                             </div>
                             <div className="text-xs text-gray-500 mt-0.5 truncate">{apt.treatment}</div>
                           </div>
 
-                          {/* 4. Status */}
-                          <div className="flex-1 pr-4">
-                            {/* Pass isRescheduled prop to StatusBadge */}
-                            <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
-                          </div>
-
-                          {/*+++++++===== Have to update status section to this ====+++++++
-
+                          {/* 4. Status with Last Updated */}
                           <div className="flex-1 pr-4">
                             <div className="text-sm font-medium text-gray-700">
                               <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
                             </div>
-                            <div className="text-xs text-gray-400">{apt.updated_at}</div>
-                          </div> 
-                          */}
+                            <div className="text-xs text-gray-400">
+                              Updated {formatAPIDate(apt.lastUpdated.toString())}
+                            </div>
+                          </div>
 
                           {/* 5. Booked At */}
                           <div className="flex-1 text-sm text-gray-600">
-                            {/* {formatRelativeTime(apt.bookedAt)} */}
                             {formatRelativeTime(apt.appointment_date, apt.appointment_time)}
                           </div>
 
@@ -1570,13 +1523,13 @@ export default function PracticeAppointmentsView() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50">
               <div className="text-xs sm:text-sm text-gray-500">
                 <span className="font-medium text-gray-700">{filteredAppointments.length}</span> appointments
-                {totalPages > 1 && <span className="hidden sm:inline"> • Page {currentPage} of {totalPages}</span>}
+                {totalPages > 0 && <span className="hidden sm:inline"> • Page {currentPage} of {totalPages}</span>}
               </div>
-              {totalPages > 1 && (
+              {totalPages > 0 && (
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 0)}
+                    disabled={currentPage === 0}
                     className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
                     Previous
