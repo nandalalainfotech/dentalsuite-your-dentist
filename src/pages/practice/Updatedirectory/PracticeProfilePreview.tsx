@@ -262,13 +262,13 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Pract
                 {/* Content Grid */}
                 <div className="grid grid-cols-1 gap-12 sm:gap-16 max-w-5xl mx-auto mt-5 px-4 sm:px-6">
 
-                    {/* 2. BASIC INFO */}
                     {data.description && (
                         <section>
                             <SectionHeading title="Basic Info" icon={Info} />
-                            <p className="text-gray-700 text-base sm:text-lg leading-relaxed whitespace-pre-line">
-                                {data.description}
-                            </p>
+                            <div
+                                className="text-gray-700 text-base sm:text-lg leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: data.description }}
+                            />
                         </section>
                     )}
 
@@ -342,7 +342,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Pract
                                         <div className="relative w-28 h-28 mb-5 flex-shrink-0">
                                             <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-50 shadow-inner transition-colors duration-300 bg-gray-100 flex items-center justify-center">
                                                 <img
-                                                    src={ dentist.image?.url || ""
+                                                    src={dentist.image?.url || ""
                                                     }
                                                     alt={dentist.name}
                                                     className="w-full h-full object-cover object-center"
