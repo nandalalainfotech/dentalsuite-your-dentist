@@ -20,3 +20,4 @@ export const getDirectoryService = async (practiceId: string) => {
 
   return data.directories[0];
 };
+

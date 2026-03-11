@@ -6,7 +6,7 @@ import { useAppSelector } from '../../store/hooks';
 //  1. Import the PracticeInfo Interface
 import type { PracticeInfo } from '../../types/clinic';
 
-import { getDirectoryService } from '../../services/service';
+import { getDirectoryService } from '../../services/directoryservice';
 import { clinics as demoClinics } from '../../data/clinics';
 import PracticeProfilePreview from './Updatedirectory/PracticeProfilePreview';
 import PracticeEditor from './Updatedirectory/PracticeEditor';
