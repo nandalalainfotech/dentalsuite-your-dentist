@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Archive, Calendar, CalendarCheck, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Clock, Inbox, List, Loader2, Mail, MoreVertical, Phone, RefreshCw, Search, Sliders, User, X, XCircle } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { getAppointmentsService } from '../../services/onlinebookingservice';
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 // --- Types & Interfaces ---
 type ValidStatus =
@@ -164,115 +165,6 @@ const TAB_CONFIG: Record<TabType, { label: string; activeColor: string; dotColor
 
 const ITEMS_PER_PAGE = 5;
 
-// --- Icons ---
-const Icons = {
-  Search: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  ),
-  Calendar: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  Sliders: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-    </svg>
-  ),
-  MoreVertical: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-    </svg>
-  ),
-  Check: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  ),
-  X: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  ),
-  Archive: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-    </svg>
-  ),
-  ChevronDown: ({ className = "w-5 h-5" }: { className?: string }) => (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-    </svg>
-  ),
-  User: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-    </svg>
-  ),
-  Phone: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-    </svg>
-  ),
-  Clock: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Refresh: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-    </svg>
-  ),
-  Mail: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  ),
-  Inbox: ({ className = "w-6 h-6" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
-    </svg>
-  ),
-  List: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-    </svg>
-  ),
-  ClockPending: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  CalendarCheck: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
-    </svg>
-  ),
-  CheckCircle: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  XCircle: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  ArrowPath: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-    </svg>
-  ),
-  Spinner: ({ className = "w-4 h-4" }: { className?: string }) => (
-    <svg className={`animate-spin ${className}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-  ),
-};
 
 // --- Date Formatters ---
 const formatDate = (dateStr: string | Date): string => {
@@ -442,7 +334,7 @@ const ToastNotification = ({ message, show, onClose }: { message: string; show: 
     <div className="fixed bottom-4 right-4 z-[10000] animate-in slide-in-from-bottom-5 fade-in duration-300">
       <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shrink-0">
-          <Icons.Check className="w-4 h-4 text-white" />
+          <Check className="w-4 h-4 text-white" />
         </div>
         <div className="text-sm font-medium">{message}</div>
       </div>
@@ -639,7 +531,7 @@ const RescheduleModal = ({
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
-            <Icons.X className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -669,13 +561,14 @@ const RescheduleModal = ({
 
             <div className="mt-auto">
               <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                <Icons.User className="w-4 h-4" /> Practitioner
+                <User className="w-4 h-4" /> Practitioner
               </label>
               <div className="relative">
                 <button type="button" onClick={() => setIsPractitionerOpen(!isPractitionerOpen)} className="w-full flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:border-blue-400 transition-all text-left">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><Icons.User className="w-5 h-5" /></div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <User className="w-5 h-5" /></div>
                   <div className="flex-1 min-w-0"><p className="font-semibold text-gray-800 text-sm truncate">{selectedPractitioner || 'Select Dentist'}</p></div>
-                  <Icons.ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${isPractitionerOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${isPractitionerOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isPractitionerOpen && (
                   <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 max-h-48 overflow-y-auto">
@@ -683,7 +576,7 @@ const RescheduleModal = ({
                       <button key={name} type="button" onClick={() => { setSelectedPractitioner(name); setIsPractitionerOpen(false); setSelectedTime(''); }} className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitioner === name ? 'bg-blue-50/50' : ''}`}>
                         <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><span className="text-xs font-bold">{name.charAt(4)}</span></div>
                         <div className="text-left flex-1 min-w-0"><p className={`text-sm font-medium truncate ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p></div>
-                        {selectedPractitioner === name && <Icons.Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
+                        {selectedPractitioner === name && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -706,7 +599,7 @@ const RescheduleModal = ({
             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               {weekAvailability.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-                  <Icons.Calendar className="w-12 h-12 mb-4 opacity-50" />
+                  <Calendar className="w-12 h-12 mb-4 opacity-50" />
                   <p className="font-medium">Select a date to view availability</p>
                 </div>
               ) : (
@@ -733,7 +626,9 @@ const RescheduleModal = ({
                         </div>
                         <div className="p-4">
                           {dayData.slots.length === 0 ? (
-                            <div className="flex items-center justify-center py-4 text-gray-400"><Icons.Clock className="w-4 h-4 mr-2 opacity-50" /><span className="text-sm">No available slots</span></div>
+                            <div className="flex items-center justify-center py-4 text-gray-400">
+                              <Clock className="w-4 h-4 mr-2 opacity-50" />
+                              <span className="text-sm">No available slots</span></div>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               {dayData.slots.map((time) => {
@@ -763,7 +658,7 @@ const RescheduleModal = ({
                 <div className="text-sm">
                   {selectedTime && selectedDate ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Icons.Check className="w-4 h-4 text-blue-600" /></div>
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Check className="w-4 h-4 text-blue-600" /></div>
                       <div><p className="text-xs text-gray-500">New Time</p><p className="font-semibold text-gray-900">{formatDate(selectedDate)} at {formatTimeDisplay(selectedTime)}</p></div>
                     </div>
                   ) : (<span className="text-gray-400 text-sm">Select a time slot to continue</span>)}
@@ -771,7 +666,7 @@ const RescheduleModal = ({
                 <div className="flex gap-3">
                   <button onClick={onClose} className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-xl transition-colors text-sm">Cancel</button>
                   <button onClick={handleConfirm} disabled={!selectedDate || !selectedTime || isLoading} className={`flex-1 sm:flex-none px-6 py-2.5 font-medium rounded-xl shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${selectedDate && selectedTime && !isLoading ? 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'}`}>
-                    {isLoading ? (<><Icons.Spinner className="w-4 h-4 animate-spin" /><span>Processing...</span></>) : (<span>Confirm Reschedule</span>)}
+                    {isLoading ? (<><Loader2 className="w-4 h-4 animate-spin" /><span>Processing...</span></>) : (<span>Confirm Reschedule</span>)}
                   </button>
                 </div>
               </div>
@@ -831,7 +726,7 @@ const MobileBottomSheet = ({
             <>
               <button onClick={() => handleAction('confirmed')} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <Icons.Check className="w-5 h-5 text-emerald-600" />
+                  <Check className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <div className="font-semibold">Confirm Appointment</div>
@@ -842,7 +737,7 @@ const MobileBottomSheet = ({
               {!apt.isRescheduled && (
                 <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
+                    <ArrowPathIcon className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <div className="font-semibold">Reschedule</div>
@@ -852,7 +747,7 @@ const MobileBottomSheet = ({
               )}
               <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                  <Icons.Archive className="w-5 h-5 text-gray-600" />
+                  <Archive className="w-5 h-5 text-gray-600" />
                 </div>
                 <div>
                   <div className="font-semibold">Dismiss Request</div>
@@ -865,7 +760,7 @@ const MobileBottomSheet = ({
             <>
               <button onClick={() => handleAction('completed')} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <Icons.Check className="w-5 h-5 text-emerald-600" />
+                  <Check className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
                   <div className="font-semibold">Mark as Completed</div>
@@ -876,7 +771,7 @@ const MobileBottomSheet = ({
               {!apt.isRescheduled && (
                 <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Icons.ArrowPath className="w-5 h-5 text-blue-600" />
+                    <ArrowPathIcon className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <div className="font-semibold">Reschedule</div>
@@ -886,7 +781,7 @@ const MobileBottomSheet = ({
               )}
               <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-4 text-sm text-red-600 active:bg-red-50 flex items-center gap-4 rounded-xl">
                 <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                  <Icons.X className="w-5 h-5 text-red-600" />
+                  <X className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
                   <div className="font-semibold">Cancel Appointment</div>
@@ -960,7 +855,7 @@ const DesktopDropdown = ({
         <>
           <button onClick={() => handleAction('confirmed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <Icons.Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
               <div className="font-medium">Confirm</div>
@@ -972,7 +867,7 @@ const DesktopDropdown = ({
           {!apt.isRescheduled && (
             <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+                <ArrowPathIcon className="w-4 h-4 text-blue-600" />
               </div>
               <div>
                 <div className="font-medium">Reschedule</div>
@@ -984,7 +879,7 @@ const DesktopDropdown = ({
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Icons.Archive className="w-4 h-4 text-gray-600" />
+              <Archive className="w-4 h-4 text-gray-600" />
             </div>
             <div>
               <div className="font-medium">Cancel</div>
@@ -997,7 +892,7 @@ const DesktopDropdown = ({
         <>
           <button onClick={() => handleAction('completed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-              <Icons.Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
               <div className="font-medium">Complete</div>
@@ -1009,7 +904,7 @@ const DesktopDropdown = ({
           {!apt.isRescheduled && (
             <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Icons.ArrowPath className="w-4 h-4 text-blue-600" />
+                <ArrowPathIcon className="w-4 h-4 text-blue-600" />
               </div>
               <div>
                 <div className="font-medium">Reschedule</div>
@@ -1021,7 +916,7 @@ const DesktopDropdown = ({
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-              <Icons.X className="w-4 h-4 text-red-500" />
+              <X className="w-4 h-4 text-red-500" />
             </div>
             <div>
               <div className="font-medium">Cancel</div>
@@ -1046,17 +941,17 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Contact Info</h5>
             <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
-                <Icons.Phone className="w-4 h-4 text-gray-400" />
+                <Phone className="w-4 h-4 text-gray-400" />
                 <a href={`tel:${apt.mobile}`} className="hover:text-blue-600 transition-colors">
                   {apt.mobile}
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Icons.User className="w-4 h-4 text-gray-400" />
+                <User className="w-4 h-4 text-gray-400" />
                 <span>DOB: {apt.dob}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Icons.Mail className="w-4 h-4 text-gray-400" />
+                <Mail className="w-4 h-4 text-gray-400" />
                 <span className="truncate">Booked by: {apt.booked_by}</span>
               </div>
             </div>
@@ -1067,7 +962,7 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Booking Info</h5>
             <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
-                <Icons.Calendar className="w-4 h-4 text-gray-400" />
+                <Calendar className="w-4 h-4 text-gray-400" />
                 <span>Booked: {formatRelativeTime(apt.appointment_date, apt.appointment_time)}</span>
               </div>
             </div>
@@ -1124,10 +1019,10 @@ export default function PracticeAppointmentsView() {
     const fetchAppointments = async () => {
       try {
         const practiceId = "13c34b88-e736-422d-8677-d8c5f8f5ce18";
-        console.log("----------------->",practiceId);
-        
+        console.log("----------------->", practiceId);
+
         const data = await getAppointmentsService(practiceId);
-        console.log("yyyyyyyyyyyyyyyyyyy------->",data);
+        console.log("yyyyyyyyyyyyyyyyyyy------->", data);
 
         setAppointments(data);
       } catch (error) {
@@ -1295,11 +1190,11 @@ export default function PracticeAppointmentsView() {
 
   const getTabIcon = (key: TabType) => {
     switch (key) {
-      case 'all': return <Icons.List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
-      case 'pending': return <Icons.ClockPending className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
-      case 'upcoming': return <Icons.CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
-      case 'completed': return <Icons.CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
-      case 'cancelled': return <Icons.XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'all': return <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'pending': return <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'upcoming': return <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'completed': return <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      case 'cancelled': return <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
       default: return null;
     }
   };
@@ -1315,20 +1210,20 @@ export default function PracticeAppointmentsView() {
     }
   };
 
-// function formatRelativeTime(date: string, time: string) {
-//   const appointment = new Date(`${date}T${time}`);
-//   const now = new Date();
+  // function formatRelativeTime(date: string, time: string) {
+  //   const appointment = new Date(`${date}T${time}`);
+  //   const now = new Date();
 
-//   const diff = now.getTime() - appointment.getTime();
+  //   const diff = now.getTime() - appointment.getTime();
 
-//   const minutes = Math.floor(diff / (1000 * 60));
-//   const hours = Math.floor(diff / (1000 * 60 * 60));
-//   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  //   const minutes = Math.floor(diff / (1000 * 60));
+  //   const hours = Math.floor(diff / (1000 * 60 * 60));
+  //   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-//   if (minutes < 60) return `${minutes} minutes ago`;
-//   if (hours < 24) return `${hours} hours ago`;
-//   return `${days} days ago`;
-// }
+  //   if (minutes < 60) return `${minutes} minutes ago`;
+  //   if (hours < 24) return `${hours} hours ago`;
+  //   return `${days} days ago`;
+  // }
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -1395,7 +1290,7 @@ export default function PracticeAppointmentsView() {
                 className={isRefreshing ? 'animate-spin' : ''}
                 style={isRefreshing ? { animationDuration: '0.5s' } : undefined}
               >
-                <Icons.Refresh className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <span className="hidden sm:inline">
                 {isRefreshing ? 'Refresh' : 'Refresh'}
@@ -1439,7 +1334,7 @@ export default function PracticeAppointmentsView() {
           <div className="px-2 sm:px-6 py-2 sm:py-3 border-b border-gray-100">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Icons.Search className="absolute left-3 top-1/3 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search patients..."
@@ -1452,7 +1347,7 @@ export default function PracticeAppointmentsView() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${showFilters || activeFilterCount > 0 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}
               >
-                <Icons.Sliders className="w-4 h-4" />
+                <Sliders className="w-4 h-4" />
                 <span className="hidden sm:inline">Filters</span>
                 {activeFilterCount > 0 && (
                   <span className="w-5 h-5 bg-white text-gray-900 text-[10px] rounded-full flex items-center justify-center font-bold">
@@ -1462,7 +1357,7 @@ export default function PracticeAppointmentsView() {
               </button>
               {activeFilterCount > 0 && (
                 <button onClick={clearFilters} className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                  <Icons.X className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -1503,7 +1398,7 @@ export default function PracticeAppointmentsView() {
             {filteredAppointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-4">
                 <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-                  <Icons.Inbox className="w-7 h-7 text-gray-400" />
+                  <Inbox className="w-7 h-7 text-gray-400" />
                 </div>
                 <h3 className="text-base font-medium text-gray-900 mb-1">No appointments</h3>
                 <p className="text-sm text-gray-500 text-center max-w-xs">{getEmptyStateMessage()}</p>
@@ -1537,11 +1432,11 @@ export default function PracticeAppointmentsView() {
                                   onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
                                   className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
-                                  <Icons.MoreVertical className="w-4 h-4" />
+                                  <MoreVertical className="w-4 h-4" />
                                 </button>
                               )}
                               <button className={`p-1 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                <Icons.ChevronDown className="w-4 h-4 text-gray-400" />
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
                               </button>
                             </div>
                           </div>
@@ -1555,15 +1450,15 @@ export default function PracticeAppointmentsView() {
                               <h4 className="font-semibold text-gray-900 text-sm truncate">{apt.patient_name}</h4>
                               <div className="mt-1 space-y-0.5">
                                 <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                                  <Icons.Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                  <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                   <span className="font-medium">{formatTime(apt.appointment_date)}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <Icons.Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                  <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                   <span className="truncate">{apt.treatment}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <Icons.User className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                  <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                   <span className="truncate">{apt.dentist_name}</span>
                                 </div>
                               </div>
@@ -1613,6 +1508,16 @@ export default function PracticeAppointmentsView() {
                             <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
                           </div>
 
+                          {/*+++++++===== Have to update status section to this ====+++++++
+
+                          <div className="flex-1 pr-4">
+                            <div className="text-sm font-medium text-gray-700">
+                              <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
+                            </div>
+                            <div className="text-xs text-gray-400">{apt.updated_at}</div>
+                          </div> 
+                          */}
+
                           {/* 5. Booked At */}
                           <div className="flex-1 text-sm text-gray-600">
                             {/* {formatRelativeTime(apt.bookedAt)} */}
@@ -1626,7 +1531,7 @@ export default function PracticeAppointmentsView() {
                                 onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
                                 className={`p-1.5 rounded-lg transition-all ${openMenuId === apt.id ? 'bg-gray-200 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                               >
-                                <Icons.MoreVertical className="w-5 h-5" />
+                                <MoreVertical className="w-5 h-5" />
                               </button>
                             )}
 
@@ -1644,7 +1549,7 @@ export default function PracticeAppointmentsView() {
                               onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }}
                               className={`p-1.5 transition-transform duration-200 text-gray-400 hover:text-gray-600 ${isExpanded ? 'rotate-180' : ''}`}
                             >
-                              <Icons.ChevronDown className="w-5 h-5" />
+                              <ChevronDown className="w-5 h-5" />
                             </button>
                           </div>
                         </div>
