@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { AuthUser } from '../../types/auth';
+import type { AuthUser, PracticeLoginCredentials } from '../../types/auth';
 import { authService } from '../../services/auth';
 
 interface AuthState {
@@ -34,15 +34,17 @@ export const login = createAsyncThunk(
 
 export const loginPractice = createAsyncThunk(
   'auth/loginPractice',
-  async (credentials: { emailOrMobile: string; password: string }, { rejectWithValue }) => {
+  async (credentials: PracticeLoginCredentials, { rejectWithValue }) => {
     try {
       const response = await authService.loginPractice(credentials);
+
       if (response?.success) {
-        return response.data;
+        return response;   
       }
-      return rejectWithValue(response?.message || 'Login failed');
+
+      return rejectWithValue(response?.message || "Login failed");
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Login failed');
+      return rejectWithValue(error.message || "Login failed");
     }
   }
 );
