@@ -1,9 +1,15 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { Archive, Calendar, CalendarCheck, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Clock, Inbox, List, Loader2, Mail, MoreVertical, Phone, RefreshCw, Search, Sliders, User, X, XCircle } from 'lucide-react';
+import {
+  Archive, Calendar, CalendarCheck, Check, CheckCircle, ChevronDown,
+  ChevronLeft, ChevronRight, Clock, Inbox, List, Loader2, Mail,
+  MoreVertical, Phone, RefreshCw, Search, Sliders, User, X, XCircle
+} from 'lucide-react';
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { getAppointmentsService } from '../../services/onlinebookingservice';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useAppSelector } from '../../store/hooks';
 
 // --- Types & Interfaces ---
 type ValidStatus =
@@ -31,8 +37,10 @@ export interface EnrichedAppointment {
   dob: string;
   patient_notes: string;
   booked_by: string;
-  lastUpdated: Date;
-  isRescheduled?: boolean;
+  created_at: string;
+  updated_at: string;
+  is_rescheduled?: boolean;
+  lastUpdated?: Date; // Added for local state tracking
 }
 
 interface FilterState {
@@ -43,26 +51,6 @@ interface FilterState {
   startDate: string;
   endDate: string;
 }
-
-// --- Static Data Helpers ---
-const getRelativeDate = (daysOffset: number, hour: number, minute: number): string => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
-  date.setHours(hour, minute, 0, 0);
-  return date.toISOString();
-};
-
-const getRelativePastDate = (daysOffset: number): Date => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysOffset);
-  return date;
-};
-
-const addDays = (date: Date, days: number) => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-};
 
 // --- Configuration ---
 const STATUS_LABELS: Record<ValidStatus, string> = {
@@ -93,11 +81,21 @@ const TAB_CONFIG: Record<TabType, { label: string; activeColor: string; dotColor
 
 const ITEMS_PER_PAGE = 5;
 
-
 // --- Date Formatters ---
-const formatDate = (dateStr: string | Date): string => {
-  const d = new Date(dateStr);
-  return d.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 const formatShortDate = (dateStr: string | Date): string => {
@@ -116,47 +114,64 @@ const formatTime = (dateStr: string | Date, timeStr?: string): string => {
   return d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
-const formatAPIDate = (dateStr: string): string => {
-  try {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+const formatRelativeUpdatedAt = (dateString?: string) => {
+  if (!dateString) return "";
+  const updated = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - updated.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hr ago`;
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  } catch (error) {
-    return 'Unknown';
-  }
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return updated.toLocaleDateString();
 };
 
+const formatExactUpdatedAt = (dateString?: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).format(date);
+};
+const formatExactCreatedAt = (dateString?: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).format(date);
+};
+
+// --- Mappers ---
 export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
-  // Parse the appointment date and time
-  const appointmentDate = new Date(apt.appointment_date);
-  const [hours, minutes, seconds] = (apt.appointment_time || '00:00:00').split(':').map(Number);
-
-  // Parse dates from API
-  const bookedAt = apt.created_at ? new Date(apt.created_at) : new Date();
-  const lastUpdated = apt.updated_at ? new Date(apt.updated_at) : new Date();
-
   const mapStatus = (apiStatus: string): ValidStatus => {
     const statusMap: Record<string, ValidStatus> = {
-      'PENDING': 'pending',
-      'CONFIRMED': 'confirmed',
-      'COMPLETED': 'completed',
-      'DISMISSED': 'dismissed',
-      'PATIENT_CANCELLED': 'patient_cancelled',
-      'RECEPTION_CANCELLED': 'reception_cancelled',
-      'CANCELLED': 'reception_cancelled'
+      PENDING: 'pending',
+      CONFIRMED: 'confirmed',
+      COMPLETED: 'completed',
+      DISMISSED: 'dismissed',
+      PATIENT_CANCELLED: 'patient_cancelled',
+      RECEPTION_CANCELLED: 'reception_cancelled',
+      CANCELLED: 'reception_cancelled'
     };
     return statusMap[apiStatus?.toUpperCase()] || 'pending';
   };
+
+  const time = apt.appointment_time?.substring(0, 5) || '00:00';
+  const bookedAt = new Date(`${apt.appointment_date}T${time}`);
 
   return {
     id: apt.id,
@@ -164,8 +179,8 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
     treatment: apt.treatment,
     dentist_name: apt.dentist_name,
     appointment_date: apt.appointment_date,
-    appointment_time: apt.appointment_time?.substring(0, 5) || '00:00',
-    bookedAt: bookedAt,
+    appointment_time: time,
+    bookedAt,
     isNewPatient: apt.isNewPatient || false,
     isDependent: apt.isDependent || false,
     status: mapStatus(apt.status),
@@ -173,25 +188,27 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
     dob: apt.dob,
     patient_notes: apt.patient_notes || '',
     booked_by: apt.booked_by || apt.patient_name,
-    lastUpdated: lastUpdated,
-    isRescheduled: apt.is_rescheduled || false,
+    created_at: apt.created_at,
+    updated_at: apt.updated_at,
+    is_rescheduled: apt.is_rescheduled || false,
   };
 };
 
-
-function formatRelativeTime(date: string, time: string) {
-  const appointment = new Date(`${date}T${time}`);
+function formatRelativeTime(createdAt: string) {
+  const created = new Date(createdAt);
   const now = new Date();
+  const diff = now.getTime() - created.getTime();
+  if (diff < 0) return "Just now";
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-  const diff = now.getTime() - appointment.getTime();
-
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  if (minutes < 60) return `${minutes} minutes ago`;
-  if (hours < 24) return `${hours} hours ago`;
-  return `${days} days ago`;
+  if (seconds < 60) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return created.toLocaleDateString();
 }
 
 const getWeekday = (dateStr: string | Date): string => {
@@ -217,36 +234,29 @@ const isCancelledStatus = (status: ValidStatus): boolean => {
   return ['patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
 };
 
-// --- Updated Status Badge Component ---
-// Added blue border/ring support for rescheduled appointments
+// --- Components ---
+
 const StatusBadge = ({
   status,
-  size = 'default',
-  isRescheduled
+  size = "default",
+  is_rescheduled = false
 }: {
   status: ValidStatus;
-  size?: 'small' | 'default';
-  isRescheduled?: boolean;
+  size?: "small" | "default";
+  is_rescheduled?: boolean;
 }) => {
-  const config = STATUS_CONFIG[status];
-  const sizeClasses = size === 'small'
-    ? 'px-1.5 py-0.5 text-[10px]'
-    : 'px-2 py-0.5 text-xs';
-
-  // If rescheduled, add a distinct blue ring/border
-  const rescheduledClasses = isRescheduled
-    ? 'ring-2 ring-blue-500 ring-offset-1 border-white shadow-sm'
-    : '';
+  const { bg, text, dot } = STATUS_CONFIG[status];
+  const sizeClasses = size === "small" ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs";
+  const rescheduledClasses = is_rescheduled ? "ring-2 ring-blue-500 ring-offset-1" : "";
 
   return (
-    <span className={`inline-flex items-center gap-1 ${sizeClasses} rounded font-medium ${config?.bg} ${config?.text} ${rescheduledClasses}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${config?.dot}`} />
+    <span className={`inline-flex items-center gap-1 rounded-md font-medium ${sizeClasses} ${bg} ${text} ${rescheduledClasses}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
       {STATUS_LABELS[status]}
     </span>
   );
 };
 
-// --- Patient Tags Component ---
 const PatientTags = ({
   isNewPatient,
   isDependent,
@@ -257,10 +267,7 @@ const PatientTags = ({
   size?: 'small' | 'default'
 }) => {
   if (!isNewPatient && !isDependent) return null;
-
-  const sizeClasses = size === 'small'
-    ? "px-1.5 py-0.5 text-[9px]"
-    : "px-2 py-0.5 text-[10px]";
+  const sizeClasses = size === 'small' ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-0.5 text-[10px]";
 
   return (
     <div className="flex items-center gap-1">
@@ -278,9 +285,8 @@ const PatientTags = ({
   );
 };
 
-// --- Table Header Component ---
 const TableHeader = () => (
-  <div className="hidden lg:flex items-center gap-4 px-4 md:px-6 py-3 bg-gray-50/80 border-b border-gray-200 text-gray-500 font-semibold text-sm sticky top-0 z-10 backdrop-blur-sm">
+  <div className="hidden lg:flex items-center gap-4 px-4 md:px-6 py-3 bg-gray-50/80 text-gray-500 font-semibold text-sm sticky top-0 z-10 backdrop-blur-sm">
     <div className="flex-[1.5]">Patient Details</div>
     <div className="flex-1">Practitioner</div>
     <div className="flex-[1.2]">Appointment Details</div>
@@ -290,7 +296,6 @@ const TableHeader = () => (
   </div>
 );
 
-// --- Toast Notification Component ---
 const ToastNotification = ({ message, show, onClose }: { message: string; show: boolean; onClose: () => void }) => {
   useEffect(() => {
     if (show) {
@@ -328,20 +333,19 @@ const RescheduleModal = ({
   onConfirm: (date: string, time: string) => void;
   practitioners: string[];
 }) => {
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedPractitioner, setSelectedPractitioner] = useState<string>('');
-  const [reason, setReason] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedPractitioner, setSelectedPractitioner] = useState('');
+  const [reason, setReason] = useState('');
   const [isPractitionerOpen, setIsPractitionerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState<Date>(new Date());
 
-  // Initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      setSelectedDate(tomorrow.toISOString().split('T')[0]);
+      setSelectedDate(formatLocalDate(tomorrow));
       setSelectedPractitioner(apt.dentist_name);
       setSelectedTime('');
       setReason('');
@@ -349,7 +353,10 @@ const RescheduleModal = ({
     }
   }, [isOpen, apt]);
 
-  // Calendar helpers
+  useEffect(() => {
+    setSelectedTime('');
+  }, [selectedDate, selectedPractitioner]);
+
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -362,7 +369,7 @@ const RescheduleModal = ({
   const isDateDisabled = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+    return date < today || date.getDay() === 0;
   };
 
   const isSameDay = (d1: Date, d2: Date) => {
@@ -371,7 +378,6 @@ const RescheduleModal = ({
       d1.getDate() === d2.getDate();
   };
 
-  // Generate time slots (mock)
   const generateSlotsForDate = (dateStr: string): string[] => {
     if (!dateStr) return [];
     const date = new Date(dateStr);
@@ -389,24 +395,31 @@ const RescheduleModal = ({
     });
   };
 
-  // Generate 7 days of availability
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const weekAvailability = useMemo(() => {
     if (!selectedDate) return [];
     const startDate = new Date(selectedDate);
     const days: { date: Date; dateStr: string; slots: string[] }[] = [];
     for (let i = 0; i < 7; i++) {
       const currentDate = addDays(startDate, i);
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(currentDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (currentDate < today) continue;
       const slots = generateSlotsForDate(dateStr);
       const now = new Date();
-      const filteredSlots = slots.filter(time => {
-        if (!isSameDay(currentDate, now)) return true;
-        const [hours, minutes] = time.split(':').map(Number);
-        const slotTime = new Date(currentDate);
-        slotTime.setHours(hours, minutes, 0, 0);
+
+      const filteredSlots = slots.filter(slot => {
+        if (selectedDate !== formatLocalDate(new Date())) return true;
+        const [hour, minute] = slot.split(':');
+        const slotTime = new Date();
+        slotTime.setHours(Number(hour), Number(minute), 0, 0);
         return slotTime > now;
       });
       days.push({
@@ -425,7 +438,6 @@ const RescheduleModal = ({
     return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
   };
 
-  // Generate Calendar Grid
   const renderCalendar = () => {
     const year = calendarViewDate.getFullYear();
     const month = calendarViewDate.getMonth();
@@ -437,7 +449,7 @@ const RescheduleModal = ({
     }
     for (let day = 1; day <= daysInMonth; day++) {
       const dateObj = new Date(year, month, day);
-      const dateStr = dateObj.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(dateObj);
       const isSelected = selectedDate === dateStr;
       const isToday = isSameDay(dateObj, new Date());
       const disabled = isDateDisabled(dateObj);
@@ -456,11 +468,11 @@ const RescheduleModal = ({
           disabled={disabled}
           className={`
             h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium transition-all relative
-            ${disabled ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
-            ${isSunday && !disabled ? 'text-red-400' : ''}
+            ${disabled ? 'text-gray-400 cursor-not-allowed' : 'cursor-pointer'}
+            ${isSunday && !disabled ? 'text-red-500' : ''}
             ${isSelected && !disabled
               ? 'bg-blue-600 text-white font-bold shadow-md'
-              : !disabled ? 'hover:bg-gray-100 text-gray-700' : ''
+              : !disabled ? 'hover:bg-white text-gray-800' : ''
             }
             ${isToday && !isSelected && !disabled ? 'text-blue-600 font-bold ring-2 ring-blue-200' : ''}
           `}
@@ -479,7 +491,7 @@ const RescheduleModal = ({
 
   const handleConfirm = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simulating network
+    await new Promise(resolve => setTimeout(resolve, 800));
     onConfirm(selectedDate, selectedTime);
     setIsLoading(false);
   };
@@ -489,10 +501,8 @@ const RescheduleModal = ({
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose} />
-      {/* 2-Column Modal Layout */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="px-4 sm:px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-20 flex-shrink-0">
+        <div className="px-4 sm:px-6 py-4 bg-gradient-to-br from-white via-blue-100 to-white border-b border-gray-100 flex justify-between items-center z-20 flex-shrink-0">
           <div>
             <h3 className="font-bold text-gray-900 text-lg">Reschedule Appointment</h3>
             <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
@@ -501,28 +511,26 @@ const RescheduleModal = ({
               <span>{apt.treatment}</span>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-300 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content Grid */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          {/* LEFT COLUMN: Full Calendar & Practitioner */}
-          <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-b from-gray-50 to-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
+          <div className="w-full md:w-[320px] lg:w-[360px] bg-gradient-to-br from-white to-gray-100 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col p-4 sm:p-6 flex-shrink-0 overflow-y-auto">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-gray-800 text-base">
                   {calendarViewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </h4>
                 <div className="flex gap-1">
-                  <button type="button" onClick={() => changeMonth(-1)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-                  <button type="button" onClick={() => changeMonth(1)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => changeMonth(-1)} className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => changeMonth(1)} className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"><ChevronRight className="w-4 h-4" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
-                  <span key={i} className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-400' : 'text-gray-400'}`}>{d}</span>
+                  <span key={i} className={`text-xs font-semibold h-8 flex items-center justify-center ${i === 0 ? 'text-red-500' : 'text-gray-600'}`}>{d}</span>
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -545,7 +553,7 @@ const RescheduleModal = ({
                   <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-100 rounded-xl shadow-xl z-30 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-200 max-h-48 overflow-y-auto">
                     {practitioners.map((name) => (
                       <button key={name} type="button" onClick={() => { setSelectedPractitioner(name); setIsPractitionerOpen(false); setSelectedTime(''); }} className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 ${selectedPractitioner === name ? 'bg-blue-50/50' : ''}`}>
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><span className="text-xs font-bold">{name.charAt(4)}</span></div>
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500"><span className="text-xs font-bold">{name.charAt(0)}</span></div>
                         <div className="text-left flex-1 min-w-0"><p className={`text-sm font-medium truncate ${selectedPractitioner === name ? 'text-blue-700' : 'text-gray-700'}`}>{name}</p></div>
                         {selectedPractitioner === name && <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />}
                       </button>
@@ -556,7 +564,6 @@ const RescheduleModal = ({
             </div>
           </div>
 
-          {/* RIGHT COLUMN: 7-Day Time Slots View */}
           <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
             <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center justify-between">
@@ -704,8 +711,7 @@ const MobileBottomSheet = ({
                   <div className="text-xs text-gray-400">Accept this booking request</div>
                 </div>
               </button>
-              {/* Only show Reschedule if NOT already rescheduled */}
-              {!apt.isRescheduled && (
+              {!apt.is_rescheduled && (
                 <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                     <ArrowPathIcon className="w-5 h-5 text-blue-600" />
@@ -738,8 +744,7 @@ const MobileBottomSheet = ({
                   <div className="text-xs text-gray-400">Appointment has been done</div>
                 </div>
               </button>
-              {/* Only show Reschedule if NOT already rescheduled */}
-              {!apt.isRescheduled && (
+              {!apt.is_rescheduled && (
                 <button onClick={handleReschedule} className="w-full text-left px-4 py-4 text-sm text-gray-700 active:bg-gray-100 flex items-center gap-4 rounded-xl">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                     <ArrowPathIcon className="w-5 h-5 text-blue-600" />
@@ -833,9 +838,7 @@ const DesktopDropdown = ({
               <div className="text-xs text-gray-400">Accept booking</div>
             </div>
           </button>
-
-          {/* Prevent rescheduling if already rescheduled */}
-          {!apt.isRescheduled && (
+          {!apt.is_rescheduled && (
             <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
                 <ArrowPathIcon className="w-4 h-4 text-blue-600" />
@@ -846,7 +849,6 @@ const DesktopDropdown = ({
               </div>
             </button>
           )}
-
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('dismissed')} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -870,9 +872,7 @@ const DesktopDropdown = ({
               <div className="text-xs text-gray-400">Mark as done</div>
             </div>
           </button>
-
-          {/* Prevent rescheduling if already rescheduled */}
-          {!apt.isRescheduled && (
+          {!apt.is_rescheduled && (
             <button onClick={handleReschedule} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
                 <ArrowPathIcon className="w-4 h-4 text-blue-600" />
@@ -883,7 +883,6 @@ const DesktopDropdown = ({
               </div>
             </button>
           )}
-
           <div className="my-1 border-t border-gray-100" />
           <button onClick={() => handleAction('reception_cancelled')} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3">
             <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
@@ -906,7 +905,6 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
     <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
       <div className="bg-white rounded-xl p-4 border border-gray-100 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
           {/* Column 1: Contact Info */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Contact Info</h5>
@@ -927,22 +925,27 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
               </div>
             </div>
           </div>
-
           {/* Column 2: Booking Info */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Booking Info</h5>
             <div className="space-y-2 text-xs text-gray-600">
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span>Booked: {formatAPIDate(apt.bookedAt.toString())}</span>
+                <span>Booked: {formatExactCreatedAt(apt.created_at)}</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
                 <RefreshCw className="w-4 h-4 text-gray-400" />
-                <span>Updated: {formatAPIDate(apt.lastUpdated.toString())}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-medium text-gray-600 mb-1">
+                    Updated {formatRelativeUpdatedAt(apt.updated_at)}
+                  </span>
+                  <span className="text-gray-400">
+                    {formatExactUpdatedAt(apt.updated_at)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-
           {/* Column 3: Patient Notes */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Patient Notes</h5>
@@ -950,7 +953,6 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
               {apt.patient_notes || "No notes provided."}
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -959,7 +961,10 @@ const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
 
 // --- Main Component ---
 export default function PracticeAppointmentsView() {
-  // const [appointments, setAppointments] = useState<EnrichedAppointment[]>(STATIC_APPOINTMENTS);
+  const { user } = useAppSelector((state: any) => state.user.auth);
+
+  const practiceId = user?.id;
+
   const [appointments, setAppointments] = useState<EnrichedAppointment[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -991,25 +996,47 @@ export default function PracticeAppointmentsView() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
+  // --- 2. UPDATED FETCH LOGIC ---
+    useEffect(() => {
+    if (!practiceId) return;
+
+    let isMounted = true;
+
     const fetchAppointments = async () => {
       try {
         setIsLoading(true);
-        const practiceId = "13c34b88-e736-422d-8677-d8c5f8f5ce18";
+        
         const data = await getAppointmentsService(practiceId);
 
-        // Map the API response to EnrichedAppointment format
-        const mappedAppointments = data.map((apt: any) => mapAppointmentToEnriched(apt));
-        setAppointments(mappedAppointments);
+        const mappedAppointments = data.map((apt: any) =>
+          mapAppointmentToEnriched(apt)
+        );
+
+        if (isMounted) {
+          setAppointments(mappedAppointments);
+        }
+
       } catch (error) {
         console.error("Error fetching appointments:", error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
     };
 
-    fetchAppointments();
-  }, []);
+    fetchAppointments(); 
+
+    const interval = setInterval(() => {
+      fetchAppointments(); 
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [practiceId]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -1026,29 +1053,27 @@ export default function PracticeAppointmentsView() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
+  // ... (Keep existing handler functions: handleFilterChange, handleStatusUpdate, etc.) ...
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleStatusUpdate = useCallback((id: string, newStatus: ValidStatus) => {
     setAppointments(prev => prev.map(apt =>
-      apt.id === id ? { ...apt, status: newStatus, lastUpdated: new Date() } : apt
+      apt.id === id ? { ...apt, status: newStatus, updated_at: new Date().toISOString() } : apt
     ));
     setOpenMenuId(null);
     setExpandedRowId(null);
   }, []);
 
-  // Opens the modal
   const handleRescheduleClick = useCallback((apt: EnrichedAppointment) => {
     setRescheduleApt(apt);
     setShowRescheduleModal(true);
     setOpenMenuId(null);
   }, []);
 
-  // Processes the logic
   const handleRescheduleConfirm = (newDate: string, newTime: string) => {
     if (!rescheduleApt) return;
-
     setAppointments(prev => prev.map(apt => {
       if (apt.id === rescheduleApt.id) {
         return {
@@ -1056,16 +1081,15 @@ export default function PracticeAppointmentsView() {
           appointment_date: newDate,
           appointment_time: newTime,
           status: 'confirmed' as ValidStatus,
-          isRescheduled: true,
-          lastUpdated: new Date()
+          is_rescheduled: true,
+          updated_at: new Date().toISOString()
         };
       }
       return apt;
     }));
-
     setShowRescheduleModal(false);
     setRescheduleApt(null);
-    setShowToast(true); // Show success toast
+    setShowToast(true);
   };
 
   const handleOpenMenu = useCallback((aptId: string) => {
@@ -1194,9 +1218,40 @@ export default function PracticeAppointmentsView() {
     }, 800);
   };
 
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: paginatedAppointments.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 120,
+    overscan: 5,
+  });
+
+  useEffect(() => {
+    const container = parentRef.current;
+    const handleScroll = () => {
+      if (openMenuId) {
+        setOpenMenuId(null);
+      }
+    };
+    container?.addEventListener("scroll", handleScroll);
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+    };
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setOpenMenuId(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-[400px] bg-white">
         <div className="w-full max-w-7xl mx-auto">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
             <div className="h-6 w-32 bg-gray-100 rounded animate-pulse mb-2" />
@@ -1226,12 +1281,25 @@ export default function PracticeAppointmentsView() {
     );
   }
 
+  // --- 3. UI RENDER (Added explicit "No User" check just in case) ---
+  if (!practiceId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400 mb-2" />
+        <p className="text-gray-500">Loading user data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-[400px] bg-white">
+      {/* ... Your existing component JSX ... */}
+      {/* (I am not repeating the huge JSX block here as it remains identical to your provided code) */}
+      {/* If you want the full JSX pasted, please ask, but replacing the return statement above is sufficient */}
       <div className="w-full max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="bg-white border-b border-gray-100">
+        <div className="bg-white">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
             <div>
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Online Bookings</h1>
@@ -1259,9 +1327,11 @@ export default function PracticeAppointmentsView() {
           </div>
         </div>
 
+        {/* ... The rest of your JSX (Tabs, Filters, List, etc.) goes here ... */}
+        {/* Note: Ensure you include the closing tags for the main divs and the component function */}
         <div className="bg-white">
           {/* Tabs */}
-          <div className="px-2 sm:px-6 py-2 sm:py-3 border-b border-gray-100">
+          <div className="px-2 sm:px-6 py-2 sm:py-3">
             <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl w-full sm:w-fit overflow-x-auto scrollbar-hide">
               {(['all', 'pending', 'upcoming', 'completed', 'cancelled'] as TabType[]).map((tabKey) => {
                 const tabConfig = TAB_CONFIG[tabKey];
@@ -1323,7 +1393,7 @@ export default function PracticeAppointmentsView() {
             </div>
 
             {showFilters && (
-              <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
+              <div className="mt-3 pt-3 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
                 <div>
                   <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wide">Practitioner</label>
                   <select value={filters.practitioner} onChange={(e) => handleFilterChange('practitioner', e.target.value)} className="w-full px-3 py-2 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-200">
@@ -1369,158 +1439,246 @@ export default function PracticeAppointmentsView() {
                 )}
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
-                {paginatedAppointments.map((apt) => {
-                  const isExpanded = expandedRowId === apt.id;
+              <div
+                ref={parentRef}
+                className="h-[400px] overflow-auto"
+              >
+                <div
+                  style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                    position: "relative"
+                  }}
+                >
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
 
-                  return (
-                    <div key={apt.id} className="bg-white">
+                    const apt = paginatedAppointments[virtualRow.index];
+                    const isExpanded = expandedRowId === apt.id;
 
-                      {/* ============ MOBILE/TABLET VIEW (< 1024px) ============ */}
-                      <div className="lg:hidden">
-                        <div
-                          onClick={() => toggleRowExpansion(apt.id)}
-                          className={`px-3 sm:px-4 py-3 cursor-pointer active:bg-gray-50 transition-colors ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            {/* Pass isRescheduled prop to StatusBadge */}
-                            <StatusBadge status={apt.status} size="small" isRescheduled={apt.isRescheduled} />
-                            <div className="flex items-center gap-1">
-                              <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} size="small" />
-                              {!isTerminalState(apt.status) && (
+                    return (
+                      <div
+                        key={apt.id}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          transform: `translateY(${virtualRow.start}px)`
+                        }}
+                        className="divide-y divide-gray-100"
+                      >
+
+                        {/* ============ MOBILE/TABLET VIEW (<1024px) ============ */}
+
+                        <div className="lg:hidden">
+                          <div
+                            onClick={() => toggleRowExpansion(apt.id)}
+                            className={`px-3 sm:px-4 py-3 cursor-pointer active:bg-gray-50 transition-colors ${isExpanded
+                              ? "bg-gray-50"
+                              : "hover:bg-gray-50/60 transition-colors duration-150"
+                              }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <StatusBadge
+                                status={apt.status}
+                                size="small"
+                                is_rescheduled={apt.is_rescheduled}
+                              />
+
+                              <div className="flex items-center gap-1">
+                                <PatientTags
+                                  isNewPatient={apt.isNewPatient}
+                                  isDependent={apt.isDependent}
+                                  size="small"
+                                />
+
+                                {!isTerminalState(apt.status) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenMenu(apt.id);
+                                    }}
+                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+                                )}
+
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
-                                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                                  className={`p-1 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                                    }`}
                                 >
-                                  <MoreVertical className="w-4 h-4" />
+                                  <ChevronDown className="w-4 h-4 text-gray-400" />
                                 </button>
-                              )}
-                              <button className={`p-1 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
-                              </button>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex gap-3">
-                            <div className="flex-shrink-0 w-12 sm:w-14 h-14 sm:h-16 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                              <span className="text-[10px] font-medium text-gray-500 uppercase">{getWeekday(apt.appointment_date)}</span>
-                              <span className="text-lg sm:text-xl font-bold text-gray-900 leading-none">{getDay(apt.appointment_date)}</span>
-                              <span className="text-[10px] font-medium text-gray-500 uppercase">{getMonth(apt.appointment_date)}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-900 text-sm truncate">{apt.patient_name}</h4>
-                              <div className="mt-1 space-y-0.5">
-                                <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                                  <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                  <span className="font-medium">{formatTime(apt.appointment_date, apt.appointment_time)}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                  <span className="truncate">{apt.treatment}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                  <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                  <span className="truncate">{apt.dentist_name}</span>
+
+                            <div className="flex gap-3">
+                              <div className="flex-shrink-0 w-12 sm:w-14 h-14 sm:h-16 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
+                                <span className="text-[10px] font-medium text-gray-500 uppercase">
+                                  {getWeekday(apt.appointment_date)}
+                                </span>
+                                <span className="text-lg sm:text-xl font-bold text-gray-900 leading-none">
+                                  {getDay(apt.appointment_date)}
+                                </span>
+                                <span className="text-[10px] font-medium text-gray-500 uppercase">
+                                  {getMonth(apt.appointment_date)}
+                                </span>
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 text-sm truncate">
+                                  {apt.patient_name}
+                                </h4>
+
+                                <div className="mt-1 space-y-0.5">
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                    <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                    <span className="font-medium">
+                                      {formatTime(
+                                        apt.appointment_date,
+                                        apt.appointment_time
+                                      )}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                    <span className="truncate">{apt.treatment}</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                    <span className="truncate">{apt.dentist_name}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
+
+                            {isExpanded && <ExpandedDetailsCard apt={apt} />}
                           </div>
-                          {/* Mobile/Tablet Expanded Details */}
+                        </div>
+
+                        {/* ============ DESKTOP VIEW (>=1024px) ============ */}
+
+                        <div
+                          className={`hidden lg:block transition-colors ${isExpanded
+                            ? "bg-gray-50"
+                            : "hover:bg-gray-50/60 transition-colors duration-150"
+                            }`}
+                        >
+                          <div
+                            className="flex items-center px-4 md:px-6 py-4 cursor-pointer"
+                            onClick={() => toggleRowExpansion(apt.id)}
+                          >
+                            {/* Patient */}
+                            <div className="flex-[1.5] min-w-0 pr-4">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-gray-900 truncate">
+                                  {apt.patient_name}
+                                </h4>
+
+                                <PatientTags
+                                  isNewPatient={apt.isNewPatient}
+                                  isDependent={apt.isDependent}
+                                />
+                              </div>
+
+                              <div className="text-xs text-gray-600 truncate">
+                                {apt.mobile}
+                              </div>
+                            </div>
+
+                            {/* Dentist */}
+                            <div className="flex-1 pr-4">
+                              <div className="text-sm font-medium text-gray-700">
+                                {apt.dentist_name}
+                              </div>
+                              <div className="text-xs text-gray-500">Dentist</div>
+                            </div>
+
+                            {/* Appointment */}
+                            <div className="flex-[1.2] pr-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {formatShortDate(apt.appointment_date)} |{" "}
+                                {formatTime(apt.appointment_date, apt.appointment_time)}
+                              </div>
+
+                              <div className="text-sm text-gray-700 truncate">
+                                {apt.treatment}
+                              </div>
+                            </div>
+
+                            {/* Status */}
+                            <div className="flex-1 pr-4">
+                              <StatusBadge
+                                status={apt.status}
+                                is_rescheduled={apt.is_rescheduled}
+                              />
+
+                              <div className="text-xs text-gray-600 mt-1">
+                                {formatRelativeUpdatedAt(apt.updated_at)}
+                              </div>
+                            </div>
+
+                            {/* Booked */}
+                            <div className="flex-1 text-sm text-gray-600">
+                              {formatRelativeTime(apt.created_at)}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="w-16 flex justify-end items-center gap-1 relative">
+                              {!isTerminalState(apt.status) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();   // prevents row expansion
+                                    handleOpenMenu(apt.id);
+                                  }}
+                                  className={`p-1.5 rounded-lg transition-all ${openMenuId === apt.id
+                                    ? "bg-gray-200 text-gray-700"
+                                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                                    }`}
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                              )}
+
+                              {/* YOUR DROPDOWN — kept exactly */}
+                              {openMenuId === apt.id && !isMobile && (
+                                <DesktopDropdown
+                                  apt={apt}
+                                  onUpdate={handleStatusUpdate}
+                                  onReschedule={handleRescheduleClick}
+                                  onClose={handleCloseMenu}
+                                />
+                              )}
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRowExpansion(apt.id);
+                                }}
+                                className={`p-1.5 transition-transform duration-200 text-gray-400 hover:text-gray-600 ${isExpanded ? "rotate-180" : ""
+                                  }`}
+                              >
+                                <ChevronDown className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+
                           {isExpanded && <ExpandedDetailsCard apt={apt} />}
                         </div>
+
                       </div>
-
-                      {/* ============ DESKTOP VIEW (>= 1024px) ============ */}
-                      <div
-                        className={`hidden lg:block transition-colors ${isExpanded ? 'bg-gray-50' : 'hover:bg-gray-50/50'}`}
-                      >
-                        <div
-                          className="flex items-center px-4 md:px-6 py-4 cursor-pointer"
-                          onClick={() => toggleRowExpansion(apt.id)}
-                        >
-                          {/* 1. Patient Details */}
-                          <div className="flex-[1.5] min-w-0 pr-4">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-900 truncate">{apt.patient_name}</h4>
-                              <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} />
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <span className="truncate">{apt.mobile}</span>
-                            </div>
-                          </div>
-
-                          {/* 2. Practitioner */}
-                          <div className="flex-1 pr-4">
-                            <div className="text-sm font-medium text-gray-700">{apt.dentist_name}</div>
-                            <div className="text-xs text-gray-400">Dentist</div>
-                          </div>
-
-                          {/* 3. Appointment Details */}
-                          <div className="flex-[1.2] min-w-0 pr-4">
-                            <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                              {formatShortDate(apt.appointment_date)} <span className="text-gray-300">|</span> {formatTime(apt.appointment_date, apt.appointment_time)}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-0.5 truncate">{apt.treatment}</div>
-                          </div>
-
-                          {/* 4. Status with Last Updated */}
-                          <div className="flex-1 pr-4">
-                            <div className="text-sm font-medium text-gray-700">
-                              <StatusBadge status={apt.status} isRescheduled={apt.isRescheduled} />
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              Updated {formatAPIDate(apt.lastUpdated.toString())}
-                            </div>
-                          </div>
-
-                          {/* 5. Booked At */}
-                          <div className="flex-1 text-sm text-gray-600">
-                            {formatRelativeTime(apt.appointment_date, apt.appointment_time)}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="w-16 flex justify-end items-center gap-1 relative">
-                            {!isTerminalState(apt.status) && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleOpenMenu(apt.id); }}
-                                className={`p-1.5 rounded-lg transition-all ${openMenuId === apt.id ? 'bg-gray-200 text-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-                            )}
-
-                            {/* DROPDOWN RENDERED INLINE FOR DESKTOP */}
-                            {openMenuId === apt.id && !isMobile && (
-                              <DesktopDropdown
-                                apt={apt}
-                                onUpdate={handleStatusUpdate}
-                                onReschedule={handleRescheduleClick}
-                                onClose={handleCloseMenu}
-                              />
-                            )}
-
-                            <button
-                              onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }}
-                              className={`p-1.5 transition-transform duration-200 text-gray-400 hover:text-gray-600 ${isExpanded ? 'rotate-180' : ''}`}
-                            >
-                              <ChevronDown className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Desktop Expanded Details */}
-                        {isExpanded && <ExpandedDetailsCard apt={apt} />}
-                      </div>
-
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
 
           {/* Footer (Pagination) */}
           {filteredAppointments.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-3 border border-gray-100 bg-gray-50/50">
               <div className="text-xs sm:text-sm text-gray-500">
                 <span className="font-medium text-gray-700">{filteredAppointments.length}</span> appointments
                 {totalPages > 0 && <span className="hidden sm:inline"> • Page {currentPage} of {totalPages}</span>}
@@ -1528,9 +1686,12 @@ export default function PracticeAppointmentsView() {
               {totalPages > 0 && (
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => handlePageChange(currentPage - 0)}
-                    disabled={currentPage === 0}
-                    className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${currentPage === 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      }`}
                   >
                     Previous
                   </button>

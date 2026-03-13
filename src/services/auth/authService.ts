@@ -10,6 +10,7 @@ import type {
 } from '../../types/auth';
 
 interface AuthResponse {
+  user: { id: string; email: string; role?: string | undefined; password: string; firstName: string; lastName: string; dateOfBirth: string; gender?: "male" | "female" | "other" | undefined; mobileNumber: string; createdAt: string; } | { practiceType: string; id: string; role?: string | undefined; practiceName: string; abnNumber: string; email: string; password: string; firstName: string; lastName: string; mobileNumber: string; practiceLogo: string; practicePhone: string; practiceAddress: string; practiceCity: string; practiceState: string; practicePostcode: string; createdAt: string; status?: string | undefined; profileCompleted?: boolean | undefined; paymentCompleted?: boolean | undefined; subscriptionPermissions?: unknown; token?: string | undefined; refreshToken?: string | undefined; business_name: string; address?: string | undefined; phone?: string | undefined; name?: string | undefined; city?: string | undefined; } | null;
   success: boolean;
   data: {
     user: User | Practice;

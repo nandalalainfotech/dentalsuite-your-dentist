@@ -1162,25 +1162,25 @@ export default function PracticeAnalyticsView() {
             label="Total Appointments"
             value={analyticsData.stats.total}
             icon={Zap}
-            gradient="bg-gradient-to-br from-orange-400 via-amber-200 to-amber-400"
+            gradient="bg-gradient-to-br from-orange-400 via-amber-300 to-amber-400"
           />
           <ModernStatCard
             label="New Patients"
             value={analyticsData.stats.new}
             icon={UserPlus}
-            gradient="bg-gradient-to-br from-emerald-400 via-emerald-200 to-green-400"
+            gradient="bg-gradient-to-br from-emerald-400 via-emerald-300 to-green-400"
           />
           <ModernStatCard
             label="Existing Patients"
             value={analyticsData.stats.existing}
             icon={Users}
-            gradient="bg-gradient-to-br from-blue-400 via-cyan-200 to-cyan-400"
+            gradient="bg-gradient-to-br from-blue-400 via-cyan-300 to-cyan-400"
           />
           <ModernStatCard
             label="Completed"
             value={analyticsData.stats.completed}
             icon={CheckCircle2}
-            gradient="bg-gradient-to-br from-purple-400 via-violet-200 to-violet-400"
+            gradient="bg-gradient-to-br from-purple-400 via-violet-300 to-violet-400"
           />
         </div>
 
