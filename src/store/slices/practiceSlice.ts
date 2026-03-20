@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import type { Appointment, Notification } from '../../types/dashboard';
 import type { Practice } from '../../types/auth';
 import { setUser } from './userSlice'; 
-import { updatePracticeProfileService } from '../../services/practiceAuth.service';
 
 // --- HELPER: Local Storage Management ---
 const STORAGE_KEY = 'practice_auth_session';

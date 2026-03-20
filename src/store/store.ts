@@ -1,58 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
-import {
-  userReducer,
-  practiceReducer,
-  superadminReducer,
-  bookingReducer,
-  clinicReducer,
-  dentistReducer,
-  filterReducer,
-} from './slices';
-
-import { setUser } from './slices/userSlice';
-
-/* ===========================
-   REDUX STORE CONFIG
-=========================== */
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "../features/auth/auth.slice";
+import dashboardReducer from "../features/dashboard/dashboard.slice";
+import appointmentsReducer from "../features/appointments/appointments.slice"; 
 
 export const store = configureStore({
   reducer: {
-    user: userReducer,
-    practice: practiceReducer,
-    superadmin: superadminReducer,
-    booking: bookingReducer,
-    clinic: clinicReducer,
-    dentist: dentistReducer,
-    filters: filterReducer,
+    auth: authReducer,
+    dashboard: dashboardReducer,
+    appointments: appointmentsReducer, 
   },
 });
 
-/* ===========================
-   🔹 AUTO-HYDRATE AUTH STATE
-   (RUNS ON APP LOAD ONCE)
-=========================== */
-
-const storedUser =  sessionStorage.getItem('user');
-const storedToken =  sessionStorage.getItem('token');
-
-
-if (storedUser && storedToken) {
-  try {
-    const parsedUser = JSON.parse(storedUser);
-
-    store.dispatch(setUser(parsedUser));
-
-  } catch (error) {
-     sessionStorage.removeItem('user');
-     sessionStorage.removeItem('token');
-  }
-}
-
-/* ===========================
-   TYPES
-=========================== */
-
+// This infers the type from the reducer object above
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
-
