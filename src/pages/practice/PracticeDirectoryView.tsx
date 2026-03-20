@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Edit3 } from 'lucide-react'; // Removed Save icon as it's not used in the "View" mode header usually
+import { ArrowLeft, Loader2, Edit3 } from 'lucide-react'; 
 import { useAppSelector } from '../../store/hooks';
 
 //  1. Import the PracticeInfo Interface
@@ -13,7 +13,7 @@ import PracticeEditor from './Updatedirectory/PracticeEditor';
 
 
 export default function DirectoryView() {
-    const userState = useAppSelector((state) => state.user.auth.user);
+    const userState = useAppSelector((state) => state.auth.user);
     const { id } = (userState as any)?.user ?? userState ?? {};
 
     //  2. Use PracticeInfo for State

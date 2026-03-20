@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import { Bell, LogOut, Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-// ✅ Restore Logo Import
-import logo from "../../assets/logo.svg"; 
+import logo from "../../assets/logo.svg";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { logout as logoutAction } from "../../store/slices/practiceSlice";
+// vvv UPDATED IMPORT vvv
+import { logout } from "../../features/auth/auth.slice";
 import ConfirmLogoutModal from "../layout/ConfirmLogoutModal";
 
 const PracticeNavbar: React.FC = () => {
@@ -16,17 +15,16 @@ const PracticeNavbar: React.FC = () => {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // 1. Get Auth State from Redux
-    const { user, isAuthenticated } = useAppSelector((state) => state.user.auth);
-    const practice = (user as any)?.user ? (user as any).user : user;
+    // vvv UPDATED SELECTOR vvv
+    // We now read directly from state.auth
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
     const handleLogout = () => {
-        dispatch(logoutAction());
+        dispatch(logout());
         setShowLogoutModal(false);
         navigate('/practice/signin', { replace: true });
     };
 
-    // 2. Navigation Links (Using Query Params to match Dashboard)
     const navLinks = [
         { name: "Directory", path: "/practice/dashboard/directory", view: "directory" },
         { name: "Appointments", path: "/practice/dashboard/appointments", view: "appointments" },
@@ -49,7 +47,7 @@ const PracticeNavbar: React.FC = () => {
         <nav className="w-full bg-white px-3 sm:px-4 md:px-6 py-2 sm:py-3 sticky top-0 z-50 border-b border-gray-200 shadow-sm">
             <div className="max-w-[1400px] mx-auto flex items-center justify-between">
 
-                {/* ✅ Logo Area (Restored) */}
+                {/* Logo Area */}
                 <Link to="/practice/dashboard" className="flex items-center gap-2">
                     <img 
                         src={logo} 
@@ -62,7 +60,7 @@ const PracticeNavbar: React.FC = () => {
                 <div className="hidden md:flex items-center gap-3 lg:gap-6">
                     
                     {/* Show Menu only if Logged In */}
-                    {isAuthenticated && practice && (
+                    {isAuthenticated && user && (
                         <>
                             {/* Links */}
                             <div className="flex items-center gap-3 lg:gap-6 mr-2">
@@ -104,7 +102,7 @@ const PracticeNavbar: React.FC = () => {
                         </>
                     )}
 
-                    {/* Show Login link if NOT logged in (Optional) */}
+                    {/* Show Login link if NOT logged in */}
                     {!isAuthenticated && (
                         <Link to="/practice/signin" className="text-sm font-medium text-orange-600 hover:underline">
                             Sign In
@@ -113,7 +111,12 @@ const PracticeNavbar: React.FC = () => {
                 </div>
 
                 {/* Mobile Menu Toggle */}
-                <div className="md:hidden flex items-center">
+                <div className="md:hidden flex items-center gap-4">
+                    {isAuthenticated && user && (
+                         <div className="text-sm font-bold text-gray-700 truncate max-w-[100px]">
+                            {user.practiceName}
+                         </div>
+                    )}
                     <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600 p-2">
                         {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>

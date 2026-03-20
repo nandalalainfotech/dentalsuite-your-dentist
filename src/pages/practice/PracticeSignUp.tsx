@@ -1,28 +1,38 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { usePracticeAuth } from "../../hooks/usePracticeAuth";
+import { useAuth } from "../../features/auth/auth.hooks";
+// 1. UPDATED: Import the new hook from your auth folder
 
 export default function PracticeSignUp() {
   const navigate = useNavigate();
-  const { signup, isLoading } = usePracticeAuth();
+  
+  // 2. UPDATED: Call your new handleSignup function and loading state
+  const { handleSignup, loading: isLoading } = useAuth();
+  
   const [formData, setFormData] = useState({
-    practiceName: "",
-    abnNumber: "",
+    // Practice Information
+    practice_name: "",
+    abn_number: "",
+    practice_type: "",
+    practice_phone: "",
+    address: "",
+    city: "",
+    state: "",
+    postcode: "",
+    
+    // Contact Information
+    first_name: "",
+    last_name: "",
     email: "",
+    mobile: "",
     password: "",
     confirmPassword: "",
-    firstName: "",
-    lastName: "",
-    mobileNumber: "",
-    practiceLogo: "",
-    practiceAddress: "",
-    practiceCity: "",
-    practiceState: "",
-    practicePostcode: "",
-    practicePhone: "",
-    practiceType: "" as "general_dentistry" | "specialist" | "cosmetic" | "orthodontic" | "pediatric" | "",
+    type: "",
+    // Additional fields
+    logo: "",
     termsAccepted: false
   });
+  
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -44,10 +54,10 @@ export default function PracticeSignUp() {
   };
 
   const validateForm = () => {
-    if (!formData.practiceName || !formData.abnNumber || !formData.email || !formData.password ||
-      !formData.confirmPassword || !formData.firstName || !formData.lastName || !formData.mobileNumber ||
-      !formData.practiceAddress || !formData.practiceCity || !formData.practiceState ||
-      !formData.practicePostcode || !formData.practicePhone || !formData.practiceType) {
+    if (!formData.practice_name || !formData.abn_number || !formData.email || !formData.password ||
+      !formData.confirmPassword || !formData.first_name || !formData.last_name || !formData.mobile ||
+      !formData.address || !formData.city || !formData.state ||
+      !formData.postcode || !formData.practice_phone || !formData.practice_type) {
       setError("Please fill in all fields");
       return false;
     }
@@ -57,8 +67,8 @@ export default function PracticeSignUp() {
       return false;
     }
 
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
       return false;
     }
 
@@ -73,9 +83,9 @@ export default function PracticeSignUp() {
       return false;
     }
 
-    const abnRegex = /^\d{11}$/;
-    if (!abnRegex.test(formData.abnNumber)) {
-      setError("Please enter a valid 11-digit ABN number");
+    const abnRegex = /^\d{6,11}$/;
+    if (!abnRegex.test(formData.abn_number)) {
+      setError("Please enter a valid ABN number");
       return false;
     }
 
@@ -91,30 +101,36 @@ export default function PracticeSignUp() {
       return;
     }
 
-    const result = await signup({
-      practiceName: formData.practiceName,
-      abnNumber: formData.abnNumber,
+    // 3. UPDATED: Map formData to match the exact keys expected by auth.service.ts
+    const signupPayload = {
+      practiceName: formData.practice_name,
+      abnNumber: formData.abn_number,
+      practiceType: formData.practice_type,
+      practicePhone: formData.practice_phone,
+      practiceAddress: formData.address,
+      practiceCity: formData.city,
+      practiceState: formData.state,
+      practicePostcode: formData.postcode,
+      firstName: formData.first_name,
+      lastName: formData.last_name,
       email: formData.email,
+      mobileNumber: formData.mobile, 
       password: formData.password,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      mobileNumber: formData.mobileNumber,
-      practiceLogo: formData.practiceLogo,
-      practiceType: formData.practiceType as "general_dentistry" | "specialist" | "cosmetic" | "orthodontic" | "pediatric",
-      practicePhone: formData.practicePhone,
-      practiceAddress: formData.practiceAddress,
-      practiceCity: formData.practiceCity,
-      practiceState: formData.practiceState as "NSW" | "VIC" | "QLD" | "WA" | "SA" | "TAS" | "ACT" | "NT",
-      practicePostcode: formData.practicePostcode
-    });
+      practiceLogo: formData.logo,
+      type:formData.type || "practice"
+    };
+
+    // Call the Redux hook
+    const result = await handleSignup(signupPayload);
 
     if (result.success) {
-      setSuccess(result.message);
+      // 4. UPDATED: Show pending message and redirect to SignIn
+      setSuccess("Account created successfully! Your account is pending Superadmin approval. Redirecting to login...");
       setTimeout(() => {
-        navigate("/practice/dashboard");
-      }, 2000);
+        navigate("/practice/signin");
+      }, 3500);
     } else {
-      setError(result.message);
+      setError(result.message as string);
     }
   };
 
@@ -123,16 +139,15 @@ export default function PracticeSignUp() {
       <div className="max-w-4xl mx-auto mt-10">
         {/* Header */}
         <div className="relative mb-6">
-          {/* Close / Back Button – TOP RIGHT */}
-            <button
-              onClick={() => navigate(-1)}
-              className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center
-               rounded-full bg-gray-100 hover:bg-gray-200
-               text-gray-600 text-xl transition"
-              aria-label="Go back"
-            >
-              ✕
-            </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute right-0 -top-12 h-10 w-10 flex items-center justify-center
+             rounded-full bg-gray-100 hover:bg-gray-200
+             text-gray-600 text-xl transition"
+            aria-label="Go back"
+          >
+            ✕
+          </button>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Your Dentist Practice Portal</h1>
           <p className="text-gray-600">Connect with thousands of patients across Australia</p>
         </div>
@@ -162,8 +177,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Practice Name *</label>
                   <input
                     type="text"
-                    name="practiceName"
-                    value={formData.practiceName}
+                    name="practice_name"
+                    value={formData.practice_name}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Enter practice name"
@@ -175,40 +190,32 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">ABN Number *</label>
                   <input
                     type="text"
-                    name="abnNumber"
-                    value={formData.abnNumber}
+                    name="abn_number"
+                    value={formData.abn_number}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    placeholder="11-digit ABN"
-                    maxLength={11}
+                    placeholder="Enter ABN"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Practice Type *</label>
-                  <select
-                    name="practiceType"
-                    value={formData.practiceType}
+                  <input
+                    name="practice_type"
+                    value={formData.practice_type}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     required
-                  >
-                    <option value="">Select practice type</option>
-                    <option value="general_dentistry">General Dentistry</option>
-                    <option value="specialist">Specialist Practice</option>
-                    <option value="cosmetic">Cosmetic Dentistry</option>
-                    <option value="orthodontic">Orthodontic</option>
-                    <option value="pediatric">Pediatric Dentistry</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Practice Phone *</label>
                   <input
                     type="tel"
-                    name="practicePhone"
-                    value={formData.practicePhone}
+                    name="practice_phone"
+                    value={formData.practice_phone}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="(02) 1234 5678"
@@ -220,8 +227,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Street Address *</label>
                   <input
                     type="text"
-                    name="practiceAddress"
-                    value={formData.practiceAddress}
+                    name="address"
+                    value={formData.address}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="123 Main Street"
@@ -233,8 +240,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">City/Suburb *</label>
                   <input
                     type="text"
-                    name="practiceCity"
-                    value={formData.practiceCity}
+                    name="city"
+                    value={formData.city}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Sydney"
@@ -244,31 +251,21 @@ export default function PracticeSignUp() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                  <select
-                    name="practiceState"
-                    value={formData.practiceState}
+                  <input
+                    name="state"
+                    value={formData.state}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     required
-                  >
-                    <option value="">Select state</option>
-                    <option value="NSW">NSW</option>
-                    <option value="VIC">VIC</option>
-                    <option value="QLD">QLD</option>
-                    <option value="WA">WA</option>
-                    <option value="SA">SA</option>
-                    <option value="TAS">TAS</option>
-                    <option value="ACT">ACT</option>
-                    <option value="NT">NT</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Postcode *</label>
                   <input
                     type="text"
-                    name="practicePostcode"
-                    value={formData.practicePostcode}
+                    name="postcode"
+                    value={formData.postcode}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="2000"
@@ -287,8 +284,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
                   <input
                     type="text"
-                    name="firstName"
-                    value={formData.firstName}
+                    name="first_name"
+                    value={formData.first_name}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Enter first name"
@@ -300,8 +297,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
                   <input
                     type="text"
-                    name="lastName"
-                    value={formData.lastName}
+                    name="last_name"
+                    value={formData.last_name}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Enter last name"
@@ -326,8 +323,8 @@ export default function PracticeSignUp() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
                   <input
                     type="tel"
-                    name="mobileNumber"
-                    value={formData.mobileNumber}
+                    name="mobile"
+                    value={formData.mobile}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="0412 345 678"
@@ -343,7 +340,7 @@ export default function PracticeSignUp() {
                     value={formData.password}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    placeholder="Min 8 characters"
+                    placeholder="Min 6 characters"
                     required
                   />
                 </div>
@@ -358,6 +355,18 @@ export default function PracticeSignUp() {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Re-enter password"
                     required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Practice Logo (Optional)</label>
+                  <input
+                    type="text"
+                    name="logo"
+                    value={formData.logo}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    placeholder="URL to practice logo"
                   />
                 </div>
               </div>

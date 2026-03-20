@@ -15,12 +15,14 @@ interface CreateApolloClientOptions {
   httpUrl: string;
   wsUrl?: string;
   enableSubscriptions?: boolean;
+  useAdminSecret?: boolean; // 🔥 NEW
 }
 
 export function createApolloClient({
   httpUrl,
   wsUrl,
   enableSubscriptions = false,
+  useAdminSecret = false, // 🔥 NEW
 }: CreateApolloClientOptions) {
   /* ==============================
      HTTP LINK
@@ -30,14 +32,24 @@ export function createApolloClient({
   });
 
   /* ==============================
-     AUTH LINK
+     AUTH LINK (UPDATED 🔥)
   ============================== */
   const authLink = setContext((_, { headers }) => {
     const token = localStorage.getItem("accessToken");
+
     return {
       headers: {
         ...headers,
-        Authorization: token ? `Bearer ${token}` : "",
+
+        // ✅ For QA API
+        ...(token && !useAdminSecret
+          ? { Authorization: `Bearer ${token}` }
+          : {}),
+
+        // ✅ For LOCAL HASURA
+        ...(useAdminSecret
+          ? { "x-hasura-admin-secret": "myadminsecret" }
+          : {}),
       },
     };
   });
@@ -76,7 +88,10 @@ export function createApolloClient({
       retryAttempts: 5,
       connectionParams: () => {
         const token = localStorage.getItem("accessToken");
-        return token
+
+        return useAdminSecret
+          ? { headers: { "x-hasura-admin-secret": "myadminsecret" } }
+          : token
           ? { headers: { Authorization: `Bearer ${token}` } }
           : {};
       },

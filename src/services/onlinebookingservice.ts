@@ -1,18 +1,37 @@
-import { interfaceClient } from "../api/apollo/dental_interface";
+import { localClient } from "../api/apollo/localClient";
 import type { EnrichedAppointment } from "../pages/practice/PracticeOnlineBookings";
 import { GET_APPOINTMENTS_QUERY } from "../queries/onlinebooking_query";
+
+// ✅ Response type
+interface GetAppointmentsResponse {
+  online_booking: EnrichedAppointment[];
+}
+
+// ✅ Variables type
+interface GetAppointmentsVariables {
+  practice_id: string;
+}
 
 export const getAppointmentsService = async (
   practice_id: string
 ): Promise<EnrichedAppointment[]> => {
+  try {
+    const { data } = await localClient.query<
+      GetAppointmentsResponse,
+      GetAppointmentsVariables
+    >({
+      query: GET_APPOINTMENTS_QUERY,
+      variables: { practice_id },
+      fetchPolicy: "network-only",
+    });
 
-  const { data } = await interfaceClient.query<any>({
-    query: GET_APPOINTMENTS_QUERY,
-    variables: { practice_id },
-    fetchPolicy: "network-only",
-  });
+    if (!data?.online_booking) {
+      return [];
+    }
 
-  if (!data) throw new Error("Failed to fetch appointments");
-
-  return data.online_booking_your_dentist;
+    return data.online_booking;
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    throw new Error("Failed to fetch appointments");
+  }
 };

@@ -971,7 +971,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                     ? 'border-gray-200 hover:border-orange-300 hover:shadow-lg hover:shadow-orange-500/5' 
                                     : 'border-gray-100 bg-gray-50/30 opacity-80 hover:opacity-100'}
                             `}
-                            onClick={() => startEdit(member)}
+                            
                         >
                             {/* Status Dot */}
                             <div className={`absolute top-4 right-4 w-2.5 h-2.5 rounded-full ${member.isVisibleOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500'}`} title={member.isVisibleOnline ? "Visible Online" : "Hidden"} />
@@ -992,6 +992,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
 
                             <div className="w-full mt-auto pt-4 border-t border-gray-100 flex gap-2">
                                 <button 
+                                onClick={() => startEdit(member)}
                                     className="flex-1 py-2 text-sm font-medium text-blue-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Edit2 className="w-3.5 h-3.5" /> Edit

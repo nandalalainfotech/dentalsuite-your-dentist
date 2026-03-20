@@ -671,7 +671,9 @@ const TimePicker: React.FC<TimePickerProps> = ({
     );
 };
 
-// --- Break Modal Component (Updated with Conflict Detection) ---
+const PRACTICE_OPEN_TIME = "08:00";
+const PRACTICE_CLOSE_TIME = "19:00"; 
+
 interface BreakModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -680,8 +682,8 @@ interface BreakModalProps {
     initialData: Partial<CalendarEvent> | null;
     selectedDate: Date;
     activePractitionerId: string;
-    appointments: Appointment[]; // Added appointments prop
-    existingBreaks: CalendarEvent[]; // Added existing breaks prop
+    appointments: Appointment[];
+    existingBreaks: CalendarEvent[];
 }
 
 const BreakModal: React.FC<BreakModalProps> = ({
@@ -700,8 +702,8 @@ const BreakModal: React.FC<BreakModalProps> = ({
 
     const [title, setTitle] = useState(initialData?.title || 'Break');
 
-    const defaultStart = initialData?.startTime ? toTimeString(initialData.startTime) : "09:00";
-    const defaultEnd = initialData?.endTime ? toTimeString(initialData.endTime) : "09:30";
+    const defaultStart = initialData?.startTime ? toTimeString(initialData.startTime) : "12:00";
+    const defaultEnd = initialData?.endTime ? toTimeString(initialData.endTime) : "13:00";
 
     const [startTimeStr, setStartTimeStr] = useState(defaultStart);
     const [endTimeStr, setEndTimeStr] = useState(defaultEnd);
@@ -710,8 +712,8 @@ const BreakModal: React.FC<BreakModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             setTitle(initialData?.title || 'Break');
-            setStartTimeStr(initialData?.startTime ? toTimeString(initialData.startTime) : "09:00");
-            setEndTimeStr(initialData?.endTime ? toTimeString(initialData.endTime) : "09:30");
+            setStartTimeStr(initialData?.startTime ? toTimeString(initialData.startTime) : "12:00");
+            setEndTimeStr(initialData?.endTime ? toTimeString(initialData.endTime) : "13:00");
             setNotes(initialData?.notes || '');
         }
     }, [isOpen, initialData]);
@@ -721,20 +723,20 @@ const BreakModal: React.FC<BreakModalProps> = ({
         return appointments.filter(a =>
             a.practitionerId === activePractitionerId &&
             isSameDay(a.startTime, selectedDate) &&
-            a.status !== 'cancelled' // Don't consider cancelled appointments
+            a.status !== 'cancelled'
         ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
     }, [appointments, activePractitionerId, selectedDate]);
 
-    // Get existing breaks for the selected day and practitioner (excluding current break if editing)
+    // Get existing breaks
     const dayBreaks = useMemo(() => {
         return existingBreaks.filter(b =>
             b.practitionerId === activePractitionerId &&
             isSameDay(b.startTime, selectedDate) &&
-            b.id !== initialData?.id // Exclude current break when editing
+            b.id !== initialData?.id
         ).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
     }, [existingBreaks, activePractitionerId, selectedDate, initialData?.id]);
 
-    // Check for conflicts with appointments
+    // 1. Check for Appointment/Break Overlaps
     const conflictingAppointments = useMemo(() => {
         const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
         const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
@@ -744,7 +746,6 @@ const BreakModal: React.FC<BreakModalProps> = ({
         );
     }, [dayAppointments, selectedDate, startTimeStr, endTimeStr]);
 
-    // Check for conflicts with other breaks
     const conflictingBreaks = useMemo(() => {
         const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
         const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
@@ -754,7 +755,21 @@ const BreakModal: React.FC<BreakModalProps> = ({
         );
     }, [dayBreaks, selectedDate, startTimeStr, endTimeStr]);
 
-    const hasConflict = conflictingAppointments.length > 0 || conflictingBreaks.length > 0;
+    // 2. NEW LOGIC: Check if time is within Operating Hours
+    const isOutsideOperatingHours = useMemo(() => {
+        
+        const openTime = setTimeOnDate(selectedDate, PRACTICE_OPEN_TIME);
+        const closeTime = setTimeOnDate(selectedDate, PRACTICE_CLOSE_TIME);
+        
+        const proposedStart = setTimeOnDate(selectedDate, startTimeStr);
+        const proposedEnd = setTimeOnDate(selectedDate, endTimeStr);
+
+        // Check if start is before opening OR end is after closing
+        return proposedStart < openTime || proposedEnd > closeTime;
+    }, [selectedDate, startTimeStr, endTimeStr]);
+
+    // Update 'hasConflict' to include the hours check
+    const hasConflict = conflictingAppointments.length > 0 || conflictingBreaks.length > 0 || isOutsideOperatingHours;
     const hasValidDuration = calculateDuration(startTimeStr, endTimeStr) > 0;
 
     if (!isOpen) return null;
@@ -762,9 +777,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (hasConflict) {
-            return; // Don't submit if there's a conflict
-        }
+        if (hasConflict) return;
 
         const start = setTimeOnDate(selectedDate, startTimeStr);
         const end = setTimeOnDate(selectedDate, endTimeStr);
@@ -799,6 +812,7 @@ const BreakModal: React.FC<BreakModalProps> = ({
 
                 <div className="flex-1 overflow-y-auto">
                     <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+                        {/* Title & Practitioner Inputs (Same as before) */}
                         <div>
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
                                 Title
@@ -830,8 +844,25 @@ const BreakModal: React.FC<BreakModalProps> = ({
                             hasConflict={hasConflict}
                         />
 
-                        {/* Conflict Warning */}
-                        {hasConflict && (
+                        {/* --- ERROR: OUTSIDE OPERATING HOURS --- */}
+                        {isOutsideOperatingHours && (
+                            <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl animate-in fade-in slide-in-from-top-1">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Clock size={18} className="text-orange-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-orange-800 mb-1">Outside Operating Hours</p>
+                                        <p className="text-xs text-orange-700">
+                                            The practice is closed during this time. Please select a time between <strong>{PRACTICE_OPEN_TIME}</strong> and <strong>{PRACTICE_CLOSE_TIME}</strong>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- ERROR: OVERLAP CONFLICTS --- */}
+                        {(conflictingAppointments.length > 0 || conflictingBreaks.length > 0) && (
                             <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
                                 <div className="flex items-start gap-3">
                                     <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -840,25 +871,22 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-red-700 mb-2">Time Conflict Detected</p>
                                         <p className="text-xs text-red-600 mb-3">
-                                            The selected time overlaps with existing appointments or breaks. Please choose a different time slot.
+                                            The selected time overlaps with existing appointments or breaks.
                                         </p>
-
+                                        
+                                        {/* (List of conflicts - Same as your previous code) */}
                                         {conflictingAppointments.length > 0 && (
                                             <div className="space-y-2">
                                                 <p className="text-xs font-semibold text-red-700">Conflicting Appointments:</p>
                                                 {conflictingAppointments.map(appt => {
                                                     const patient = PATIENTS.find(p => p.id === appt.patientId);
-                                                    const service = SERVICES.find(s => s.id === appt.serviceId);
                                                     return (
                                                         <div key={appt.id} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
-                                                            <div
-                                                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                                                style={{ backgroundColor: service?.color }}
-                                                            />
+                                                            <div className="w-2 h-2 rounded-full flex-shrink-0 bg-red-500" />
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-xs font-medium text-gray-800 truncate">{patient?.name}</p>
                                                                 <p className="text-[10px] text-gray-500">
-                                                                    {formatTime(appt.startTime)} - {formatTime(appt.endTime)} • {service?.name}
+                                                                    {formatTime(appt.startTime)} - {formatTime(appt.endTime)}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -866,104 +894,21 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                                 })}
                                             </div>
                                         )}
-
-                                        {conflictingBreaks.length > 0 && (
-                                            <div className="space-y-2 mt-2">
-                                                <p className="text-xs font-semibold text-red-700">Conflicting Breaks:</p>
-                                                {conflictingBreaks.map(breakEvent => (
-                                                    <div key={breakEvent.id} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-red-100">
-                                                        <div className="w-2 h-2 rounded-full flex-shrink-0 bg-red-500" />
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-medium text-gray-800 truncate">{breakEvent.title}</p>
-                                                            <p className="text-[10px] text-gray-500">
-                                                                {formatTime(breakEvent.startTime)} - {formatTime(breakEvent.endTime)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Existing Appointments Timeline */}
-                        {dayAppointments.length > 0 && !hasConflict && (
-                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <CalendarIcon size={16} className="text-blue-600" />
-                                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                        Today's Appointments ({dayAppointments.length})
-                                    </p>
-                                </div>
-                                <div className="space-y-2 max-h-40 overflow-y-auto">
-                                    {dayAppointments.map(appt => {
-                                        const patient = PATIENTS.find(p => p.id === appt.patientId);
-                                        const service = SERVICES.find(s => s.id === appt.serviceId);
-                                        return (
-                                            <div
-                                                key={appt.id}
-                                                className="flex items-center gap-2 p-2 bg-white rounded-lg border border-blue-100"
-                                            >
-                                                <div
-                                                    className="w-1 h-8 rounded-full flex-shrink-0"
-                                                    style={{ backgroundColor: service?.color }}
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-xs font-medium text-gray-800 truncate">{patient?.name}</p>
-                                                        <StatusBadge status={appt.status} size="sm" />
-                                                    </div>
-                                                    <p className="text-[10px] text-gray-500">
-                                                        {formatTime(appt.startTime)} - {formatTime(appt.endTime)} • {service?.name}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Existing Breaks */}
-                        {dayBreaks.length > 0 && !hasConflict && (
-                            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Clock size={16} className="text-amber-600" />
-                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">
-                                        Existing Breaks ({dayBreaks.length})
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    {dayBreaks.map(breakEvent => (
-                                        <div
-                                            key={breakEvent.id}
-                                            className="flex items-center gap-2 p-2 bg-white rounded-lg border border-amber-100"
-                                        >
-                                            <div className="w-1 h-8 rounded-full flex-shrink-0 bg-red-500" />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-medium text-gray-800 truncate">{breakEvent.title}</p>
-                                                <p className="text-[10px] text-gray-500">
-                                                    {formatTime(breakEvent.startTime)} - {formatTime(breakEvent.endTime)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* No appointments message */}
-                        {dayAppointments.length === 0 && dayBreaks.length === 0 && (
+                        {/* Success State (No conflicts) */}
+                        {!hasConflict && dayAppointments.length === 0 && dayBreaks.length === 0 && (
                             <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                                         <Check size={18} className="text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-green-700">No conflicts</p>
-                                        <p className="text-xs text-green-600">This day is free - you can add a break at any time.</p>
+                                        <p className="text-sm font-medium text-green-700">Valid Time</p>
+                                        <p className="text-xs text-green-600">This time slot is available.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1007,7 +952,6 @@ const BreakModal: React.FC<BreakModalProps> = ({
                                     : 'bg-red-500 hover:bg-red-600 text-white'
                                     }`}
                             >
-                                {hasConflict}
                                 {isEditMode ? 'Update' : 'Save'}
                             </button>
                         </div>
@@ -1716,8 +1660,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                         {/* Dropdown Menu */}
                                         {isStatusDropdownOpen && (
                                             <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
-                                                <div className="p-2 bg-gray-50 border-b border-gray-100">
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2">
+                                                <div className="p-2 bg-gray-100 border-b border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-2">
                                                         Update Status
                                                     </p>
                                                 </div>
@@ -1779,7 +1723,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     {/* Quick Info Cards */}
                     <div className="grid grid-cols-2 gap-3">
                         {/* Date Card */}
-                        <div className="p-3 bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-100">
+                        <div className="p-3 bg-gradient-to-br from-violet-50 via-purple-100 to-purple-50 rounded-xl border border-violet-100">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
                                     <CalendarIcon size={16} className="text-violet-600" />
@@ -1792,7 +1736,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                         </div>
 
                         {/* Time Card */}
-                        <div className="p-3 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                        <div className="p-3 bg-gradient-to-br from-amber-50 via-amber-100 to-orange-50 rounded-xl border border-amber-100">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                                     <Clock size={16} className="text-amber-600" />
@@ -1806,7 +1750,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                     </div>
 
                     {/* Practitioner Card */}
-                    <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-100">
+                    <div className="p-4 bg-gradient-to-br from-gray-50 via-gray-100 to-slate-50 rounded-xl border border-gray-100">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Practitioner</p>
                         <div className="flex items-center gap-3">
                             <div>
@@ -1858,7 +1802,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                 <div className="p-4 sm:px-6 bg-gray-50 border-t border-gray-100">
                     <button
                         onClick={onClose}
-                        className="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-xl transition-all shadow-lg shadow-gray-900/10 hover:shadow-xl hover:shadow-gray-900/20"
+                        className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-xl transition-all shadow-md shadow-gray-900/10 hover:shadow-xl hover:shadow-gray-900/20"
                     >
                         Close
                     </button>
