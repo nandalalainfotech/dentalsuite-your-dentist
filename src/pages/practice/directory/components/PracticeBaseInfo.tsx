@@ -4,17 +4,19 @@ import {
     X, CloudUpload,
     Bold, Italic, Underline, List, AlignLeft,
     AlignCenter, AlignRight, Link as LinkIcon,
-    Undo, Redo, Info, Edit2, Phone, Mail, MapPin, Building
+    Undo, Redo, Info, Edit2, Phone, Mail, MapPin, Building,
+    Loader2
 } from 'lucide-react';
-import { useAppDispatch } from '../../../store/hooks';
-import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
-import type { PracticeInfo } from '../../../types/clinic';
 import toast from "react-hot-toast";
+
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryInfo } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface PracticeFormData {
     profession_type: string;
-    company_name: string;
-    name: string;
+    practice_name: string; // Single Source of Truth
+    name: string; 
     email: string;
     abn_acn: string;
     address: string;
@@ -25,16 +27,18 @@ interface PracticeFormData {
     description: string;
 }
 
-export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
     
-    // File objects for upload
-    const [logoFile, setLogoFile] = useState<File | null>(null);
-    const [bannerFile, setBannerFile] = useState<File | null>(null);
+    // File state for preview logic
+    const [, setLogoFile] = useState<File | null>(null);
+    const [, setBannerFile] = useState<File | null>(null);
+
+    const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState<PracticeFormData>({
         profession_type: '', 
-        company_name: '',
+        practice_name: '',
         name: '',
         email: '',
         abn_acn: '',
@@ -46,23 +50,28 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
         description: '',
     });
 
-    const [isSaving, setIsSaving] = useState(false);
-
-    // Populate form
     useEffect(() => {
         if (clinicData) {
+            // Combine First/Last name for the single input field
+            const fullName = [clinicData.first_name, clinicData.last_name].filter(Boolean).join(' ');
+
             setFormData({
-                profession_type: clinicData.profession_type || '', 
-                company_name: clinicData.company_name || '',
-                name: clinicData.name || '',
+                // --- Core Info (Parent Table) ---
+                profession_type: clinicData.practice_type || '', 
                 email: clinicData.email || '',
-                abn_acn: clinicData.abn_acn || '',
-                address: clinicData.address || '',
-                phoneNumber: clinicData.phone || '',
-                altPhoneNumber: '', 
-                banner: clinicData.banner || null,
-                logo: clinicData.logo || null,
+                abn_acn: clinicData.abn_number || '', 
+                address: clinicData.address || '', 
+                phoneNumber: clinicData.practice_phone || '', 
+                altPhoneNumber: clinicData.mobile || '', 
+                practice_name: clinicData.practice_name || '', // Correctly reading from Parent
+                logo: clinicData.logo || null,                 // Correctly reading from Parent
+
+                // --- Base Info (Child Table) ---
                 description: clinicData.description || '',
+                banner: clinicData.banner_image || null,
+                
+                // Calculated
+                name: fullName,
             });
         }
     }, [clinicData]);
@@ -71,6 +80,7 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    // Image Handlers
     const handleImageUpload = (field: 'logo' | 'banner', event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -79,39 +89,53 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
         if (field === 'banner') setBannerFile(file);
 
         const reader = new FileReader();
-        reader.onload = () => handleInputChange(field, reader.result as string);
+        reader.onload = () => handleInputChange(field, reader.result as string); // Convert to Base64
         reader.readAsDataURL(file);
     };
 
     const removeImage = (field: 'logo' | 'banner') => {
         if (field === 'logo') setLogoFile(null);
         if (field === 'banner') setBannerFile(null);
-        handleInputChange(field, null as any); 
+        // @ts-ignore
+        handleInputChange(field, null); 
     };
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const data = new FormData();
-            data.append('company_name', formData.company_name);
-            data.append('email', formData.email);
-            data.append('abn_acn', formData.abn_acn);
-            data.append('name', formData.name);
-            data.append('address', formData.address);
-            data.append('phone', formData.phoneNumber);
-            data.append('mobile', formData.altPhoneNumber);
-            data.append('description', formData.description);
-            data.append('practice_type', formData.profession_type);
+            // Logic: Split "Contact Person Name" back into first and last name for DB
+            const nameParts = formData.name.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
 
-            if (logoFile) data.append('logo', logoFile);
-            if (bannerFile) data.append('banner_image', bannerFile);
+            // Construct Payload
+            await dispatch(updateDirectoryInfo({
+                id: clinicData.id,
+                data: {
+                    // --- DESTINATION: Parent Table (practice_info) ---
+                    practice_name: formData.practice_name, // Name is now only here
+                    logo: formData.logo,                   // Logo is now only here
+                    practice_type: formData.profession_type,
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: formData.email,
+                    abn_number: formData.abn_acn,
+                    address: formData.address,
+                    practice_phone: formData.phoneNumber,
+                    mobile: formData.altPhoneNumber,
 
-            await dispatch(updatePracticeProfile(data)).unwrap();
+                    // --- DESTINATION: Child Table (practice_base_info) ---
+                    formatted_address: formData.address, // Syncing address to child for display convenience
+                    description: formData.description,
+                    banner_image: formData.banner  
+                }
+            })).unwrap();
+
             toast.success("Profile updated successfully!");
             onNext();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Save failed:", error);
-            toast.error("Failed to save changes.");
+            toast.error(error.message || "Failed to save changes.");
         } finally {
             setIsSaving(false);
         }
@@ -136,22 +160,22 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
                 <FormInput
                     label="Profession Type"
                     value={formData.profession_type}
-                    onChange={(val) => handleInputChange('profession_type', val)}
+                    onChange={(val: string) => handleInputChange('profession_type', val)}
                     icon={<Building size={16} />}
                 />
                 <FormInput
                     label="Company Name"
                     required
-                    value={formData.company_name}
+                    value={formData.practice_name}
                     placeholder="e.g. City Dental Care"
-                    onChange={(val) => handleInputChange('company_name', val)}
+                    onChange={(val: string) => handleInputChange('practice_name', val)}
                 />
                 <FormInput
                     label="Email Address"
                     required
                     value={formData.email}
                     placeholder="admin@clinic.com"
-                    onChange={(val) => handleInputChange('email', val)}
+                    onChange={(val: string) => handleInputChange('email', val)}
                     icon={<Mail size={16} />}
                 />
                 <FormInput
@@ -159,21 +183,21 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
                     required
                     value={formData.abn_acn}
                     placeholder="11 digits"
-                    onChange={(val) => handleInputChange('abn_acn', val)}
+                    onChange={(val: string) => handleInputChange('abn_acn', val)}
                 />
                 <FormInput
                     label="Contact Person Name"
                     required
                     value={formData.name}
                     placeholder="Full Name"
-                    onChange={(val) => handleInputChange('name', val)}
+                    onChange={(val: string) => handleInputChange('name', val)}
                 />
                 <FormInput
                     label="Address"
                     required
                     value={formData.address}
                     placeholder="Full Street Address"
-                    onChange={(val) => handleInputChange('address', val)}
+                    onChange={(val: string) => handleInputChange('address', val)}
                     icon={<MapPin size={16} />}
                 />
                 <FormInput
@@ -181,14 +205,14 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
                     required
                     value={formData.phoneNumber}
                     placeholder="+61 ..."
-                    onChange={(val) => handleInputChange('phoneNumber', val)}
+                    onChange={(val: string) => handleInputChange('phoneNumber', val)}
                     icon={<Phone size={16} />}
                 />
                 <FormInput
-                    label="Alt. Phone Number"
+                    label="Alt. Phone Number (Mobile)"
                     value={formData.altPhoneNumber}
                     placeholder="(Optional)"
-                    onChange={(val) => handleInputChange('altPhoneNumber', val)}
+                    onChange={(val: string) => handleInputChange('altPhoneNumber', val)}
                 />
             </div>
 
@@ -197,15 +221,15 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
                 <ModernImageUploader
                     label="Clinic Logo"
                     required
-                    image={formData.logo} // Pass raw string or null
-                    onUpload={(e) => handleImageUpload('logo', e)}
+                    image={formData.logo}
+                    onUpload={(e: any) => handleImageUpload('logo', e)}
                     onRemove={() => removeImage('logo')}
                 />
                 <ModernImageUploader
                     label="Banner Image"
                     required
-                    image={formData.banner} // Pass raw string or null
-                    onUpload={(e) => handleImageUpload('banner', e)}
+                    image={formData.banner}
+                    onUpload={(e: any) => handleImageUpload('banner', e)}
                     onRemove={() => removeImage('banner')}
                 />
             </div>
@@ -246,7 +270,7 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
             <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
-                    onClick={onNext} // Skip logic
+                    onClick={onNext}
                     className="px-8 py-3 bg-orange-50 text-orange-400 font-medium rounded-full hover:bg-orange-100 transition"
                 >
                     Skip
@@ -258,7 +282,9 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: P
                     className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition disabled:opacity-50 flex items-center gap-2"
                 >
                     {isSaving ? (
-                        <>Saving...</>
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                        </>
                     ) : (
                         'Save & Next'
                     )}
@@ -304,9 +330,6 @@ function ModernImageUploader({
     label: string, required?: boolean, image: any, onUpload: (e: any) => void, onRemove: () => void
 }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Determine the source to display
-    // If it's a string (Base64 or URL), use it. If it's an object with a URL (from DB), use that.
     const Image = typeof image === 'string' ? image : image?.url;
 
     return (
@@ -344,7 +367,6 @@ function ModernImageUploader({
                         className="w-full h-full object-cover"
                     />
                     
-                    {/* Overlay Actions */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3 backdrop-blur-[2px]">
                         <button
                             onClick={(e) => {

@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef, useEffect } from 'react';
 import { Trophy, Edit2, Trash2, Upload, X, Check, Loader2, FileText } from 'lucide-react';
-import { useAppDispatch } from '../../../store/hooks';
-import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
-import type { PracticeInfo } from '../../../types/clinic';
 import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryAchievements } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface Achievement {
     id: string;
@@ -12,7 +14,7 @@ interface Achievement {
     image?: string;
 }
 
-export default function PracticeAchievements({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeAchievements({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
 
     // --- State ---
@@ -26,26 +28,22 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Load initial data
+    // Load initial data directly from Hasura DB array
     useEffect(() => {
-        if (!clinicData) {
+        if (!clinicData?.practice_achievements) {
             setAchievements([]);
             return;
         }
 
-        const formattedAchievements =
-            Array.isArray(clinicData.directory_achievements)
-                ? clinicData.directory_achievements.map((a, index) => ({
-                    id: a?.id || index.toString(),
-                    title: a?.title || "",
-                    image: a?.image || "",
-                }))
-                : [];
+        const formattedAchievements = clinicData.practice_achievements.map((a: any, index: number) => ({
+            id: a.id || index.toString(),
+            title: a.title || "",
+            image: a.image_url || "",
+        }));
 
         setAchievements(formattedAchievements);
 
     }, [clinicData]);
-
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = e.target.files?.[0];
@@ -62,7 +60,7 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
         }
 
         const reader = new FileReader();
-        reader.onload = () => setPreview(reader.result as string);
+        reader.onload = () => setPreview(reader.result as string); // Save as Base64
         reader.readAsDataURL(selected);
     };
 
@@ -95,7 +93,7 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
         }
 
         const newItem = {
-            id: editingId || Date.now().toString(),
+            id: editingId || Date.now().toString(), // Temp ID
             title,
             image: preview || undefined
         };
@@ -104,14 +102,14 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
             setAchievements(prev =>
                 prev.map(a => a.id === editingId ? newItem : a)
             );
+            toast.success("Achievement updated");
             setEditingId(null);
         } else {
             setAchievements(prev => [...prev, newItem]);
+            toast.success("Achievement added");
         }
 
         resetForm();
-
-        // Clear errors after success
         setErrors({ title: false, image: false });
     };
 
@@ -126,7 +124,6 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
         setTitle(item.title);
         setPreview(item.image || null);
         setEditingId(item.id);
-        // Using scrollIntoView for better UX with the new layout
         document.getElementById('achievement-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
@@ -135,44 +132,44 @@ export default function PracticeAchievements({ clinicData, onNext }: { clinicDat
         if (editingId === id) resetForm();
     };
 
-    //  SAVE HANDLER (RESTORED EXACTLY AS REQUESTED)
     const handleSaveAndNext = async () => {
 
-        const titleError = !title;
-        const imageError = !preview;
+        const titleError = !title && editingId !== null;
+        const imageError = !preview && editingId !== null;
 
-        // set red error UI
-        setErrors({
-            title: titleError,
-            image: imageError
-        });
+        if (editingId !== null) {
+            setErrors({
+                title: titleError,
+                image: imageError
+            });
 
-        // show toast + stop save
-        if (titleError || imageError) {
-            toast.error("Please fill the required fields.");
-            return;
+            if (titleError || imageError) {
+                toast.error("Please fill the required fields.");
+                return;
+            }
         }
 
         setIsSaving(true);
 
         try {
-            const formData = new FormData();
-
-            const achievementsList = achievements.map(a => ({
+            // Map local state to DB snake_case fields
+            const dbAchievements = achievements.map(a => ({
                 title: a.title,
-                attachments: a.image
+                image_url: a.image
             }));
 
-            formData.append('directory_achievements', JSON.stringify(achievementsList));
+            // Dispatch to Hasura
+            await dispatch(updateDirectoryAchievements({
+                practiceId: clinicData.id,
+                achievements: dbAchievements
+            })).unwrap();
 
-            await dispatch(updatePracticeProfile(formData)).unwrap();
-
-            console.log('Achievements Saved');
+            toast.success('Achievements saved successfully!');
             onNext();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save achievements:", error);
-            toast.error("Failed to save. Please try again.");
+            toast.error(error.message || "Failed to save. Please try again.");
         } finally {
             setIsSaving(false);
         }

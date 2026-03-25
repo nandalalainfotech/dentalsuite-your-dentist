@@ -1,6 +1,5 @@
 import { localClient } from "../../api/apollo/localClient";
-import { GET_PRACTICE_PROFILE_QUERY } from "../../pages/practice/dashboard/graphql/dashboard.query";
-import { UPDATE_PRACTICE_PROFILE_MUTATION } from "../../pages/practice/dashboard/graphql/dashboard.mutation";
+import { GET_PRACTICE_PROFILE_QUERY, UPDATE_PRACTICE_PROFILE_MUTATION } from "../../pages/practice/dashboard/graphql/dashboard.query";
 import type { PracticeProfile, UpdateProfilePayload } from "./dashboard.types";
 
 interface DashboardQueryResponse {

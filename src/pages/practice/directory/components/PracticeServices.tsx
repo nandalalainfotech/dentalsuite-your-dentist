@@ -3,10 +3,13 @@ import { useState, useEffect } from 'react';
 import {
     Briefcase, Plus, Trash2, Edit2, X, Check, Loader2
 } from 'lucide-react';
-import { useAppDispatch } from '../../../store/hooks';
-import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
-import type { PracticeInfo } from '../../../types/clinic';
 import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryServices } from '../../../../features/directory/directory.slice';
+// 2. We now use our raw DirectoryProfile type
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface Service {
     id: string;
@@ -15,7 +18,7 @@ interface Service {
     description: string;
 }
 
-export default function PracticeServices({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeServices({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
 
     const [services, setServices] = useState<Service[]>([]);
@@ -34,26 +37,17 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: P
         return html.replace(/<[^>]*>?/gm, '');
     };
 
+    // Populate data directly from Hasura DB array
     useEffect(() => {
-        if (!clinicData) {
-            setServices([]);
-            return;
+        if (clinicData?.practice_services) {
+            const formattedServices = clinicData.practice_services.map((s: any) => ({
+                id: s.id,
+                name: s.name || "",
+                description: stripHtml(s.description) || "",
+                showInAppointment: s.show_in_appointment ?? true 
+            }));
+            setServices(formattedServices);
         }
-        const rawServices =
-            Array.isArray((clinicData as PracticeInfo).directory_services) &&
-                (clinicData as PracticeInfo).directory_services.length > 0
-                ? (clinicData as PracticeInfo).directory_services
-                : Array.isArray(clinicData.services)
-                    ? clinicData.services
-                    : [];
-
-        const formattedServices = rawServices.map((s: any, index: number) => ({
-            id: s.id || (index + 1).toString(),
-            name: s.name || "",
-            description: stripHtml?.(s.description) || "",
-            showInAppointment: true // Default to true if missing
-        }));
-        setServices(formattedServices);
     }, [clinicData]);
 
     // --- Handlers ---
@@ -62,7 +56,7 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: P
         if (!newName.trim()) return;
 
         const newService: Service = {
-            id: Date.now().toString(),
+            id: Date.now().toString(), // Temp ID for local state
             name: newName,
             description: newDesc,
             showInAppointment: true
@@ -98,20 +92,24 @@ export default function PracticeServices({ clinicData, onNext }: { clinicData: P
     const handleSaveAndNext = async () => {
         setIsSaving(true);
         try {
-            const formData = new FormData();
-            const servicesList = services.map(s => ({
+            // Map local state to DB snake_case fields
+            const dbServices = services.map(s => ({
                 name: s.name,
                 description: s.description,
+                show_in_appointment: s.showInAppointment
             }));
 
-            formData.append('directory_services', JSON.stringify(servicesList));
-            await dispatch(updatePracticeProfile(formData)).unwrap();
+            // Dispatch to Hasura
+            await dispatch(updateDirectoryServices({
+                practiceId: clinicData.id,
+                services: dbServices
+            })).unwrap();
 
             toast.success("Services saved successfully!");
             onNext();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save services:", error);
-            toast.error("Failed to save changes.");
+            toast.error(error.message || "Failed to save changes.");
         } finally {
             setIsSaving(false);
         }

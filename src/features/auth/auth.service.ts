@@ -5,7 +5,6 @@ import type { User, SignupPayload, PracticeTypeOption, StateOption } from "./aut
 
 const API_BASE_URL = "http://localhost:3000/auth";
 
-// --- Interfaces ---
 interface LoginPayload { 
   email: string; 
   password: string; 
@@ -16,7 +15,7 @@ interface OptionsQueryResponse {
   common_states: StateOption[]; 
 }
 
-// --- 1. LOGIN (Connected to NestJS Backend) ---
+// --- 1. LOGIN ---
 const login = async (payload: LoginPayload): Promise<User> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/login`, {
@@ -26,10 +25,9 @@ const login = async (payload: LoginPayload): Promise<User> => {
 
     const responseData = response.data;
     const userData = responseData.user || responseData; 
-    const token = responseData.token || responseData.access_token || "mock-jwt-token";
+    const token = responseData.accessToken || responseData.token || "mock-jwt-token"; // Adjusted to match NestJS response
 
     if (userData.status && userData.status.toLowerCase() !== "approved") {
-      throw new Error("Your account is currently pending approval by the Superadmin.");
     }
 
     return {
@@ -37,10 +35,13 @@ const login = async (payload: LoginPayload): Promise<User> => {
       email: userData.email,
       practiceName: userData.practice_name || userData.practiceName,
       phone: userData.practice_phone || userData.practicePhone,
+      
+      
+      practiceId: userData.practice_id || userData.id, 
+      
       token: token,
     };
   } catch (error: any) {
-    // Safely extract the exact error message thrown by NestJS
     const message = 
       error.response?.data?.message || 
       error.response?.data?.error || 
@@ -51,7 +52,7 @@ const login = async (payload: LoginPayload): Promise<User> => {
   }
 };
 
-// --- 2. SIGNUP (Connected to NestJS Backend) ---
+// --- 2. SIGNUP ---
 const signup = async (payload: SignupPayload): Promise<string> => {
   try {
     const practiceData = {
@@ -85,7 +86,7 @@ const signup = async (payload: SignupPayload): Promise<string> => {
   }
 };
 
-// --- 3. GET OPTIONS (Still using local GraphQL for dropdowns) ---
+// --- 3. GET OPTIONS ---
 const getSignupOptions = async () => {
   const { data } = await localClient.query<OptionsQueryResponse>({
     query: GET_SIGNUP_OPTIONS_QUERY,

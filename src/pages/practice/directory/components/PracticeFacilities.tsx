@@ -1,13 +1,27 @@
-import { useState } from 'react';
-import { Building, Plus, X, Wifi, Car, Accessibility, Thermometer, Tv, Stethoscope, Check, } from 'lucide-react';
-import type { PracticeInfo } from '../../../types/clinic';
+import { useState, useEffect } from 'react';
+import { Building, Plus, X, Wifi, Car, Accessibility, Thermometer, Tv, Stethoscope, Check, Loader2 } from 'lucide-react';
+import toast from "react-hot-toast";
 
-// Added onNext to props
-export default function PracticeFacilities({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const initialFacilities = (clinicData as any).facilities || [];
-    const [facilities, setFacilities] = useState<string[]>(initialFacilities);
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryFacilities } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
+
+export default function PracticeFacilities({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
+    const dispatch = useAppDispatch();
+    
+    const [facilities, setFacilities] = useState<string[]>([]);
     const [customFacility, setCustomFacility] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Load initial data from Hasura DB
+    useEffect(() => {
+        if (clinicData?.practice_facilities) {
+            // Extract the strings from the DB object
+            const dbFacilities = clinicData.practice_facilities.map((f: any) => f.facility_name);
+            setFacilities(dbFacilities);
+        }
+    }, [clinicData]);
 
     const commonAmenities = [
         { name: 'Free Wi-Fi', icon: Wifi },
@@ -27,8 +41,9 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
     };
 
     const addCustomFacility = () => {
-        if (customFacility.trim() && !facilities.includes(customFacility.trim())) {
-            setFacilities([...facilities, customFacility.trim()]);
+        const trimmed = customFacility.trim();
+        if (trimmed && !facilities.includes(trimmed)) {
+            setFacilities([...facilities, trimmed]);
             setCustomFacility('');
         }
     };
@@ -37,9 +52,22 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
         setFacilities(facilities.filter(f => f !== name));
     };
 
-    const handleSaveAndNext = () => {
-        console.log('Saving Facilities:', facilities);
-        onNext();
+    const handleSaveAndNext = async () => {
+        setIsSaving(true);
+        try {
+            await dispatch(updateDirectoryFacilities({
+                practiceId: clinicData.id,
+                facilities: facilities
+            })).unwrap();
+
+            toast.success("Facilities saved successfully!");
+            onNext();
+        } catch (error: any) {
+            console.error("Failed to save facilities:", error);
+            toast.error(error.message || "Failed to save facilities. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -163,9 +191,14 @@ export default function PracticeFacilities({ clinicData, onNext }: { clinicData:
                 </button>
                 <button
                     onClick={handleSaveAndNext}
-                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition disabled:opacity-50 flex items-center gap-2"
                 >
-                    Save & Next
+                    {isSaving ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+                    ) : (
+                        'Save & Next'
+                    )}
                 </button>
             </div>
         </div>

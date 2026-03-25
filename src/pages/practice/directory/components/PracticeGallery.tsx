@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useState, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useAppDispatch } from '../../../store/hooks';
-import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
-import type { PracticeInfo } from '../../../types/clinic';
 import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryGalleries } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface GalleryImage {
     id: string;
     file?: File;
-    preview: string;
+    preview: string; // Base64 or DB URL
     caption: string;
 }
 
-export default function PracticeGallery({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeGallery({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -21,41 +23,15 @@ export default function PracticeGallery({ clinicData, onNext }: { clinicData: Pr
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState({ image: false });
 
-    /* ---------- LOAD INITIAL DATA ---------- */
+    /* ---------- LOAD INITIAL DATA DIRECTLY FROM DB ---------- */
     useEffect(() => {
-        if (!clinicData || images.length > 0) return;
+        if (!clinicData?.practice_galleries || images.length > 0) return;
 
-        const rawGallery =
-            (clinicData as any).directory_gallery_posts ??
-            clinicData.gallery ??
-            [];
-
-        if (!Array.isArray(rawGallery) || rawGallery.length === 0) {
-            setImages([]);
-            return;
-        }
-
-        const flattenedGallery = rawGallery.flat();
-
-        const loadedImages = flattenedGallery.map((img: any, i: number) => {
-            let url = "";
-
-            if (typeof img === "string") {
-                url = img;
-            } else if (Array.isArray(img?.image) && img.image.length > 0) {
-                url = img.image[0]?.url || "";
-            } else if (img?.image?.url) {
-                url = img.image.url;
-            } else if (img?.url) {
-                url = img.url;
-            }
-
-            return {
-                id: img?.id?.toString() || i.toString(),
-                preview: url || "",
-                caption: img?.caption || "",
-            };
-        });
+        const loadedImages = clinicData.practice_galleries.map((img: any, i: number) => ({
+            id: img.id || i.toString(),
+            preview: img.image_url || "",
+            caption: img.caption || "",
+        }));
 
         setImages(loadedImages);
 
@@ -86,7 +62,7 @@ export default function PracticeGallery({ clinicData, onNext }: { clinicData: Pr
                     {
                         id: Date.now().toString() + Math.random(),
                         file,
-                        preview: e.target?.result as string,
+                        preview: e.target?.result as string, // Save as Base64 for DB
                         caption: ''
                     }
                 ]);
@@ -117,27 +93,24 @@ export default function PracticeGallery({ clinicData, onNext }: { clinicData: Pr
         setIsSaving(true);
 
         try {
-            const formData = new FormData();
-
-            const galleryData = images.map(img => ({
-                image: img.preview,
+            // Map local state to exact DB fields
+            const dbGalleries = images.map(img => ({
+                image_url: img.preview,
                 caption: img.caption
             }));
 
-            formData.append(
-                "directory_gallery_posts",
-                JSON.stringify(galleryData)
-            );
+            // Dispatch to Hasura
+            await dispatch(updateDirectoryGalleries({
+                practiceId: clinicData.id,
+                galleries: dbGalleries
+            })).unwrap();
 
-            await dispatch(updatePracticeProfile(formData)).unwrap();
-
-            console.log("Gallery Saved");
-
+            toast.success("Gallery saved successfully!");
             onNext();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save gallery:", error);
-            toast.error("Failed to save gallery. Please try again.");
+            toast.error(error.message || "Failed to save gallery. Please try again.");
         } finally {
             setIsSaving(false);
         }

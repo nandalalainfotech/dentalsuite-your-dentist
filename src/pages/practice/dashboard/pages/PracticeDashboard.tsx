@@ -5,7 +5,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../../../features/auth/auth.hooks';
 import { useDashboard } from '../../../../features/dashboard/dashboard.hooks';
-import PracticeSidebar from '../../PracticeSidebar';
+import PracticeSidebar from './PracticeSidebar';
 import ConfirmLogoutModal from '../../../../components/layout/ConfirmLogoutModal';
 
 // New Hooks
