@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import { FileText, X } from 'lucide-react';
-import { Icons } from '../../components/dashboard/Icons';
+import { Icons } from '../../../../components/dashboard/Icons';
 
 interface PracticeSidebarProps {
   onLogout: () => void;
-  onClose?: () => void; // Optional: for closing mobile menu
+  onClose?: () => void; 
 }
 
 export default function PracticeSidebar({
@@ -62,13 +62,6 @@ export default function PracticeSidebar({
       <NavLink to="/practice/dashboard/invoice-history" className={getLinkClass} onClick={onClose}>
         {({ isActive }) => (<><div className={getIconClass(isActive)}><FileText size={18} /></div><span>Invoice History</span></>)}
       </NavLink>
-
-      {/* Push Logout to bottom */}
-      {/* <div className="mt-auto lg:mt-4 pt-4 border-t border-gray-50 mx-6">
-          <button onClick={onLogout} className="flex items-center gap-4 text-gray-400 hover:text-red-500 transition-colors text-sm font-medium w-full py-2">
-            <LogOut size={18} /><span>Sign Out</span>
-          </button>
-        </div> */}
     </nav>
   );
 }

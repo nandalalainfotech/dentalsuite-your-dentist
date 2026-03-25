@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { MessageSquareQuote, Star, Quote, Loader2, User } from 'lucide-react';
-import type { PracticeInfo } from '../../../types/clinic';
+
+// 1. Use the new DirectoryProfile type instead of PracticeInfo
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface ReviewItem {
     id: string;
@@ -12,7 +14,7 @@ interface ReviewItem {
     image?: string;
 }
 
-export default function PracticeReviews({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeReviews({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     
     const [reviews, setReviews] = useState<ReviewItem[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -20,22 +22,12 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Pr
     // --- 1. Load & Parse Data ---
     useEffect(() => {
         if (clinicData) {
-            const rawData = (clinicData as any).testimonials || (clinicData as any).directory_testimonials;
-            
-            let parsedData: any[] = [];
+            // Note: Since there is no testimonials table in the DB schema provided,
+            // we safely default to an empty array. If you add a testimonials table later, 
+            // you can map it here just like we did for practice_services!
+            const rawData: any[] = (clinicData as any).testimonials || []; 
 
-            if (typeof rawData === 'string') {
-                try {
-                    parsedData = JSON.parse(rawData);
-                } catch (e) {
-                    console.error("Failed to parse reviews JSON", e);
-                    parsedData = [];
-                }
-            } else if (Array.isArray(rawData)) {
-                parsedData = rawData;
-            }
-
-            const formattedReviews = parsedData.map((r: any, index: number) => ({
+            const formattedReviews = rawData.map((r: any, index: number) => ({
                 id: r.id || index.toString(),
                 patientName: r.name || "Anonymous",
                 rating: r.rating || 5, 
@@ -50,6 +42,7 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Pr
 
     const handleSaveAndNext = () => {
         setIsSaving(true);
+        // This tab is read-only. We just simulate a quick save and move to the next tab.
         setTimeout(() => {
             console.log('Reviews acknowledged');
             setIsSaving(false);
@@ -152,10 +145,10 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Pr
                 >
                     {isSaving ? (
                         <>
-                            <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                            <Loader2 className="w-4 h-4 animate-spin" /> Next...
                         </>
                     ) : (
-                        'Save & Next'
+                        'Acknowledge & Next'
                     )}
                 </button>
             </div>

@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, X, Edit2, FileText, Check, Loader2, Award } from 'lucide-react';
-import { useAppDispatch } from '../../../store/hooks';
-import { updatePracticeProfile } from '../../../store/slices/practiceSlice';
-import type { PracticeInfo } from '../../../types/clinic';
 import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryCertifications } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 interface Certificate {
     id?: string;
     name: string;
-    img: string;
+    img: string; // Base64 or URL
 }
 
-export default function PracticeMyCertificate({ clinicData, onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeMyCertificate({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
 
     // --- State ---
@@ -30,21 +32,21 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+    // Populate data directly from Hasura DB array
     useEffect(() => {
-        if (!clinicData?.directory_certifications) {
+        if (!clinicData?.practice_certifications) {
             setCertificates([]);
             return;
         }
 
-        const formattedCerts = clinicData.directory_certifications.map((c: any, index: number) => ({
+        const formattedCerts = clinicData.practice_certifications.map((c: any, index: number) => ({
             id: c.id || index.toString(),
             name: c.title || "Untitled",
-            img: c.attachments?.url || "",
+            img: c.image_url || "",
         }));
 
         setCertificates(formattedCerts);
     }, [clinicData]);
-
 
     // --- Handlers ---
 
@@ -55,7 +57,7 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
         setNewCertFile(file);
         const reader = new FileReader();
         reader.onload = () => {
-            setNewCertImage(reader.result as string);
+            setNewCertImage(reader.result as string); // Save as Base64 string for DB
             setErrors(prev => ({ ...prev, image: false }));
         };
         reader.readAsDataURL(file);
@@ -125,54 +127,39 @@ export default function PracticeMyCertificate({ clinicData, onNext }: { clinicDa
 
         const newErrors = {
             name: !newCertName?.trim(),
-            image: !newCertImage
+            image: !newCertImage && editingIndex !== null ? false : !newCertImage
         };
 
-        setErrors(newErrors);
-
-        // Toast errors
-        if (newErrors.name && newErrors.image) {
-            toast.error("Certificate name and image are required");
-        } else if (newErrors.name) {
-            toast.error("Certificate name is required");
-        } else if (newErrors.image) {
-            toast.error("Certificate image is required");
+        if (editingIndex !== null) {
+             setErrors(newErrors);
+            if (newErrors.name) {
+                toast.error("Certificate name is required");
+                 return;
+            }
         }
-
-        // Stop saving if errors exist
-        if (Object.values(newErrors).some(Boolean)) return;
 
         setIsSaving(true);
 
         try {
-            const formData = new FormData();
-
-            const certData = certificates.map(c => ({
+            // Map local state to DB snake_case fields
+            const dbCertificates = certificates.map(c => ({
                 title: c.name,
-                attachments: c.img
+                image_url: c.img
             }));
 
-            formData.append(
-                "directory_certifications",
-                JSON.stringify(certData)
-            );
+            // Dispatch to Hasura
+            await dispatch(updateDirectoryCertifications({
+                practiceId: clinicData.id,
+                certifications: dbCertificates
+            })).unwrap();
 
-            await dispatch(updatePracticeProfile(formData)).unwrap();
-
-            console.log("Certificates Saved");
-
+            toast.success("Certificates saved successfully!");
             onNext();
-
-        } catch (error) {
-
+        } catch (error: any) {
             console.error("Failed to save certificates:", error);
-
-            toast.error("Failed to save certificates");
-
+            toast.error(error.message || "Failed to save certificates");
         } finally {
-
             setIsSaving(false);
-
         }
     };
 

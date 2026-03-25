@@ -1,10 +1,28 @@
 /* eslint-disable react-hooks/static-components */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect } from 'react';
 import {
     Users, Edit2, ArrowLeft, Trash2,
-    Info, Check, ChevronDown, X, RotateCcw, Plus, Calendar
+    Info, Check, ChevronDown, X, Plus, Calendar, Loader2
 } from 'lucide-react';
-import type { PracticeInfo } from '../../../types/clinic';
+import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryTeam } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
+
+// --- HELPER: Generate Valid UUIDs for Hasura ---
+const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
 
 // --- TYPES ---
 interface AppointmentType {
@@ -39,7 +57,7 @@ interface TeamMember {
     appointmentTypes: AppointmentType[];
 }
 
-// --- HELPER: Multi-Select Dropdown ---
+// --- HELPER COMPONENTS (Dropdowns & Editors) ---
 
 interface ProfessionalInterestsDropdownProps {
     value: string;
@@ -173,8 +191,6 @@ export function ProfessionalInterestsDropdown({ value, onChange, placeholder }: 
     );
 }
 
-// --- HELPER: Appointment Type Editor ---
-
 const AppointmentTypeEditor = ({
     practitionerName,
     appointmentName,
@@ -217,6 +233,7 @@ const AppointmentTypeEditor = ({
         onSave(updatedList);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ColumnForm = ({
         title, enabled, setEnabled, duration, setDuration, limit, setLimit, terms, setTerms, limitLabel
     }: any) => (
@@ -333,7 +350,8 @@ const AppointmentTypeEditor = ({
 
 // --- MAIN COMPONENT ---
 
-export default function PracticeTeam({ clinicData, onNext }: { clinicData: PracticeInfo; onNext: () => void }) {
+export default function PracticeTeam({ clinicData, onNext }: { clinicData: DirectoryProfile; onNext: () => void }) {
+    const dispatch = useAppDispatch();
 
     const defaultAppointmentTypes: AppointmentType[] = [
         { id: '1', name: 'Consultation', patientType: 'New', duration: 30, enabled: false },
@@ -345,69 +363,48 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
         { id: '7', name: 'Emergency', patientType: 'Existing', duration: 30, enabled: false },
     ];
 
-    const generateInitialMembers = (): TeamMember[] => {
-        const team = clinicData.team || [];
-        const dentists = clinicData.dentists || [];
-        const teamByName = new Map(team.map(member => [member.name, member]));
-        const dentistByName = new Map(dentists.map(dentist => [dentist.name, dentist]));
-
-        const membersFromDentists = dentists.map((dentist, i) => {
-            const teamMatch = teamByName.get(dentist.name);
-            return {
-                id: `dentist-${i}`,
-                name: dentist.name,
-                role: teamMatch?.role || dentist.specialities?.[0] || '',
-                qualification: teamMatch?.qual || dentist.qualification || '',
-                gender: dentist.gender || '',
-                ahpra: '',
-                education: '',
-                languages: dentist.languages?.join(', ') || '',
-                professionalStatement: dentist.overview || '',
-                areasOfInterest: dentist.specialities?.join(', ') || '',
-                image: dentist.image || '',
-                isVisibleOnline: false,
-                allowMultipleBookings: true,
-                bookingTimeLimit: 0,
-                bookingTimeLimitUnit: 'minutes',
-                cancelTimeLimit: 0,
-                cancelTimeLimitUnit: 'minutes',
-                appointmentTypes: JSON.parse(JSON.stringify(defaultAppointmentTypes))
-            };
-        });
-
-        const membersFromTeamOnly = team
-            .filter(member => !dentistByName.has(member.name))
-            .map((member, i) => ({
-                id: `team-${i}`,
-                name: member.name,
-                role: member.role || '',
-                qualification: member.qual || '',
-                gender: '',
-                ahpra: '',
-                education: '',
-                languages: '',
-                professionalStatement: '',
-                areasOfInterest: '',
-                isVisibleOnline: false,
-                allowMultipleBookings: true,
-                bookingTimeLimit: 0,
-                bookingTimeLimitUnit: 'minutes',
-                cancelTimeLimit: 0,
-                cancelTimeLimitUnit: 'minutes',
-                appointmentTypes: JSON.parse(JSON.stringify(defaultAppointmentTypes))
-            }));
-
-        return [...membersFromDentists, ...membersFromTeamOnly] as TeamMember[];
-    };
-
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>(generateInitialMembers());
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+    
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingApptName, setEditingApptName] = useState<string | null>(null);
     const [formData, setFormData] = useState<TeamMember | null>(null);
     const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'all' | 'visible' | 'hidden'>('all');
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Load data from Hasura DB on mount
+    useEffect(() => {
+        if (!clinicData?.practice_team_members) return;
+
+        const dbTeam = clinicData.practice_team_members.map((t: any) => ({
+            id: t.id,
+            name: t.name || '',
+            role: t.role || '',
+            qualification: t.qualification || '',
+            gender: t.gender || '',
+            ahpra: t.ahpra_number || '', // Map DB to Frontend
+            education: t.education || '',
+            languages: t.languages || '',
+            professionalStatement: t.professional_statement || '',
+            areasOfInterest: t.areas_of_interest || '',
+            image: t.image || '',
+            isVisibleOnline: t.is_visible_online || false,
+            allowMultipleBookings: t.allow_multiple_bookings ?? true,
+            bookingTimeLimit: t.booking_time_limit || 0,
+            bookingTimeLimitUnit: t.booking_time_limit_unit || 'minutes',
+            cancelTimeLimit: t.cancel_time_limit || 0,
+            cancelTimeLimitUnit: t.cancel_time_limit_unit || 'minutes',
+            // Check if they have JSON appt types, otherwise give default
+            appointmentTypes: t.appointment_types && t.appointment_types.length > 0 
+                ? t.appointment_types 
+                : JSON.parse(JSON.stringify(defaultAppointmentTypes))
+        }));
+
+        setTeamMembers(dbTeam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [clinicData]);
+
+
     const updateField = (field: keyof TeamMember, value: any) => {
         if (formData) setFormData({ ...formData, [field]: value });
     };
@@ -426,7 +423,8 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
     const handleMainSave = () => {
         if (!formData) return;
         const isNew = formData.id.startsWith('new-');
-        const finalId = isNew ? Date.now().toString() : formData.id;
+        
+        const finalId = isNew ? generateUUID() : formData.id;
         const finalData = { ...formData, id: finalId };
 
         if (isNew) {
@@ -473,10 +471,23 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
         return true;
     });
 
-    // --- EXACT RESTORED HANDLER ---
-    const handleSaveAndNext = () => {
-        console.log('Saving Team Members:', teamMembers);
-        onNext();
+    // --- HASURA SAVE ---
+    const handleSaveAndNext = async () => {
+        setIsSaving(true);
+        try {
+            await dispatch(updateDirectoryTeam({
+                practiceId: clinicData.id,
+                team: teamMembers
+            })).unwrap();
+
+            toast.success("Team settings saved successfully!");
+            onNext();
+        } catch (error: any) {
+            console.error("Failed to save team:", error);
+            toast.error(error.message || "Failed to save team.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // 1. RENDER APPOINTMENT TYPE EDITOR
@@ -547,7 +558,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                         </div>
                     </div>
 
-                    {/* Main Form - RESTORED ALL FIELDS */}
+                    {/* Main Form */}
                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                             <h2 className="font-bold text-gray-900">Basic Information</h2>
@@ -569,19 +580,13 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                     />
                                 </div>
 
-                                {/* Link to Core Practice (RESTORED) */}
+                                {/* Link to Core Practice */}
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-1">
                                             <label className="text-sm font-medium text-gray-700">Link to Core Practice</label>
                                             <Info className="w-3.5 h-3.5 text-blue-500 cursor-help" />
                                         </div>
-                                        <button
-                                            type="button"
-                                            className="flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-orange-600 transition-colors"
-                                        >
-                                            <RotateCcw className="w-3 h-3" /> Refresh List
-                                        </button>
                                     </div>
                                     <div className="relative">
                                         <select
@@ -589,7 +594,6 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                             defaultValue=""
                                         >
                                             <option value="" disabled>Select a Practitioner</option>
-                                            {/* Mapping would go here */}
                                         </select>
                                         <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none"/>
                                     </div>
@@ -610,7 +614,6 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
-
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-medium text-gray-700">Profession Type</label>
                                         <select
@@ -640,7 +643,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                     </select>
                                 </div>
 
-                                {/* AHPRA (RESTORED) */}
+                                {/* AHPRA */}
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-gray-700">AHPRA Registration Number</label>
                                     <input
@@ -664,7 +667,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                     />
                                 </div>
 
-                                {/* Education (RESTORED) */}
+                                {/* Education */}
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-gray-700">Education</label>
                                     <input
@@ -676,7 +679,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                     />
                                 </div>
 
-                                {/* Languages (RESTORED) */}
+                                {/* Languages */}
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-gray-700">Languages Spoken</label>
                                     <input
@@ -715,7 +718,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                                             const file = e.target.files?.[0];
                                             if (file) {
                                                 const reader = new FileReader();
-                                                reader.onload = (ev) => updateField('image', { url: ev.target?.result });
+                                                reader.onload = (ev) => updateField('image', ev.target?.result); // Saving as Base64 String
                                                 reader.readAsDataURL(file);
                                             }
                                         }}
@@ -910,7 +913,8 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                 
                 <button
                     onClick={() => {
-                        const newId = `new-${Date.now()}`;
+                        // FIX: Use generated UUID here too, just to be safe (though handleMainSave fixes it)
+                        const newId = `new-${generateUUID()}`;
                         const newMember: TeamMember = {
                             id: newId,
                             name: '',
@@ -1014,7 +1018,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                 )}
             </div>
 
-            {/* RESTORED EXACT FOOTER UI & ACTION */}
+            {/* FOOTER ACTION */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
                 <button
                     type="button"
@@ -1025,9 +1029,16 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Pract
                 </button>
                 <button
                     onClick={handleSaveAndNext}
-                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition"
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition flex items-center gap-2 disabled:opacity-50"
                 >
-                    Save & Next
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                        </>
+                    ) : (
+                        'Save & Next'
+                    )}
                 </button>
             </div>
 

@@ -15,10 +15,12 @@ import PracticeInsurances from './PracticeInsurances';
 import PracticeFacilities from './PracticeFacilities';
 import PracticeContact from './PracticeContact';
 import PracticeMyCertificate from './PracticeMyCertificate';
-import type { PracticeInfo } from '../../../types/clinic';
-import toast from "react-hot-toast";
 
-export default function ClinicEditor({ clinicData }: { clinicData: PracticeInfo }) {
+// 1. UPDATED: Import the new Redux Type instead of the old PracticeInfo
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
+
+// 2. UPDATED: Use DirectoryProfile in the props
+export default function PracticeEditor({ clinicData }: { clinicData: DirectoryProfile }) {
     
     const [activeSection, setActiveSection] = useState(() => {
         return sessionStorage.getItem('clinic_editor_active_tab') || 'basic-info';
@@ -65,7 +67,7 @@ export default function ClinicEditor({ clinicData }: { clinicData: PracticeInfo 
             case 'reviews': return <PracticeReviews key="reviews" {...commonProps} onNext={() => navigateTo('insurances')} />;
             case 'insurances': return <PracticeInsurances key="insure" {...commonProps} onNext={() => navigateTo('facilities')} />;
             case 'facilities': return <PracticeFacilities key="facil" {...commonProps} onNext={() => navigateTo('contact')} />;
-            case 'contact': return <PracticeContact key="contact" {...commonProps} onNext={() => toast.success("Directory update complete!")} />;
+            case 'contact': return <PracticeContact key="contact" {...commonProps} onNext={() => navigateTo("directory")} />;
             default: return <PracticeBaseInfo key="default" {...commonProps} onNext={() => navigateTo('services')} />;
         }
     };

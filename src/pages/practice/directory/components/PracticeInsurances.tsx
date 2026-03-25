@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from 'react';
-import { ShieldCheck, Plus, X, Search, Check, Save } from 'lucide-react';
-import type { PracticeInfo } from '../../../types/clinic';
+import { useState, useEffect } from 'react';
+import { ShieldCheck, Plus, X, Search, Check, Save, Loader2 } from 'lucide-react';
+import toast from "react-hot-toast";
+
+// 1. Redux Imports
+import { useAppDispatch } from '../../../../store/hooks';
+import { updateDirectoryInsurances } from '../../../../features/directory/directory.slice';
+import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 // Common US Insurance providers for "Quick Add" suggestions
 const POPULAR_INSURANCES = [
@@ -10,13 +15,22 @@ const POPULAR_INSURANCES = [
     "Anthem", "Tricare", "Guardian", "MetLife"
 ];
 
-export default function PracticeInsurances({ onNext }: { clinicData: PracticeInfo, onNext: () => void }) {
+export default function PracticeInsurances({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
+    const dispatch = useAppDispatch();
+    
     // State to hold selected insurances
-    const [selectedInsurances, setSelectedInsurances] = useState<string[]>([
-        "Medicare" 
-    ]);
-
+    const [selectedInsurances, setSelectedInsurances] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Load initial data from Hasura
+    useEffect(() => {
+        if (clinicData?.practice_insurances) {
+            // Map the DB objects to just an array of strings
+            const dbInsurances = clinicData.practice_insurances.map((i: any) => i.provider_name);
+            setSelectedInsurances(dbInsurances);
+        }
+    }, [clinicData]);
 
     // Add insurance from Input
     const handleAddManual = () => {
@@ -49,10 +63,22 @@ export default function PracticeInsurances({ onNext }: { clinicData: PracticeInf
         setSelectedInsurances(prev => prev.filter(item => item !== name));
     };
 
-    const handleSaveAndNext = () => {
-        console.log('Saving Insurances:', selectedInsurances);
-        // Here you would typically update your backend/context
-        onNext();
+    const handleSaveAndNext = async () => {
+        setIsSaving(true);
+        try {
+            await dispatch(updateDirectoryInsurances({
+                practiceId: clinicData.id,
+                insurances: selectedInsurances
+            })).unwrap();
+
+            toast.success("Insurances saved successfully!");
+            onNext();
+        } catch (error: any) {
+            console.error("Failed to save insurances:", error);
+            toast.error(error.message || "Failed to save insurances. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -186,9 +212,14 @@ export default function PracticeInsurances({ onNext }: { clinicData: PracticeInf
                 </button>
                 <button
                     onClick={handleSaveAndNext}
-                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition flex items-center gap-2"
+                    disabled={isSaving}
+                    className="px-8 py-3 bg-orange-500 text-white font-medium rounded-full hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition disabled:opacity-50 flex items-center gap-2"
                 >
-                    <Save className="w-4 h-4" /> Save & Next
+                    {isSaving ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+                    ) : (
+                        <><Save className="w-4 h-4" /> Save & Next</>
+                    )}
                 </button>
             </div>
         </div>

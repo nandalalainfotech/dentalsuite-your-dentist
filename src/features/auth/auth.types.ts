@@ -1,5 +1,6 @@
 export interface User {
   id: string;
+  practiceId?: string;
   email: string;
   practiceName: string;
   phone: string;

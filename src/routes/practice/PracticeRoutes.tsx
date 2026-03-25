@@ -10,7 +10,7 @@ import PracticeNavbar from '../../components/practice/PracticeNavbar';
 import PracticeDashboard from '../../pages/practice/dashboard/pages/PracticeDashboard';
 
 // --- Import Views ---
-import PracticeDirectoryView from '../../pages/practice/PracticeDirectoryView';
+import PracticeDirectoryView from '../../pages/practice/directory/pages/PracticeDirectoryView';
 import PracticeNewsFeeds from '../../pages/practice/PracticeNewsFeeds';
 import PractiveViewProfile from '../../pages/practice/dashboard/pages/PractiveViewProfile';
 import PracticeAppointmentType from '../../pages/practice/PracticeAppointmentType';
