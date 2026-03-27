@@ -1,34 +1,63 @@
-export type AppointmentStatus =
-  | 'confirmed'
-  | 'pending'
-  | 'completed'
-  | 'dismissed'
-  | 'patient_cancelled'
-  | 'reception_cancelled';
+export type AppointmentStatus = 
+  | 'pending' 
+  | 'confirmed' 
+  | 'cancelled' 
+  | 'completed' 
+  | 'dismissed' 
+  | 'reception_cancelled' 
+  | 'no_show';
 
-export interface Appointment {
+export interface Practitioner {
   id: string;
-  patientName: string;
-  treatment: string;
-  dentistId: string;
-  dentistName: string;
-  appointmentDate: string; // YYYY-MM-DD
-  appointmentTime: string; // HH:mm
-  bookedAt: string; // ISO Date
-  isNewPatient: boolean;
-  isDependent: boolean;
-  status: AppointmentStatus;
-  mobile: string;
-  dob: string;
-  patientNotes: string;
-  bookedBy: string;
-  createdAt: string;
-  updatedAt: string;
-  isRescheduled: boolean;
+  name: string;
+  image?: string | null;
+  role?: string | null;
 }
 
+
+export interface OnlineBooking {
+  id: string;
+  practice_id: string;
+  practitioner_id?: string;
+
+  
+  practitioner?: Practitioner;
+
+  patient_name: string;
+  mobile: string;
+  dob?: string;
+  email?: string;
+
+  treatment: string;
+  appointment_date: string; // YYYY-MM-DD
+  appointment_time: string; // HH:MM:SS
+
+  status: string;
+  is_rescheduled: boolean;
+  
+  isNewPatient: boolean;
+  isDependent: boolean;
+
+  patient_notes?: string;
+  booked_by?: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
+
+export interface EnrichedAppointment extends Omit<OnlineBooking, 'status'> {
+  status: AppointmentStatus; 
+  dentist_name: string;
+  dentist_image: string | null; 
+  dentist_role: string;     
+}
+
+
 export interface AppointmentsState {
-  items: Appointment[];
+  list: OnlineBooking[]; 
   isLoading: boolean;
+  isUpdating: boolean;
   error: string | null;
+  successMessage: string | null;
 }

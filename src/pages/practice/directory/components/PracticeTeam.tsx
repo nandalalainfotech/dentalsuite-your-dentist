@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/static-components */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect } from 'react';
 import {
     Users, Edit2, ArrowLeft, Trash2,
@@ -9,7 +7,7 @@ import toast from "react-hot-toast";
 
 // 1. Redux Imports
 import { useAppDispatch } from '../../../../store/hooks';
-import { updateDirectoryTeam } from '../../../../features/directory/directory.slice';
+import { deleteDirectoryTeamMember, updateDirectoryTeam } from '../../../../features/directory/directory.slice';
 import type { DirectoryProfile } from '../../../../features/directory/directory.types';
 
 // --- HELPER: Generate Valid UUIDs for Hasura ---
@@ -436,9 +434,29 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
         setFormData(null);
     };
 
-    const handleDeleteMember = (id: string) => {
-        setTeamMembers(prev => prev.filter(m => m.id !== id));
-        setMemberToDelete(null);
+        const handleDeleteMember = async (id: string | null) => {
+        if (!id) return;
+
+        if (id.startsWith('new-')) {
+            setTeamMembers(prev => prev.filter(m => m.id !== id));
+            setMemberToDelete(null);
+            toast.success("Removed unsaved practitioner.");
+            return;
+        }
+        try {
+            // 1. Call API
+            await dispatch(deleteDirectoryTeamMember(id)).unwrap();
+            
+            // 2. On Success, remove from UI
+            setTeamMembers(prev => prev.filter(m => m.id !== id));
+            toast.success("Practitioner deleted successfully.");
+        } catch (error: any) {
+            console.error("Delete failed:", error);
+            toast.error(error.message || "Failed to delete practitioner.");
+        } finally {
+            // Close modal
+            setMemberToDelete(null);
+        }
     };
 
     const handleApptSave = (updatedTypes: AppointmentType[]) => {
@@ -480,7 +498,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                 team: teamMembers
             })).unwrap();
 
-            toast.success("Team settings saved successfully!");
+            toast.success("Team updated successfully!");
             onNext();
         } catch (error: any) {
             console.error("Failed to save team:", error);
@@ -616,31 +634,21 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-sm font-medium text-gray-700">Profession Type</label>
-                                        <select
+                                        <input
                                             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm bg-white"
                                             defaultValue="Dental"
-                                        >
-                                            <option value="Dental">Dental</option>
-                                            <option value="Medical">Medical</option>
-                                            <option value="Allied">Allied Health</option>
-                                        </select>
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Specific Role */}
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-gray-700">Specific Role</label>
-                                    <select
+                                    <input
                                         value={formData.role}
                                         onChange={(e) => updateField('role', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm bg-white"
-                                    >
-                                        <option value="">Select Role</option>
-                                        <option value="Dentist">Dentist</option>
-                                        <option value="Orthodontist">Orthodontist</option>
-                                        <option value="Hygienist">Hygienist</option>
-                                        <option value="Therapist">Therapist</option>
-                                    </select>
+                                    />
                                 </div>
 
                                 {/* AHPRA */}
@@ -973,7 +981,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                                 relative bg-white border border-gray-300 rounded-2xl p-6 flex flex-col items-center text-center transition-all duration-300 group
                                 ${member.isVisibleOnline 
                                     ? 'border-gray-200 hover:border-orange-300 hover:shadow-lg hover:shadow-orange-500/5' 
-                                    : 'border-gray-100 bg-gray-50/30 opacity-80 hover:opacity-100'}
+                                    : 'border-gray-100 bg-gray-50/30 '}
                             `}
                             
                         >

@@ -82,6 +82,17 @@ export const updateDirectoryTeam = createAsyncThunk("directory/updateTeam",
     catch (e: any) { return thunkAPI.rejectWithValue(e.message); }
   });
 
+export const deleteDirectoryTeamMember = createAsyncThunk(
+  "directory/deleteTeamMember",
+  async (id: string, thunkAPI) => {
+    try {
+      return await directoryService.deleteTeamMember(id);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message || "Failed to delete member");
+    }
+  }
+);
+
 export const updateDirectoryGalleries = createAsyncThunk("directory/updateGalleries",
   async (payload: { practiceId: string; galleries: any[] },
     thunkAPI) => {
@@ -248,5 +259,5 @@ export const directorySlice = createSlice({
   },
 });
 
-export const { clearDirectoryMessages, clearDirectoryData  } = directorySlice.actions;
+export const { clearDirectoryMessages, clearDirectoryData } = directorySlice.actions;
 export default directorySlice.reducer;
