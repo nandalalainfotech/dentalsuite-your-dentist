@@ -1,4 +1,3 @@
-
 // --- Types ---
 export type ValidStatus =
   | 'confirmed'
@@ -14,21 +13,30 @@ export interface EnrichedAppointment {
   id: string;
   patient_name: string;
   treatment: string;
+
+  // Flattened Practitioner Info
   dentist_id: string;
   dentist_name: string;
+  dentist_image: string;
+  dentist_role: string;
+
   appointment_date: string;
   appointment_time: string;
   bookedAt: Date;
+
   isNewPatient: boolean;
   isDependent: boolean;
+  is_rescheduled: boolean;
+
   status: ValidStatus;
+
   mobile: string;
   dob: string;
   patient_notes: string;
   booked_by: string;
+
   created_at: string;
   updated_at: string;
-  is_rescheduled?: boolean;
   lastUpdated?: Date;
 }
 
@@ -68,7 +76,7 @@ export const addDays = (date: Date, days: number) => {
   return result;
 };
 
-export const formatDate = (dateStr: string) => {
+export const formatDate = (dateStr: string | Date) => {
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 };
@@ -131,32 +139,70 @@ export const formatRelativeTime = (createdAt: string) => {
   return created.toLocaleDateString();
 };
 
-export const getWeekday = (dateStr: string | Date): string => new Date(dateStr).toLocaleString('en-US', { weekday: 'short' });
+export const getWeekday = (dateStr: string | Date): string => {
+  return new Date(dateStr).toLocaleString('en-US', { weekday: 'short' });
+}
 export const getDay = (dateStr: string | Date): number => new Date(dateStr).getDate();
 export const getMonth = (dateStr: string | Date): string => new Date(dateStr).toLocaleString('en-US', { month: 'short' });
 
-export const isTerminalState = (status: ValidStatus): boolean => ['completed', 'patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
-export const isCancelledStatus = (status: ValidStatus): boolean => ['patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
+export const isTerminalState = (status: ValidStatus): boolean => {
+  return ['completed', 'patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
+}
+export const isCancelledStatus = (status: ValidStatus): boolean => {
+  return ['patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
+}
 
 // --- Mapper ---
 export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
   const mapStatus = (apiStatus: string): ValidStatus => {
+
+    const normalized = apiStatus?.toLowerCase() || 'pending';
+
+    // Direct mapping or fallback
     const statusMap: Record<string, ValidStatus> = {
-      PENDING: 'pending', CONFIRMED: 'confirmed', COMPLETED: 'completed',
-      DISMISSED: 'dismissed', PATIENT_CANCELLED: 'patient_cancelled',
-      RECEPTION_CANCELLED: 'reception_cancelled', CANCELLED: 'reception_cancelled'
+      'pending': 'pending',
+      'confirmed': 'confirmed',
+      'completed': 'completed',
+      'dismissed': 'dismissed',
+      'patient_cancelled': 'patient_cancelled',
+      'reception_cancelled': 'reception_cancelled',
+      'cancelled': 'reception_cancelled'
     };
-    return statusMap[apiStatus?.toUpperCase()] || 'pending';
+
+    return statusMap[normalized] || 'pending';
   };
+
+
+
   const time = apt.appointment_time?.substring(0, 5) || '00:00';
   const bookedAt = new Date(`${apt.appointment_date}T${time}`);
+
   return {
-    id: apt.id, patient_name: apt.patient_name, treatment: apt.treatment,
-    dentist_id: apt.dentist_id, dentist_name: apt.dentist_name,
-    appointment_date: apt.appointment_date, appointment_time: time,
-    bookedAt, isNewPatient: apt.isNewPatient || false, isDependent: apt.isDependent || false,
-    status: mapStatus(apt.status), mobile: apt.mobile, dob: apt.dob,
-    patient_notes: apt.patient_notes || '', booked_by: apt.booked_by || apt.patient_name,
-    created_at: apt.created_at, updated_at: apt.updated_at, is_rescheduled: apt.is_rescheduled || false,
+    id: apt.id,
+    patient_name: apt.patient_name,
+    treatment: apt.treatment,
+
+    // Relational Data Flattening
+    dentist_id: apt.practitioner?.id || apt.dentist_id || '',
+    dentist_name: apt.practitioner?.name || apt.dentist_name || 'Unknown',
+    dentist_image: apt.practitioner?.image || null,
+    dentist_role: apt.practitioner?.role || 'General Practitioner',
+
+    appointment_date: apt.appointment_date,
+    appointment_time: time,
+    bookedAt,
+
+    isNewPatient: apt.isNewPatient || false,
+    isDependent: apt.isDependent || false,
+    is_rescheduled: apt.is_rescheduled || false,
+
+    status: mapStatus(apt.status),
+
+    mobile: apt.mobile,
+    dob: apt.dob,
+    patient_notes: apt.patient_notes || '',
+    booked_by: apt.booked_by || apt.patient_name,
+    created_at: apt.created_at,
+    updated_at: apt.updated_at,
   };
 };

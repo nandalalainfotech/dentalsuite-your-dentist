@@ -169,9 +169,30 @@ export const UPDATE_PRACTICE_ACHIEVEMENTS_MUTATION = gql`
 `;
 
 export const UPDATE_PRACTICE_TEAM_MUTATION = gql`
-  mutation UpdatePracticeTeam($practiceId: uuid!, $team: [practice_team_members_insert_input!]!) {
-    delete_practice_team_members(where: { practice_id: { _eq: $practiceId } }) { affected_rows }
-    insert_practice_team_members(objects: $team) { affected_rows }
+  mutation UpdatePracticeTeam($objects: [practice_team_members_insert_input!]!) {
+    insert_practice_team_members(
+      objects: $objects,
+      on_conflict: {
+        constraint: practice_team_members_pkey,
+        update_columns: [
+          name, role, qualification, gender, ahpra_number, education, 
+          languages, professional_statement, areas_of_interest, image, 
+          is_visible_online, allow_multiple_bookings, booking_time_limit, 
+          booking_time_limit_unit, cancel_time_limit, cancel_time_limit_unit, 
+          appointment_types
+        ]
+      }
+    ) {
+      affected_rows
+    }
+  }
+`;
+
+export const DELETE_PRACTICE_TEAM_MEMBER_MUTATION = gql`
+  mutation DeletePracticeTeamMember($id: uuid!) {
+    delete_practice_team_members_by_pk(id: $id) {
+      id
+    }
   }
 `;
 

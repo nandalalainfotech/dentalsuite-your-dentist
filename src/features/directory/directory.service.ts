@@ -6,6 +6,7 @@ import {
   UPDATE_PRACTICE_CERTIFICATIONS_MUTATION,
   UPDATE_PRACTICE_ACHIEVEMENTS_MUTATION,
   UPDATE_PRACTICE_TEAM_MUTATION,
+  DELETE_PRACTICE_TEAM_MEMBER_MUTATION, // <--- MAKE SURE THIS IS EXPORTED IN directory.query.ts
   UPDATE_PRACTICE_GALLERY_MUTATION,
   UPDATE_PRACTICE_INSURANCES_MUTATION,
   UPDATE_PRACTICE_FACILITIES_MUTATION,
@@ -23,7 +24,6 @@ const cleanObject = (obj: any) => {
 
 // --- 1. FETCH ---
 const getDirectory = async (id: string): Promise<DirectoryProfile> => {
-  
   const response = await localClient.query({
     query: GET_PRACTICE_DIRECTORY_QUERY,
     variables: { id },
@@ -40,11 +40,8 @@ const getDirectory = async (id: string): Promise<DirectoryProfile> => {
   return {
     ...raw,
     ...baseInfo, 
-    
     id: raw.id,   
-    
     base_info_id: baseInfo.id, 
-
     practice_opening_hours: raw.practice_opening_hours || [],
     practice_facilities: raw.practice_facilities || [],
     practice_team_members: raw.practice_team_members || [],
@@ -59,11 +56,7 @@ const getDirectory = async (id: string): Promise<DirectoryProfile> => {
 
 // --- 2. UPDATE BASE INFO ---
 const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string> => {
-  
-  // 1. Parent Table Changes (practice_info)
-  // This is the SINGLE SOURCE OF TRUTH for Name and Logo
   const infoChanges = {
-
     practice_name: payload.data.practice_name,
     logo: payload.data.logo,
     abn_number: payload.data.abn_number,
@@ -78,8 +71,6 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
     mobile: payload.data.mobile,
   };
 
-  // 2. Child Table Changes (practice_base_info)
-  // REMOVED: practice_name and logo from here
   const baseInfoChanges = {
     practice_id: payload.id,
     website: payload.data.website,
@@ -94,8 +85,6 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
     description: payload.data.description,
   };
 
-  console.log("Saving Practice ID:", payload.id);
-
   await localClient.mutate({
     mutation: UPDATE_PRACTICE_DIRECTORY_MUTATION,
     variables: { 
@@ -108,7 +97,65 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
   return "Profile settings updated successfully!";
 };
 
-// --- 3. BULK UPDATE ARRAYS ---
+// --- 3. TEAM MEMBERS (The Critical Fix) ---
+
+// A. UPSERT (Update or Create)
+const updateTeamMembers = async (practiceId: string, team: any[]): Promise<string> => {
+  
+  const payload = team.map(t => {
+    // Image Logic
+    const finalImage = t.image && typeof t.image === 'object' ? t.image.url : t.image;
+
+    // Construct the object
+    const memberObj = {
+      id: t.id, // ID IS CRITICAL HERE
+      practice_id: practiceId,
+      name: t.name,
+      role: t.role,
+      qualification: t.qualification,
+      gender: t.gender,
+      ahpra_number: t.ahpra || t.ahpra_number, 
+      education: t.education,
+      languages: t.languages,
+      professional_statement: t.professionalStatement || t.professional_statement,
+      areas_of_interest: t.areasOfInterest || t.areas_of_interest,
+      image: finalImage,
+      is_visible_online: t.isVisibleOnline ?? t.is_visible_online ?? false,
+      allow_multiple_bookings: t.allowMultipleBookings ?? t.allow_multiple_bookings ?? true,
+      booking_time_limit: Number(t.bookingTimeLimit || t.booking_time_limit || 0),
+      booking_time_limit_unit: t.bookingTimeLimitUnit || t.booking_time_limit_unit || 'minutes',
+      cancel_time_limit: Number(t.cancelTimeLimit || t.cancel_time_limit || 0),
+      cancel_time_limit_unit: t.cancelTimeLimitUnit || t.cancel_time_limit_unit || 'minutes',
+      appointment_types: t.appointmentTypes || t.appointment_types || []
+    };
+
+    // If it's a new doctor (no ID), delete the undefined ID field so Hasura creates one
+    if (!memberObj.id) delete (memberObj as any).id;
+    
+    return memberObj;
+  });
+
+  // SEND AS 'objects'
+  await localClient.mutate({ 
+    mutation: UPDATE_PRACTICE_TEAM_MUTATION, 
+    variables: { objects: payload } 
+  });
+  
+  return "Team updated successfully!";
+};
+
+// THE DELETE FUNCTION
+const deleteTeamMember = async (id: string): Promise<string> => {
+  if (!id) return "No ID provided";
+  await localClient.mutate({
+    mutation: DELETE_PRACTICE_TEAM_MEMBER_MUTATION,
+    variables: { id }
+  });
+  return "Team member deleted";
+};
+
+
+// --- 4. OTHER ARRAYS (Bulk Replace is safe here) ---
 
 const updateServices = async (practiceId: string, services: any[]): Promise<string> => {
   const payload = services.map(s => ({ practice_id: practiceId, ...s }));
@@ -126,52 +173,6 @@ const updateAchievements = async (practiceId: string, achievements: any[]): Prom
   const payload = achievements.map(a => ({ practice_id: practiceId, ...a }));
   await localClient.mutate({ mutation: UPDATE_PRACTICE_ACHIEVEMENTS_MUTATION, variables: { practiceId, achievements: payload } });
   return "Achievements updated!";
-};
-
-const updateTeamMembers = async (practiceId: string, team: any[]): Promise<string> => {
-  
-  const payload = team.map(t => {
-    
-    // Handle Image: If it's an object with {url: ...}, get the url. Otherwise use string.
-    const finalImage = t.image && typeof t.image === 'object' ? t.image.url : t.image;
-
-    return {
-      practice_id: practiceId,
-      name: t.name,
-      role: t.role,
-      qualification: t.qualification,
-      gender: t.gender,
-      
-      ahpra_number: t.ahpra || t.ahpra_number, 
-      education: t.education,
-      languages: t.languages,
-      professional_statement: t.professionalStatement || t.professional_statement,
-      areas_of_interest: t.areasOfInterest || t.areas_of_interest,
-      
-      image: finalImage,
-      
-      is_visible_online: t.isVisibleOnline ?? t.is_visible_online ?? false,
-      allow_multiple_bookings: t.allowMultipleBookings ?? t.allow_multiple_bookings ?? true,
-      
-      // Number Conversion
-      booking_time_limit: Number(t.bookingTimeLimit || t.booking_time_limit || 0),
-      booking_time_limit_unit: t.bookingTimeLimitUnit || t.booking_time_limit_unit || 'minutes',
-      
-      cancel_time_limit: Number(t.cancelTimeLimit || t.cancel_time_limit || 0),
-      cancel_time_limit_unit: t.cancelTimeLimitUnit || t.cancel_time_limit_unit || 'minutes',
-      
-      // JSONB Column
-      appointment_types: t.appointmentTypes || t.appointment_types || []
-    };
-  });
-
-
-  await localClient.mutate({ 
-    mutation: UPDATE_PRACTICE_TEAM_MUTATION, 
-    variables: { practiceId, team: payload } 
-  });
-  
-  return "Team updated!";
 };
 
 const updateGalleries = async (practiceId: string, galleries: any[]): Promise<string> => {
@@ -211,6 +212,7 @@ const directoryService = {
   updateCertifications,
   updateAchievements,
   updateTeamMembers,
+  deleteTeamMember, 
   updateGalleries,
   updateInsurances,
   updateFacilities,

@@ -1,61 +1,77 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { localClient } from "../../api/apollo/localClient";
-import { GET_APPOINTMENTS_QUERY } from "../../pages/practice/dashboard/graphql/appointments.query";
-import type { Appointment, AppointmentStatus } from "./appointments.type";
+import { 
+  GET_APPOINTMENTS_QUERY, 
+  GET_PRACTITIONERS_QUERY, 
+  RESCHEDULE_MUTATION, 
+  UPDATE_STATUS_MUTATION 
+} from "../../pages/practice/dashboard/graphql/appointments.query";
+import type { OnlineBooking, Practitioner } from "./appointments.type";
 
-interface AppointmentResponse {
-  online_booking: any[];
-}
-
-// Helper to map DB response to clean TypeScript object
-const mapToAppointment = (data: any): Appointment => {
-  const mapStatus = (apiStatus: string): AppointmentStatus => {
-    const statusMap: Record<string, AppointmentStatus> = {
-      PENDING: 'pending',
-      CONFIRMED: 'confirmed',
-      COMPLETED: 'completed',
-      DISMISSED: 'dismissed',
-      PATIENT_CANCELLED: 'patient_cancelled',
-      RECEPTION_CANCELLED: 'reception_cancelled',
-      CANCELLED: 'reception_cancelled'
-    };
-    return statusMap[apiStatus?.toUpperCase()] || 'pending';
-  };
-
-  return {
-    id: data.id,
-    patientName: data.patient_name,
-    treatment: data.treatment,
-    dentistId: data.dentist_id || "unknown", 
-    dentistName: data.dentist_name,
-    appointmentDate: data.appointment_date,
-    appointmentTime: data.appointment_time?.substring(0, 5) || '00:00',
-    bookedAt: data.created_at,
-    isNewPatient: data.isNewPatient || false,
-    isDependent: data.isDependent || false,
-    status: mapStatus(data.status),
-    mobile: data.mobile,
-    dob: data.dob,
-    patientNotes: data.patient_notes || '',
-    bookedBy: data.booked_by || data.patient_name,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    isRescheduled: data.is_rescheduled || false,
-  };
-};
-
-const getAppointments = async (practiceId: string): Promise<Appointment[]> => {
-  const { data } = await localClient.query<AppointmentResponse>({
+// --- 1. FETCH APPOINTMENTS ---
+const getAppointments = async (practiceId: string): Promise<OnlineBooking[]> => {
+  const response = await localClient.query({
     query: GET_APPOINTMENTS_QUERY,
-    // Variable name must match the query definition ($practice_id)
     variables: { practice_id: practiceId },
     fetchPolicy: "network-only",
   });
 
-  return (data?.online_booking || []).map(mapToAppointment);
+  // FIX: Cast 'response.data' to 'any' to access 'online_bookings' safely
+  const data = response.data as any;
+
+  return data.online_bookings || [];
+};
+
+// --- 2. UPDATE STATUS ---
+const updateStatus = async (id: string, status: string) => {
+  const response = await localClient.mutate({
+    mutation: UPDATE_STATUS_MUTATION,
+    variables: { id, status },
+  });
+  
+  // FIX: Cast 'response.data' to 'any'
+  const data = response.data as any;
+  return data.update_online_bookings_by_pk;
+};
+
+// --- 3. RESCHEDULE ---
+const reschedule = async (id: string, date: string, time: string) => {
+  const response = await localClient.mutate({
+    mutation: RESCHEDULE_MUTATION,
+    variables: { id, date, time },
+  });
+  
+  // FIX: Cast 'response.data' to 'any'
+  const data = response.data as any;
+  return data.update_online_bookings_by_pk;
+};
+
+const getPractitioners = async (practiceId: string): Promise<Practitioner[]> => {
+  const response = await localClient.query({
+    query: GET_PRACTITIONERS_QUERY,
+    variables: { practice_id: practiceId },
+    fetchPolicy: "network-only",
+  });
+
+  const data = response.data as any;
+  const rawMembers = data.practice_team_members || [];
+
+  // Map to clean structure
+  return rawMembers.map((m: any) => ({
+    id: m.id,
+    name: m.name,
+    // Handle image object vs string issue
+    image: m.image && typeof m.image === 'object' ? m.image.url : m.image,
+    role: m.role,
+    areas_of_interest: m.areas_of_interest
+  }));
 };
 
 const appointmentsService = {
   getAppointments,
+  getPractitioners,
+  updateStatus,
+  reschedule
 };
 
 export default appointmentsService;
