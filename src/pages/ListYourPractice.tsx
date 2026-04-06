@@ -2,35 +2,44 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/layout/Footer";
 import logo from "../assets/logo.svg";
+import { Icons } from "../components/dashboard/Icons";
+import practiceImg from "../../public/practice-page.png"
 
 const ListYourPractice: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-white">
 
             {/* ================= NAVBAR ================= */}
-            <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-slate-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-                    
-                    {/* Logo area */}
+            <nav className="sticky top-0 z-50 w-full bg-white border-b border-slate-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Link to="/" className="flex items-center gap-2">
-                            <img src={logo} alt="Logo" className="h-6 sm:h-7 md:h-8 w-auto" />
+                            <img src={logo} alt="Logo" className="h-7 sm:h-8 w-auto" />
                         </Link>
                     </div>
+                    <div className="flex flex-col items-end gap-3">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                            <Link
+                                to="/"
+                                className="text-sm font-medium text-slate-600 hover:text-orange-600 hidden sm:block"
+                            >
+                                I'm a Patient
+                            </Link>
+                            <Link
+                                to="/practice/signin"
+                                className="text-sm font-medium text-slate-600 hover:text-orange-600 flex items-center gap-1.5"
+                            >
+                                <Icons.User />
+                                <span>Log In</span>
+                            </Link>
+                        </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-3 sm:gap-4">
+                        {/* Bottom Button */}
                         <Link
-                            to="/"
-                            className="text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors hidden sm:block"
+                            to="/practice/signup"
+                            className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-sm transition whitespace-nowrap"
                         >
-                            I'm a Patient
-                        </Link>
-                        <Link
-                            to="/practice/signin"
-                            className="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-all whitespace-nowrap"
-                        >
-                            Log In
+                            List your practice
                         </Link>
                     </div>
                 </div>
@@ -51,8 +60,8 @@ const ListYourPractice: React.FC = () => {
                                     Now accepting new clinics in NSW & VIC
                                 </div>
                                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight">
-                                    Expand your reach,<br className="hidden sm:block" /> 
-                                    simplify your<br className="hidden sm:block" /> 
+                                    Expand your reach,<br className="hidden sm:block" />
+                                    simplify your<br className="hidden sm:block" />
                                     <span className="text-orange-500"> workflow.</span>
                                 </h1>
 
@@ -62,8 +71,8 @@ const ListYourPractice: React.FC = () => {
                                 </p>
 
                                 <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                                    <Link 
-                                        to="/practice/signup" 
+                                    <Link
+                                        to="/practice/signup"
                                         className="bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold transition text-center shadow-orange-200 text-sm sm:text-base"
                                     >
                                         Join for free
@@ -72,31 +81,41 @@ const ListYourPractice: React.FC = () => {
                             </div>
 
                             {/* Right Image */}
-                            <div className="relative flex justify-center order-1 lg:order-2">
-                                {/* Decorator blob */}
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-orange-200/20 blur-3xl rounded-full -z-10"></div>
+                            <div className="relative max-w-sm sm:max-w-md w-full">
 
-                                <div className="relative max-w-sm sm:max-w-md w-full">
+                                {/* Image Wrapper with fixed aspect ratio */}
+                                <div className="w-full">
                                     <img
-                                        src="/assets/doctor-phone.png"
+                                        src={practiceImg}
                                         alt="Healthcare professional using app"
-                                        className="rounded-2xl shadow-2xl border-4 border-white w-full"
+                                        className="w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-white"
                                     />
+                                </div>
 
-                                    {/* Floating Card - Hidden on mobile, shown on sm and up */}
-                                    <div className="absolute top-4 sm:top-10 -left-4 sm:-left-10 bg-white/90 backdrop-blur shadow-xl border border-white/50 rounded-2xl p-3 sm:p-4 w-48 sm:w-64 z-20 animate-bounce-slow hidden sm:block">
-                                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm sm:text-base">DC</div>
-                                            <div>
-                                                <p className="text-xs sm:text-sm font-bold text-gray-900">Downtown Dental</p>
-                                                <p className="text-[8px] sm:text-[10px] text-gray-500">45 Medical Plaza, NSW</p>
-                                            </div>
+                                {/* Floating Card */}
+                                <div className="absolute top-6 sm:top-10 -left-6 sm:-left-10  bg-white/90 backdrop-blur shadow-xl border border-white/50 
+                                        rounded-2xl p-3 sm:p-4 w-52 sm:w-64 z-20hidden sm:block transition-transform hover:scale-105">
+
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                                            DC
                                         </div>
-                                        <div className="flex items-center justify-between text-xs bg-green-50 text-green-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-medium">
-                                            <span>● Live Booking</span>
-                                            <span className="text-xs">Just now</span>
+
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900">
+                                                Downtown Dental
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                45 Medical Plaza, NSW
+                                            </p>
                                         </div>
                                     </div>
+
+                                    <div className="flex items-center justify-between text-xs bg-green-50 text-green-700 px-3 py-2 rounded-lg font-medium">
+                                        <span>● Live Booking</span>
+                                        <span>Just now</span>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -122,8 +141,8 @@ const ListYourPractice: React.FC = () => {
                                 { icon: "📈", title: "Seamless Integration", desc: "Our platform syncs effortlessly with your existing practice management software to automate bookings and reminders." },
                                 { icon: "🛡️", title: "Trust & Credibility", desc: "Leverage verified patient reviews to showcase your expertise and turn profile visitors into loyal, long-term patients." }
                             ].map((item, idx) => (
-                                <div 
-                                    key={idx} 
+                                <div
+                                    key={idx}
                                     className="bg-gray-50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 sm:p-8 rounded-2xl border border-transparent hover:border-gray-100"
                                 >
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white shadow-sm rounded-xl flex items-center justify-center mb-4 sm:mb-6 text-xl sm:text-2xl border border-gray-100">
@@ -148,7 +167,7 @@ const ListYourPractice: React.FC = () => {
                             {/* Stats */}
                             <div>
                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 lg:mb-10 leading-tight">
-                                    Australia's most trusted <br className="hidden sm:block" /> 
+                                    Australia's most trusted <br className="hidden sm:block" />
                                     <span className="text-orange-500">healthcare marketplace</span>
                                 </h2>
 
@@ -206,8 +225,8 @@ const ListYourPractice: React.FC = () => {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
-                            <Link 
-                                to="/practice/signup" 
+                            <Link
+                                to="/practice/signup"
                                 className="bg-orange-600 hover:bg-orange-700 text-white px-6 sm:px-8 lg:px-10 py-3 sm:py-4 rounded-xl font-semibold text-sm sm:text-base lg:text-lg transition text-center"
                             >
                                 Create Practice Profile
