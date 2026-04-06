@@ -1,8 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/auth.slice";
 import dashboardReducer from "../features/dashboard/dashboard.slice";
-import appointmentsReducer from "../features/appointments/appointments.slice"; 
+import appointmentsReducer from "../features/online_bookings/online_bookings.slice"; 
 import directoryReducer from "../features/directory/directory.slice";
+import appointmentTypesReducer from "../features/appointment_types/appointment_types.slice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     appointments: appointmentsReducer,
     directory: directoryReducer, 
+    appointmentTypes: appointmentTypesReducer,
   },
 });
 

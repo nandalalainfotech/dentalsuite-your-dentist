@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Check, Archive, X } from 'lucide-react';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { formatShortDate, formatTime, type EnrichedAppointment, type ValidStatus } from '../../../../features/appointments/appointments.utils';
+import { formatShortDate, formatTime, type EnrichedAppointment, type ValidStatus } from '../../../../features/online_bookings/online_bookings.utils';
 
 interface ActionProps {
   apt: EnrichedAppointment;

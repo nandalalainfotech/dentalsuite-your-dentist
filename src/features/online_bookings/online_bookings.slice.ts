@@ -4,12 +4,19 @@ import {
   type PayloadAction,
   isAnyOf
 } from "@reduxjs/toolkit";
-import appointmentsService from "./appointments.service";
-import type { OnlineBooking, Practitioner } from "./appointments.type";
+import appointmentsService from "./online_bookings.service";
+import type { 
+  OnlineBooking, 
+  Practitioner, 
+} from "./online_bookings.type";
+import type { PracticeOpeningHour, PracticeService } from "../directory/directory.types";
 
+// Updated this interface to use the strict types rather than 'any[]'
 interface AppointmentsState {
   list: OnlineBooking[];
   practitioners: Practitioner[];
+  services: PracticeService[];
+  openingHours: PracticeOpeningHour[]; 
   isLoading: boolean;
   isUpdating: boolean;
   error: string | null;
@@ -19,6 +26,8 @@ interface AppointmentsState {
 const initialState: AppointmentsState = {
   list: [],
   practitioners: [],
+  services: [],
+  openingHours: [], 
   isLoading: false,
   isUpdating: false,
   error: null,
@@ -47,12 +56,34 @@ export const fetchPractitioners = createAsyncThunk(
   }
 );
 
+export const fetchPracticeServices = createAsyncThunk(
+  "appointments/fetchServices",
+  async (practiceId: string, thunkAPI) => {
+    try {
+      return await appointmentsService.getPracticeServices(practiceId);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const fetchOpeningHours = createAsyncThunk(
+  "appointments/fetchOpeningHours",
+  async (practiceId: string, thunkAPI) => {
+    try {
+      return await appointmentsService.getOpeningHours(practiceId);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 export const updateBookingStatus = createAsyncThunk(
   "appointments/updateStatus",
   async ({ id, status }: { id: string; status: string }, thunkAPI) => {
     try {
       const updatedData = await appointmentsService.updateStatus(id, status);
-      return updatedData; // Returns the updated fields from API
+      return updatedData;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message || "Failed to update status");
     }
@@ -61,10 +92,10 @@ export const updateBookingStatus = createAsyncThunk(
 
 export const rescheduleBooking = createAsyncThunk(
   "appointments/reschedule",
-  async ({ id, date, time }: { id: string; date: string; time: string }, thunkAPI) => {
+  async ({ id, date, time, practitionerId }: { id: string; date: string; time: string, practitionerId: string }, thunkAPI) => {
     try {
-      const updatedData = await appointmentsService.reschedule(id, date, time);
-      return updatedData; // Returns the updated fields from API
+      const updatedData = await appointmentsService.reschedule(id, date, time, practitionerId);
+      return updatedData;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message || "Failed to reschedule");
     }
@@ -98,8 +129,16 @@ const appointmentsSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    builder.addCase(fetchPractitioners.fulfilled, (state, action) => {
+    builder.addCase(fetchPractitioners.fulfilled, (state, action: PayloadAction<Practitioner[]>) => {
       state.practitioners = action.payload;
+    });
+       
+    builder.addCase(fetchPracticeServices.fulfilled, (state, action: PayloadAction<PracticeService[]>) => {
+      state.services = action.payload;
+    });
+
+    builder.addCase(fetchOpeningHours.fulfilled, (state, action: PayloadAction<PracticeOpeningHour[]>) => {
+      state.openingHours = action.payload;
     });
 
     // 2. Shared Update/Reschedule Logic (Pending)
@@ -125,6 +164,13 @@ const appointmentsSlice = createSlice({
             ...state.list[index],
             ...action.payload
           };
+          if (action.payload.practitioner) {
+             state.list[index].practitioner = action.payload.practitioner;
+             
+             if (action.payload.practitioner_id) {
+                state.list[index].practitioner_id = action.payload.practitioner_id;
+             }
+          }
         }
       }
     );

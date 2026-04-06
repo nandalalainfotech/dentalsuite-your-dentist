@@ -3,8 +3,7 @@ export type AppointmentStatus =
   | 'confirmed' 
   | 'cancelled' 
   | 'completed' 
-  | 'dismissed' 
-  | 'reception_cancelled' 
+  | 'dismissed'  
   | 'no_show';
 
 export interface Practitioner {

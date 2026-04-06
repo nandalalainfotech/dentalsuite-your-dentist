@@ -2,7 +2,7 @@ import {
   type ValidStatus,
   STATUS_CONFIG,
   STATUS_LABELS
-} from '../../../../features/appointments/appointments.utils';
+} from '../../../../features/online_bookings/online_bookings.utils';
 
 // Maps your new Redux types to the UI component
 // ValidStatus in utils should match AppointmentStatus in types.ts
@@ -38,7 +38,7 @@ export const PatientTags = ({ isNewPatient, isDependent, size = 'default' }: { i
 };
 
 export const TableHeader = () => (
-  <div className="hidden lg:flex items-center gap-4 px-4 md:px-6 py-3 bg-gray-100 text-gray-500 font-semibold text-sm sticky top-0 z-10 backdrop-blur-sm">
+  <div className="hidden lg:flex items-center gap-4 px-4 md:px-6 py-3 bg-gray-100 text-gray-500 font-semibold text-sm backdrop-blur-sm">
     <div className="flex-[1.5]">Patient Details</div>
     <div className="flex-1">Practitioner</div>
     <div className="flex-[1.2]">Appointment Details</div>

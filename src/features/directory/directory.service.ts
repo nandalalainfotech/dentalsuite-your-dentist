@@ -1,28 +1,41 @@
+// src/features/directory/directory.service.ts
 import { localClient } from "../../api/apollo/localClient";
 import {
   GET_PRACTICE_DIRECTORY_QUERY,
+  GET_ALL_SERVICES_QUERY,
   UPDATE_PRACTICE_DIRECTORY_MUTATION,
   UPDATE_PRACTICE_SERVICES_MUTATION,
   UPDATE_PRACTICE_CERTIFICATIONS_MUTATION,
   UPDATE_PRACTICE_ACHIEVEMENTS_MUTATION,
   UPDATE_PRACTICE_TEAM_MUTATION,
-  DELETE_PRACTICE_TEAM_MEMBER_MUTATION, // <--- MAKE SURE THIS IS EXPORTED IN directory.query.ts
+  DELETE_PRACTICE_TEAM_MEMBER_MUTATION, 
   UPDATE_PRACTICE_GALLERY_MUTATION,
   UPDATE_PRACTICE_INSURANCES_MUTATION,
   UPDATE_PRACTICE_FACILITIES_MUTATION,
   UPDATE_PRACTICE_OPENING_HOURS_MUTATION,
   UPDATE_PRACTICE_EXCEPTIONS_MUTATION
 } from "../../pages/practice/directory/graphql/directory.query";
-import type { DirectoryProfile, UpdateDirectoryPayload } from "./directory.types";
+import type { DirectoryProfile, UpdateDirectoryPayload, AllService } from "./directory.types";
 
-// Helper to remove undefined keys
 const cleanObject = (obj: any) => {
   const newObj = { ...obj };
   Object.keys(newObj).forEach(key => newObj[key] === undefined && delete newObj[key]);
   return newObj;
 };
 
-// --- 1. FETCH ---
+// --- FETCH ALL SERVICES ---
+const getAllServices = async (): Promise<AllService[]> => {
+  const response = await localClient.query({
+    query: GET_ALL_SERVICES_QUERY,
+    fetchPolicy: "cache-first",
+  });
+
+  const data = response.data as any;
+  
+  return data.all_services || [];
+};
+
+// --- 1. FETCH DIRECTORY ---
 const getDirectory = async (id: string): Promise<DirectoryProfile> => {
   const response = await localClient.query({
     query: GET_PRACTICE_DIRECTORY_QUERY,
@@ -97,18 +110,16 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
   return "Profile settings updated successfully!";
 };
 
-// --- 3. TEAM MEMBERS (The Critical Fix) ---
-
-// A. UPSERT (Update or Create)
+// --- 3. TEAM MEMBERS (UPDATED FOR NEW JUNCTION TABLE) ---
 const updateTeamMembers = async (practiceId: string, team: any[]): Promise<string> => {
   
+  const junctionObjects: any[] = []; 
+
   const payload = team.map(t => {
-    // Image Logic
     const finalImage = t.image && typeof t.image === 'object' ? t.image.url : t.image;
 
-    // Construct the object
     const memberObj = {
-      id: t.id, // ID IS CRITICAL HERE
+      id: t.id, 
       practice_id: practiceId,
       name: t.name,
       role: t.role,
@@ -118,7 +129,6 @@ const updateTeamMembers = async (practiceId: string, team: any[]): Promise<strin
       education: t.education,
       languages: t.languages,
       professional_statement: t.professionalStatement || t.professional_statement,
-      areas_of_interest: t.areasOfInterest || t.areas_of_interest,
       image: finalImage,
       is_visible_online: t.isVisibleOnline ?? t.is_visible_online ?? false,
       allow_multiple_bookings: t.allowMultipleBookings ?? t.allow_multiple_bookings ?? true,
@@ -129,22 +139,39 @@ const updateTeamMembers = async (practiceId: string, team: any[]): Promise<strin
       appointment_types: t.appointmentTypes || t.appointment_types || []
     };
 
-    // If it's a new doctor (no ID), delete the undefined ID field so Hasura creates one
-    if (!memberObj.id) delete (memberObj as any).id;
+    if (!memberObj.id || memberObj.id.startsWith('new-')) {
+      delete (memberObj as any).id; 
+    }
+
+    // Capture selected services to insert into the NEW junction table
+    if (t.selectedServiceIds && t.selectedServiceIds.length > 0) {
+      t.selectedServiceIds.forEach((serviceId: string) => {
+        // Must check that the ID doesn't start with new- before adding to relational table
+        if (!t.id.startsWith('new-')) {
+          junctionObjects.push({
+            practitioner_id: t.id, 
+            practice_service_id: serviceId, 
+            practice_id: practiceId 
+          });
+        }
+      });
+    }
     
     return memberObj;
   });
 
-  // SEND AS 'objects'
   await localClient.mutate({ 
     mutation: UPDATE_PRACTICE_TEAM_MUTATION, 
-    variables: { objects: payload } 
+    variables: { 
+      practiceId,
+      objects: payload,
+      junctionObjects: junctionObjects
+    } 
   });
   
   return "Team updated successfully!";
 };
 
-// THE DELETE FUNCTION
 const deleteTeamMember = async (id: string): Promise<string> => {
   if (!id) return "No ID provided";
   await localClient.mutate({
@@ -154,12 +181,27 @@ const deleteTeamMember = async (id: string): Promise<string> => {
   return "Team member deleted";
 };
 
-
-// --- 4. OTHER ARRAYS (Bulk Replace is safe here) ---
-
+// --- 4. OTHER ARRAYS (UPDATED FOR UPSERTS) ---
 const updateServices = async (practiceId: string, services: any[]): Promise<string> => {
-  const payload = services.map(s => ({ practice_id: practiceId, ...s }));
-  await localClient.mutate({ mutation: UPDATE_PRACTICE_SERVICES_MUTATION, variables: { practiceId, services: payload } });
+  // 1. Map payload
+  const payload = services.map(s => ({ 
+    practice_id: practiceId, 
+    ...s 
+  }));
+  
+  // 2. Extract active names so the DB knows which ones to protect from deletion
+  const activeNames = services.map(s => s.name);
+
+  // 3. Send to new Upsert Mutation
+  await localClient.mutate({ 
+    mutation: UPDATE_PRACTICE_SERVICES_MUTATION, 
+    variables: { 
+      practiceId, 
+      services: payload,
+      activeNames: activeNames 
+    } 
+  });
+  
   return "Services updated!";
 };
 
@@ -206,6 +248,7 @@ const updateExceptions = async (practiceId: string, exceptions: any[]): Promise<
 };
 
 const directoryService = {
+  getAllServices, 
   getDirectory,
   updateDirectory,
   updateServices,

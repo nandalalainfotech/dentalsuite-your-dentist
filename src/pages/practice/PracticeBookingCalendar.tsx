@@ -35,6 +35,7 @@ interface Service {
     borderColor: string;
 }
 
+// ✅ CHANGED: Removed 'rescheduled' from status union, added 'is_rescheduled' boolean flag
 interface Appointment {
     id: string;
     patientId: string;
@@ -42,7 +43,8 @@ interface Appointment {
     serviceId: string;
     startTime: Date;
     endTime: Date;
-    status: 'rescheduled' | 'confirmed' | 'pending' | 'completed' | 'cancelled';
+    status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
+    is_rescheduled: boolean;
     notes?: string;
     type: 'appointment';
     rescheduledFrom?: {
@@ -257,6 +259,7 @@ const INITIAL_BREAKS: CalendarEvent[] = [
     }
 ];
 
+// ✅ CHANGED: Added is_rescheduled: false to all appointments
 const INITIAL_APPOINTMENTS: Appointment[] = [
     {
         id: 'a1',
@@ -266,6 +269,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(9, 0, 0, 0)),
         endTime: new Date(new Date().setHours(9, 30, 0, 0)),
         status: 'confirmed',
+        is_rescheduled: false,
         notes: 'Regular checkup',
         type: 'appointment'
     },
@@ -277,6 +281,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(10, 0, 0, 0)),
         endTime: new Date(new Date().setHours(10, 45, 0, 0)),
         status: 'pending',
+        is_rescheduled: false,
         notes: 'First cleaning in 6 months',
         type: 'appointment'
     },
@@ -288,6 +293,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(9, 30, 0, 0)),
         endTime: new Date(new Date().setHours(11, 0, 0, 0)),
         status: 'pending',
+        is_rescheduled: false,
         notes: 'Teeth pain',
         type: 'appointment'
     },
@@ -299,6 +305,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(11, 30, 0, 0)),
         endTime: new Date(new Date().setHours(12, 30, 0, 0)),
         status: 'confirmed',
+        is_rescheduled: false,
         notes: 'Whitening treatment',
         type: 'appointment'
     },
@@ -310,6 +317,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(9, 0, 0, 0)),
         endTime: new Date(new Date().setHours(9, 45, 0, 0)),
         status: 'completed',
+        is_rescheduled: false,
         notes: 'Initial consultation for braces',
         type: 'appointment'
     },
@@ -321,6 +329,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(14, 0, 0, 0)),
         endTime: new Date(new Date().setHours(14, 30, 0, 0)),
         status: 'pending',
+        is_rescheduled: false,
         notes: 'Small cavity filling',
         type: 'appointment'
     },
@@ -332,6 +341,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(14, 0, 0, 0)),
         endTime: new Date(new Date().setHours(15, 0, 0, 0)),
         status: 'confirmed',
+        is_rescheduled: false,
         notes: 'Crown fitting for molar',
         type: 'appointment'
     },
@@ -343,6 +353,7 @@ const INITIAL_APPOINTMENTS: Appointment[] = [
         startTime: new Date(new Date().setHours(15, 30, 0, 0)),
         endTime: new Date(new Date().setHours(16, 0, 0, 0)),
         status: 'cancelled',
+        is_rescheduled: false,
         notes: 'Emergency - patient cancelled',
         type: 'appointment'
     },
@@ -483,14 +494,15 @@ const PatientTags = ({
 };
 
 // --- Status Badge Component ---
+// ✅ CHANGED: Removed 'rescheduled' status, added is_rescheduled prop with ring indicator
 interface StatusBadgeProps {
     status: Appointment['status'];
     size?: 'sm' | 'md';
+    is_rescheduled?: boolean;
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', is_rescheduled = false }) => {
     const statusStyles = {
-        'rescheduled': 'bg-blue-100 text-blue-700 border-blue-200',
         'confirmed': 'bg-green-100 text-green-700 border-green-200',
         'pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
         'completed': 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -498,7 +510,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
     };
 
     const statusLabels = {
-        'rescheduled': 'Rescheduled',
         'confirmed': 'Confirmed',
         'pending': 'Pending',
         'completed': 'Completed',
@@ -506,7 +517,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
     };
 
     const statusIcons = {
-        'rescheduled': <RefreshCw size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'confirmed': <Check size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'pending': <Activity size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'completed': <Check size={size === 'sm' ? 10 : 12} className="mr-1" />,
@@ -517,8 +527,11 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
         ? 'px-2 py-0.5 text-[10px]'
         : 'px-2.5 py-1 text-xs';
 
+    // ✅ CHANGED: Added ring indicator for rescheduled appointments (matching Online Bookings)
+    const rescheduledClasses = is_rescheduled ? 'ring-2 ring-blue-400 ring-offset-1' : '';
+
     return (
-        <span className={`inline-flex items-center rounded-full font-semibold border ${statusStyles[status]} ${sizeClasses}`}>
+        <span className={`inline-flex items-center rounded-full font-semibold border ${statusStyles[status]} ${sizeClasses} ${rescheduledClasses}`}>
             {statusIcons[status]}
             {statusLabels[status]}
         </span>
@@ -1500,6 +1513,9 @@ interface AppointmentDetailsModalProps {
     onOpenReschedule: (appointment: Appointment) => void;
 }
 
+// ✅ CHANGED: Added 'reschedule' as a dropdown action (not a status)
+type DropdownAction = Appointment['status'] | 'reschedule';
+
 const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     isOpen,
     onClose,
@@ -1535,33 +1551,36 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     const practitioner = PRACTITIONERS.find(p => p.id === appointment.practitionerId);
     const service = SERVICES.find(s => s.id === appointment.serviceId);
 
-    // Check if status is final (no more changes allowed)
-    // ADDED 'rescheduled' here so it acts like a final state
-    const isFinalStatus = ['completed', 'cancelled', 'rescheduled'].includes(appointment.status);
+    // ✅ CHANGED: Removed 'rescheduled' from isFinalStatus — only truly terminal states
+    const isFinalStatus = ['completed', 'cancelled'].includes(appointment.status);
 
-    const handleStatusClick = (status: Appointment['status']) => {
-        if (status === 'rescheduled') {
+    // ✅ CHANGED: handleActionClick replaces handleStatusClick
+    const handleActionClick = (action: DropdownAction) => {
+        if (action === 'reschedule') {
             onOpenReschedule(appointment);
             onClose();
         } else {
-            onUpdateStatus(appointment.id, status);
+            onUpdateStatus(appointment.id, action);
         }
         setIsStatusDropdownOpen(false);
     };
 
-    // --- DYNAMIC STATUS LOGIC ---
-    let availableStatuses: Appointment['status'][] = [];
+    // ✅ CHANGED: Dynamic actions based on status, reschedule only if not already rescheduled
+    let availableActions: DropdownAction[] = [];
 
     if (appointment.status === 'pending') {
-        availableStatuses = ['confirmed', 'rescheduled', 'cancelled'];
+        availableActions = ['confirmed'];
+        if (!appointment.is_rescheduled) availableActions.push('reschedule');
+        availableActions.push('cancelled');
     } else if (appointment.status === 'confirmed') {
-        // Removed 'pending' from here as requested
-        availableStatuses = ['completed', 'rescheduled', 'cancelled'];
+        availableActions = ['completed'];
+        if (!appointment.is_rescheduled) availableActions.push('reschedule');
+        availableActions.push('cancelled');
     }
-    // Rescheduled/Completed/Cancelled have no available transitions because isFinalStatus blocks the dropdown.
 
-    const statusConfig: Record<Appointment['status'], { bg: string; icon: React.ElementType }> = {
-        'rescheduled': { bg: 'bg-blue-500', icon: RefreshCw },
+    // ✅ CHANGED: Config now uses DropdownAction (includes 'reschedule' action, removed 'rescheduled' status)
+    const statusConfig: Record<DropdownAction, { bg: string; icon: React.ElementType }> = {
+        'reschedule': { bg: 'bg-blue-500', icon: RefreshCw },
         'confirmed': { bg: 'bg-green-500', icon: Check },
         'pending': { bg: 'bg-amber-500', icon: Clock },
         'completed': { bg: 'bg-emerald-600', icon: Check },
@@ -1648,7 +1667,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                 color: service?.color
                                             }}
                                         >
-                                            <StatusBadge status={appointment.status} size="sm" />
+                                            {/* ✅ CHANGED: Pass is_rescheduled to StatusBadge */}
+                                            <StatusBadge status={appointment.status} size="sm" is_rescheduled={appointment.is_rescheduled} />
                                             {!isFinalStatus && (
                                                 <ChevronDown
                                                     size={14}
@@ -1666,25 +1686,26 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                     </p>
                                                 </div>
                                                 <div className="p-2 space-y-1">
-                                                    {availableStatuses.map((status) => {
-                                                        const isCurrentStatus = appointment.status === status;
-                                                        const StatusIcon = statusConfig[status]?.icon || Clock;
+                                                    {/* ✅ CHANGED: Uses availableActions (includes 'reschedule' action) */}
+                                                    {availableActions.map((action) => {
+                                                        const isCurrentStatus = appointment.status === action;
+                                                        const ActionIcon = statusConfig[action]?.icon || Clock;
 
                                                         return (
                                                             <button
-                                                                key={status}
-                                                                onClick={() => handleStatusClick(status)}
+                                                                key={action}
+                                                                onClick={() => handleActionClick(action)}
                                                                 disabled={isCurrentStatus}
                                                                 className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-3 transition-all ${isCurrentStatus
                                                                     ? 'bg-gray-100 cursor-not-allowed'
                                                                     : 'hover:bg-gray-50'
                                                                     }`}
                                                             >
-                                                                <div className={`w-7 h-7 ${statusConfig[status]?.bg} rounded-lg flex items-center justify-center`}>
-                                                                    <StatusIcon size={14} className="text-white" />
+                                                                <div className={`w-7 h-7 ${statusConfig[action]?.bg} rounded-lg flex items-center justify-center`}>
+                                                                    <ActionIcon size={14} className="text-white" />
                                                                 </div>
                                                                 <span className={`text-sm font-medium ${isCurrentStatus ? 'text-gray-400' : 'text-gray-700'}`}>
-                                                                    {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+                                                                    {action.charAt(0).toUpperCase() + action.slice(1).replace('-', ' ')}
                                                                 </span>
                                                                 {isCurrentStatus && (
                                                                     <Check size={16} className="ml-auto text-green-500" />
@@ -1705,8 +1726,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                 {/* Scrollable Content */}
                 <div className="overflow-y-auto max-h-[calc(90vh-220px)] px-4 sm:px-6 py-5 space-y-5">
 
-                    {/* Rescheduled Info */}
-                    {appointment.status === 'rescheduled' && appointment.rescheduledFrom && (
+                    {/* ✅ CHANGED: Rescheduled Info — now checks is_rescheduled flag instead of status */}
+                    {appointment.is_rescheduled && appointment.rescheduledFrom && (
                         <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <RefreshCw size={18} className="text-blue-600" />
@@ -1870,7 +1891,7 @@ const ServiceLegend: React.FC = () => {
 
 // --- Main Calendar Component ---
 
-const PracticeBookingCalender = () => {
+const PracticeBookingCalendar = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [breaks, setBreaks] = useState<CalendarEvent[]>(INITIAL_BREAKS);
     const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
@@ -1998,6 +2019,7 @@ const PracticeBookingCalender = () => {
         setIsRescheduleModalOpen(true);
     };
 
+    // ✅ CHANGED: Reschedule now sets status to 'confirmed' + is_rescheduled: true (matching Online Bookings flow)
     const handleReschedule = (
         appointmentId: string,
         _newDate: Date,
@@ -2012,7 +2034,8 @@ const PracticeBookingCalender = () => {
                     startTime: newStartTime,
                     endTime: newEndTime,
                     practitionerId: newPractitionerId,
-                    status: 'rescheduled' as const,
+                    status: 'confirmed' as const,
+                    is_rescheduled: true,
                     rescheduledFrom: {
                         date: a.startTime,
                         practitionerId: a.practitionerId
@@ -2030,7 +2053,8 @@ const PracticeBookingCalender = () => {
                     startTime: newStartTime,
                     endTime: newEndTime,
                     practitionerId: newPractitionerId,
-                    status: 'rescheduled' as const,
+                    status: 'confirmed' as const,
+                    is_rescheduled: true,
                     rescheduledFrom: {
                         date: prev.startTime,
                         practitionerId: prev.practitionerId
@@ -2208,7 +2232,8 @@ const PracticeBookingCalender = () => {
                                             const patient = PATIENTS.find(p => p.id === appointment.patientId);
                                             const isCompact = durationMinutes <= 20;
                                             const isCancelled = appointment.status === 'cancelled';
-                                            const isRescheduled = appointment.status === 'rescheduled';
+                                            // ✅ CHANGED: Now uses is_rescheduled flag instead of status check
+                                            const isRescheduled = appointment.is_rescheduled;
                                             const isCompleted = appointment.status === 'completed';
 
                                             return (
@@ -2268,7 +2293,8 @@ const PracticeBookingCalender = () => {
                                                             </div>
                                                             {height > 70 && (
                                                                 <div className="mt-auto pt-1">
-                                                                    <StatusBadge status={appointment.status} size="sm" />
+                                                                    {/* ✅ CHANGED: Pass is_rescheduled to StatusBadge */}
+                                                                    <StatusBadge status={appointment.status} size="sm" is_rescheduled={appointment.is_rescheduled} />
                                                                 </div>
                                                             )}
                                                         </div>
@@ -2371,4 +2397,4 @@ const PracticeBookingCalender = () => {
     );
 };
 
-export default PracticeBookingCalender;
+export default PracticeBookingCalendar;

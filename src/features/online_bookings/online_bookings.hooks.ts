@@ -5,7 +5,7 @@ import {
   updateBookingStatus, 
   rescheduleBooking,
   clearMessages
-} from './appointments.slice';
+} from './online_bookings.slice';
 
 export const useAppointments = (practiceId?: string) => {
   const dispatch = useAppDispatch();
@@ -37,13 +37,13 @@ export const useAppointments = (practiceId?: string) => {
   }, [dispatch]);
 
   const cancelBooking = useCallback((id: string) => {
-    // API expects 'cancelled', but UI might pass 'dismissed'/'reception_cancelled'
+    // API expects 'cancelled', but UI might pass 'dismissed'/'cancelled'
     // The Thunk just takes the string, so we ensure we send 'cancelled'
     dispatch(updateBookingStatus({ id, status: 'cancelled' }));
   }, [dispatch]);
 
-  const onReschedule = useCallback((id: string, date: string, time: string) => {
-    return dispatch(rescheduleBooking({ id, date, time })).unwrap();
+  const onReschedule = useCallback((id: string, date: string, time: string, practitionerId: string) => {
+    return dispatch(rescheduleBooking({ id, date, time, practitionerId })).unwrap();
   }, [dispatch]);
 
   const clearAlerts = useCallback(() => {
@@ -52,9 +52,9 @@ export const useAppointments = (practiceId?: string) => {
 
   // 3. Return the exact shape expected by PracticeOnlineBookings.tsx
   return {
-    bookings: list,           // Map 'list' to 'bookings'
-    loading: isLoading,       // Map 'isLoading' to 'loading'
-    actionLoading: isUpdating,// Map 'isUpdating' to 'actionLoading'
+    bookings: list,           
+    loading: isLoading,       
+    actionLoading: isUpdating,
     error,
     successMessage,
     
