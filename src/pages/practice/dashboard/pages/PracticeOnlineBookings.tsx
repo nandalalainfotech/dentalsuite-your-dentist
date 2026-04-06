@@ -9,8 +9,9 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 
 // Redux & Hooks
 import { useAppDispatch, useAppSelector } from '../../../../store';
-import { useAppointments } from '../../../../features/appointments/appointments.hooks';
-import { fetchPractitioners } from '../../../../features/appointments/appointments.slice'; // <--- NEW IMPORT
+import { useAppointments } from '../../../../features/online_bookings/online_bookings.hooks';
+// --- ADDED: fetchOpeningHours ---
+import { fetchPractitioners, fetchPracticeServices, fetchOpeningHours } from '../../../../features/online_bookings/online_bookings.slice'; 
 
 // Utils
 import {
@@ -24,13 +25,13 @@ import {
   getWeekday, getDay, getMonth,
   formatTime, formatShortDate,
   formatRelativeUpdatedAt, formatRelativeTime
-} from '../../../../features/appointments/appointments.utils';
+} from '../../../../features/online_bookings/online_bookings.utils';
 
 // Components
-import { DesktopDropdown, MobileBottomSheet } from '../components/AppointmentActions';
-import { RescheduleModal } from '../components/AppointmentRescheduleModal';
-import { TableHeader, StatusBadge, PatientTags } from '../components/AppointmentUI';
-import { ExpandedDetailsCard, ToastNotification } from '../components/AppointmentComponent';
+import { DesktopDropdown, MobileBottomSheet } from '../components/OnlineBookingsActions';
+import { RescheduleModal } from '../components/OnlineBookingsRescheduleModal';
+import { TableHeader, StatusBadge, PatientTags } from '../components/OnlineBookingsUI';
+import { ExpandedDetailsCard, ToastNotification } from '../components/OnlineBookingsComponent';
 
 interface FilterState {
   search: string;
@@ -46,7 +47,12 @@ export default function PracticeOnlineBookings() {
 
   // 1. Auth & Redux
   const { user } = useAppSelector((state: any) => state.auth);
-  const { practitioners: directoryPractitioners } = useAppSelector((state) => state.appointments);
+  // --- ADDED: openingHours from Redux state ---
+  const { 
+    practitioners: directoryPractitioners, 
+    services: practiceServices,
+    openingHours = [] // Default to empty array if not loaded yet
+  } = useAppSelector((state) => state.appointments);
 
   const practiceId = user?.practice_id || user?.id;
 
@@ -94,14 +100,16 @@ export default function PracticeOnlineBookings() {
 
   // Poll for updates every 30s
   useEffect(() => {
-    const interval = setInterval(() => { refresh(); }, 30000);
+    const interval = setInterval(() => { refresh(); }, 60000);
     return () => clearInterval(interval);
   }, [refresh]);
 
-  // Fetch Practitioners List on Mount
+  // --- UPDATED: Fetch Practitioners, Services & Opening Hours on Mount ---
   useEffect(() => {
     if (practiceId) {
       dispatch(fetchPractitioners(practiceId));
+      dispatch(fetchPracticeServices(practiceId)); 
+      dispatch(fetchOpeningHours(practiceId)); // Fetching hours
     }
   }, [dispatch, practiceId]);
 
@@ -126,9 +134,15 @@ export default function PracticeOnlineBookings() {
     setOpenMenuId(null);
   }, []);
 
-  const handleRescheduleConfirm = async (newDate: string, newTime: string) => {
+  const handleRescheduleConfirm = async (newDate: string, newTime: string, newPractitionerId: string) => {
     if (!rescheduleApt) return;
-    await onReschedule(rescheduleApt.id, newDate, newTime);
+
+    await onReschedule(
+      rescheduleApt.id,
+      newDate,
+      newTime,
+      newPractitionerId,
+    );
     setShowRescheduleModal(false);
     setRescheduleApt(null);
     setShowToast(true);
@@ -157,12 +171,6 @@ export default function PracticeOnlineBookings() {
   const clearFilters = () => setFilters({ search: '', type: '', practitioner: '', status: '', startDate: '', endDate: '' });
 
   // --- Computed Data ---
-
-  // 1. Get Appointment Types for Filter
-  const appointmentTypes = useMemo(() => [...new Set(appointments.map(a => a.treatment).filter(Boolean))], [appointments]);
-
-
-  // 3. Stats
   const stats = useMemo(() => ({
     all: appointments.length,
     pending: appointments.filter(a => a.status === 'pending').length,
@@ -189,7 +197,7 @@ export default function PracticeOnlineBookings() {
       // Dropdowns
       if (filters.search && !apt.patient_name?.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.type && apt.treatment !== filters.type) return false;
-      if (filters.practitioner && apt.dentist_name !== filters.practitioner) return false; // <--- Interest Logic
+      if (filters.practitioner && apt.dentist_name !== filters.practitioner) return false; 
       if (filters.status && apt.status !== filters.status) return false;
 
       // Dates
@@ -228,7 +236,6 @@ export default function PracticeOnlineBookings() {
   if (isLoading && appointments.length === 0) {
     return (
       <div className="min-h-[600px] bg-white w-full max-w-7xl mx-auto animate-pulse">
-        {/* Header Skeleton */}
         <div className="px-6 py-4 flex justify-between items-center border-b border-gray-100">
           <div>
             <div className="h-7 w-48 bg-gray-200 rounded-md mb-2"></div>
@@ -236,7 +243,6 @@ export default function PracticeOnlineBookings() {
           </div>
           <div className="h-9 w-24 bg-gray-100 rounded-lg"></div>
         </div>
-        {/* Tabs & Filters Skeleton */}
         <div className="px-6 py-4 space-y-4">
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -248,7 +254,6 @@ export default function PracticeOnlineBookings() {
             <div className="h-10 w-24 bg-gray-100 rounded-lg"></div>
           </div>
         </div>
-        {/* Table Header Skeleton */}
         <div className="mx-6 mt-2 hidden lg:flex gap-4 px-6 py-3 bg-gray-50 border-y border-gray-100">
           <div className="flex-[1.5] h-4 bg-gray-200 rounded"></div>
           <div className="flex-1 h-4 bg-gray-200 rounded"></div>
@@ -256,7 +261,6 @@ export default function PracticeOnlineBookings() {
           <div className="flex-1 h-4 bg-gray-200 rounded"></div>
           <div className="flex-1 h-4 bg-gray-200 rounded"></div>
         </div>
-        {/* Rows Skeleton */}
         <div className="mx-0 sm:mx-6">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="border-b border-gray-50 p-4 flex items-center gap-4">
@@ -380,7 +384,6 @@ export default function PracticeOnlineBookings() {
             </div>
 
             {showFilters && (
-              // UPDATED GRID COLUMNS TO 5
               <div className="mt-3 pt-3 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
                 <div>
                   <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase">Practitioner</label>
@@ -389,7 +392,6 @@ export default function PracticeOnlineBookings() {
                     onChange={(e) => handleFilterChange('practitioner', e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 rounded-lg text-sm">
                     <option value="">All</option>
-                    {/* Using Redux Practitioners now */}
                     {directoryPractitioners.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
                   </select>
                 </div>
@@ -400,7 +402,7 @@ export default function PracticeOnlineBookings() {
                     onChange={(e) => handleFilterChange('type', e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 rounded-lg text-sm">
                     <option value="">All</option>
-                    {appointmentTypes.map((t, i) => <option key={i} value={t}>{t}</option>)}
+                    {practiceServices?.map((t: any, i: number) => <option key={i} value={t.name}>{t.name}</option>)}
                   </select>
                 </div>
                 <div>
@@ -578,9 +580,12 @@ export default function PracticeOnlineBookings() {
           onClose={() => setShowRescheduleModal(false)}
           onConfirm={handleRescheduleConfirm}
           practitioners={directoryPractitioners.map(p => ({
+            id: p.id,
             name: p.name,
             image: p.image || null
           }))}
+          openingHours={openingHours}
+          existingBookings={appointments} 
         />
       }
 

@@ -25,7 +25,6 @@ export const GET_APPOINTMENTS_QUERY = gql`
       appointment_time
       status
       
-      # Aliasing to camelCase for easier frontend use
       isNewPatient: is_new_patient
       isDependent: is_dependent
       
@@ -49,6 +48,29 @@ export const GET_PRACTITIONERS_QUERY = gql`
   }
 `;
 
+export const GET_SERVICES = gql`
+  query GetActiveServices($practiceId: uuid!) {
+    practice_services(
+       where: { practice_id: { _eq: $practiceId }, show_in_appointment: { _eq: true } }
+       order_by: { name: asc }
+      ) {
+        id
+        name
+      }
+    }
+  `;
+
+ export const GET_HOURS = gql`
+      query GetOpeningHours($practiceId: uuid!) {
+        practice_opening_hours(where: { practice_id: { _eq: $practiceId } }) {
+          id
+          day_of_week
+          is_open
+          time_slots
+        }
+      }
+    `;
+
 export const UPDATE_STATUS_MUTATION = gql`
   mutation UpdateStatus($id: uuid!, $status: String!) {
     update_online_bookings_by_pk(
@@ -63,12 +85,13 @@ export const UPDATE_STATUS_MUTATION = gql`
 `;
 
 export const RESCHEDULE_MUTATION = gql`
-  mutation Reschedule($id: uuid!, $date: Date!, $time: Time!) {
+  mutation Reschedule($id: uuid!, $date: date!, $time: time!, $practitioner_id: uuid!) {
     update_online_bookings_by_pk(
       pk_columns: { id: $id }, 
       _set: { 
         appointment_date: $date, 
         appointment_time: $time, 
+        practitioner_id: $practitioner_id,
         status: "confirmed", 
         is_rescheduled: true,
         updated_at: "now()" 
@@ -80,6 +103,11 @@ export const RESCHEDULE_MUTATION = gql`
       status
       is_rescheduled
       updated_at
+      practitioner {
+        id
+        name
+        role
+      }
     }
   }
 `;

@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
 
                 <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
 
-                    <Link to="/list-your-practice" target="blank">
+                    <Link to="/list-your-practice" target="_blank" rel="noopener noreferrer">
                         <button className="px-3 lg:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm md:text-base text-black hover:text-orange-600 transition">
                             List Your Practice
                         </button>

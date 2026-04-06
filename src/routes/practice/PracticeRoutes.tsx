@@ -13,8 +13,8 @@ import PracticeDashboard from '../../pages/practice/dashboard/pages/PracticeDash
 import PracticeDirectoryView from '../../pages/practice/directory/pages/PracticeDirectoryView';
 import PracticeNewsFeeds from '../../pages/practice/PracticeNewsFeeds';
 import PractiveViewProfile from '../../pages/practice/dashboard/pages/PractiveViewProfile';
-import PracticeAppointmentType from '../../pages/practice/PracticeAppointmentType';
-import PracticeBookingCalender from '../../pages/practice/PracticeBookingCalender';
+import PracticeAppointmentType from '../../pages/practice/dashboard/pages/PracticeAppointmentType';
+import PracticeBookingCalendar from '../../pages/practice/PracticeBookingCalendar';
 import PracticeAnalyticsView from '../../pages/practice/PracticeAnalyticsView';
 import PracticeInvoiceHistoryView from '../../pages/practice/PracticeInvoiceHistoryView';
 import PracticeOnlineBookings from '../../pages/practice/dashboard/pages/PracticeOnlineBookings';
@@ -55,7 +55,7 @@ function PracticeRoutes() {
             <Route path="directory" element={<PracticeDirectoryView />} />
             <Route path="appointments" element={<PracticeOnlineBookings />} />
             <Route path="appointment-type" element={<PracticeAppointmentType />} />
-            <Route path="booking-calendar" element={<PracticeBookingCalender />} />
+            <Route path="booking-calendar" element={<PracticeBookingCalendar />} />
             <Route path="analytics" element={<PracticeAnalyticsView />} />
             <Route path="invoice-history" element={<PracticeInvoiceHistoryView />} />
             

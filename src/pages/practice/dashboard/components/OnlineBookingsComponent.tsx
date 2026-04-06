@@ -5,7 +5,7 @@ import {
   formatExactCreatedAt, 
   formatRelativeUpdatedAt, 
   type EnrichedAppointment // Use EnrichedAppointment
-} from '../../../../features/appointments/appointments.utils';
+} from '../../../../features/online_bookings/online_bookings.utils';
 
 export const ToastNotification = ({ message, show, onClose }: { message: string; show: boolean; onClose: () => void }) => {
   useEffect(() => {
@@ -32,7 +32,7 @@ export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
   return (
     <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
       <div className="bg-gray-50/30 rounded-xl p-4 border border-gray-100 mt-4 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           
           {/* 1. Contact Info */}
           <div>
@@ -87,8 +87,8 @@ export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
 
           {/* 4. Notes */}
           <div>
-            <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Patient Notes</h5>
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs text-gray-600 min-h-[60px]">
+            <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Patient Notes</h5>
+            <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-600 min-h-[70px]">
               {apt.patient_notes || "No notes provided."}
             </div>
           </div>

@@ -5,7 +5,7 @@ export type ValidStatus =
   | 'completed'
   | 'dismissed'
   | 'patient_cancelled'
-  | 'reception_cancelled';
+  | 'cancelled';
 
 export type TabType = 'all' | 'pending' | 'upcoming' | 'completed' | 'cancelled';
 
@@ -49,7 +49,7 @@ export const STATUS_LABELS: Record<ValidStatus, string> = {
   completed: 'Completed',
   dismissed: 'Dismissed',
   patient_cancelled: 'Pt.Cancelled',
-  reception_cancelled: 'Cancelled',
+  cancelled: 'Cancelled',
 };
 
 export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot: string }> = {
@@ -58,7 +58,7 @@ export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot:
   completed: { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
   dismissed: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400' },
   patient_cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
-  reception_cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
 };
 
 export const TAB_CONFIG: Record<TabType, { label: string; activeColor: string; dotColor: string }> = {
@@ -115,13 +115,29 @@ export const formatRelativeUpdatedAt = (dateString?: string) => {
 export const formatExactUpdatedAt = (dateString?: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }).format(date);
+  return new Intl.DateTimeFormat("en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(date);
 };
 
 export const formatExactCreatedAt = (dateString?: string) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }).format(date);
+  return new Intl.DateTimeFormat("en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(date);
 };
 
 export const formatRelativeTime = (createdAt: string) => {
@@ -146,10 +162,10 @@ export const getDay = (dateStr: string | Date): number => new Date(dateStr).getD
 export const getMonth = (dateStr: string | Date): string => new Date(dateStr).toLocaleString('en-US', { month: 'short' });
 
 export const isTerminalState = (status: ValidStatus): boolean => {
-  return ['completed', 'patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
+  return ['completed', 'patient_cancelled', 'cancelled', 'dismissed'].includes(status);
 }
 export const isCancelledStatus = (status: ValidStatus): boolean => {
-  return ['patient_cancelled', 'reception_cancelled', 'dismissed'].includes(status);
+  return ['patient_cancelled', 'cancelled', 'dismissed'].includes(status);
 }
 
 // --- Mapper ---
@@ -165,8 +181,7 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
       'completed': 'completed',
       'dismissed': 'dismissed',
       'patient_cancelled': 'patient_cancelled',
-      'reception_cancelled': 'reception_cancelled',
-      'cancelled': 'reception_cancelled'
+      'cancelled': 'cancelled'
     };
 
     return statusMap[normalized] || 'pending';

@@ -19,6 +19,26 @@ export interface PracticeFacility {
   facility_name: string;
 }
 
+// Master Service List Type
+export interface AllService {
+  id: string;
+  service_name: string;
+}
+
+export interface PracticeService {
+  id: string;
+  practice_id?: string;
+  name: string;
+  all_service_id: string | null; 
+  show_in_appointment: boolean | null;
+}
+
+// NEW: Updated Junction Table Type
+export interface PractitionerPracticeService {
+  practice_service_id: string;
+  practice_service: PracticeService; // The nested service details
+}
+
 export interface PracticeTeamMember {
   id: string;
   practice_id?: string;
@@ -30,7 +50,10 @@ export interface PracticeTeamMember {
   education: string | null;
   languages: string | null;
   professional_statement: string | null;
-  areas_of_interest: string | null;
+  
+  // ADDED: The new junction array
+  practitioner_practice_services: PractitionerPracticeService[];
+  
   image: string | null;
   is_visible_online: boolean | null;
   allow_multiple_bookings: boolean | null;
@@ -39,14 +62,6 @@ export interface PracticeTeamMember {
   cancel_time_limit: number | null;
   cancel_time_limit_unit: string | null;
   appointment_types: any | null; // jsonb
-}
-
-export interface PracticeService {
-  id: string;
-  practice_id?: string;
-  name: string;
-  description: string | null;
-  show_in_appointment: boolean | null;
 }
 
 export interface PracticeInsurance {
@@ -87,22 +102,18 @@ export interface PracticeException {
   note: string | null;
 }
 
-
 // ============================================================================
 // MAIN DIRECTORY PROFILE TYPE
-// Combines Core Info (Parent) and Base Info (Child) into one flat object
 // ============================================================================
 
 export interface DirectoryProfile {
-  // --- 1. CORE INFO (Table: practice_info) ---
   id: string;
-  practice_name: string;      // The Single Source of Truth for Name
-  logo: string | null;        // The Single Source of Truth for Logo
-  
+  practice_name: string;      
+  logo: string | null;        
   abn_number: string;
   practice_type: string;
   practice_phone: string;
-  address: string;            // Core Address
+  address: string;            
   city: string;
   state: string;
   postcode: string;
@@ -113,25 +124,20 @@ export interface DirectoryProfile {
   type: string | null;
   status: string;
 
-  // --- 2. BASE INFO (Table: practice_base_info) ---
-  // Note: practice_id is the FK here, usually matches 'id' above.
   practice_id?: string; 
   
-  // Visuals & Socials
   banner_image: string | null;
   description: string;
   website: string;
   directions: string;
   alert_message: string;
-  formatted_address: string;  // Display Address (Child table)
+  formatted_address: string;  
   
-  // Social Links
   facebook_url: string;
   instagram_url: string;
   twitter_url: string;
   youtube_url: string;
 
-  // --- 3. RELATIONAL ARRAYS ---
   practice_opening_hours: PracticeOpeningHour[];
   practice_facilities: PracticeFacility[];
   practice_team_members: PracticeTeamMember[];
@@ -142,7 +148,6 @@ export interface DirectoryProfile {
   practice_certifications: PracticeCertification[];
   practice_exceptions: PracticeException[];
 }
-
 
 // ============================================================================
 // REDUX PAYLOADS & STATE
