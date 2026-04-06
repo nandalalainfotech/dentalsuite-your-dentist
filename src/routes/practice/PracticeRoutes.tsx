@@ -18,6 +18,8 @@ import PracticeBookingCalendar from '../../pages/practice/PracticeBookingCalenda
 import PracticeAnalyticsView from '../../pages/practice/PracticeAnalyticsView';
 import PracticeInvoiceHistoryView from '../../pages/practice/PracticeInvoiceHistoryView';
 import PracticeOnlineBookings from '../../pages/practice/dashboard/pages/PracticeOnlineBookings';
+import PracticeSupport from '../../pages/practice/support/components/PracticeSupport';
+import PracticeUserAccount from '../../pages/practice/useraccount/components/PracticeUserAccount';
 
 function DashboardLayout() {
   return (
@@ -46,7 +48,7 @@ function PracticeRoutes() {
             }
           >
             {/* --- NESTED ROUTES (Rendered inside PracticeDashboard's Outlet) --- */}
-            
+
             {/* Default: Redirect /practice/dashboard -> /practice/dashboard/appointments */}
             <Route index element={<Navigate to="view-profile" replace />} />
 
@@ -58,7 +60,9 @@ function PracticeRoutes() {
             <Route path="booking-calendar" element={<PracticeBookingCalendar />} />
             <Route path="analytics" element={<PracticeAnalyticsView />} />
             <Route path="invoice-history" element={<PracticeInvoiceHistoryView />} />
-            
+            <Route path="support" element={<PracticeSupport />} />
+            <Route path="user-accounts" element={<PracticeUserAccount />} />
+
             {/* Fallback for unknown dashboard routes */}
             <Route path="*" element={<Navigate to="view-profile" replace />} />
           </Route>

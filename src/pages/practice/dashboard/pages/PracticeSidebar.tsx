@@ -4,7 +4,7 @@ import { Icons } from '../../../../components/dashboard/Icons';
 
 interface PracticeSidebarProps {
   onLogout: () => void;
-  onClose?: () => void; 
+  onClose?: () => void;
 }
 
 export default function PracticeSidebar({
@@ -31,9 +31,6 @@ export default function PracticeSidebar({
         </div>
       )}
 
-      <NavLink to="/practice/dashboard/newsfeeds" className={getLinkClass} onClick={onClose}>
-        {({ isActive }) => (<><div className={getIconClass(isActive)}><Icons.News /></div><span>News Feeds</span></>)}
-      </NavLink>
 
       <NavLink to="/practice/dashboard/view-profile" className={getLinkClass} onClick={onClose}>
         {({ isActive }) => (<><div className={getIconClass(isActive)}><Icons.User /></div><span>View Profile</span></>)}
@@ -61,6 +58,14 @@ export default function PracticeSidebar({
 
       <NavLink to="/practice/dashboard/invoice-history" className={getLinkClass} onClick={onClose}>
         {({ isActive }) => (<><div className={getIconClass(isActive)}><FileText size={18} /></div><span>Invoice History</span></>)}
+      </NavLink>
+
+      <NavLink to="/practice/dashboard/support" className={getLinkClass} onClick={onClose}>
+        {({ isActive }) => (<><div className={getIconClass(isActive)}><Icons.Support /></div><span>Support</span></>)}
+      </NavLink>
+
+      <NavLink to="/practice/dashboard/user-accounts" className={getLinkClass} onClick={onClose}>
+        {({ isActive }) => (<><div className={getIconClass(isActive)}><Icons.User /></div><span>User Accounts</span></>)}
       </NavLink>
     </nav>
   );
