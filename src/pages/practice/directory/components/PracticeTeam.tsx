@@ -251,7 +251,7 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
     const colClass = (existingType && newType) ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-xl mx-auto';
 
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-800 -m-6 sm:-m-8 pt-4">
+        <div className="bg-white font-sans text-gray-800 pt-4">
             <div className="bg-white  px-6 py-4 flex items-center justify-between sticky top-0 z-10">
                 <div className="flex items-center gap-4">
                     <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600">
@@ -480,7 +480,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
     if (editingId && formData) {
         const score = calculateScore(formData);
         return (
-            <div className="min-h-screen font-sans text-gray-800 -m-6 sm:-m-8 pt-4 bg-white">
+            <div className="font-sans text-gray-800 pt-4 bg-white">
                 <div className="px-6 py-4 bg-white sticky top-0 z-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={handleMainBack}

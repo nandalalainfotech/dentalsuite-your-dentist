@@ -5,18 +5,21 @@ import {
   isAnyOf
 } from "@reduxjs/toolkit";
 import appointmentsService from "./online_bookings.service";
-import type { 
-  OnlineBooking, 
-  Practitioner, 
+import type {
+  OnlineBooking,
+  Practitioner,
+  PracticeService,
+  PracticeOpeningHours,
+  PractitionerBreak
 } from "./online_bookings.type";
-import type { PracticeOpeningHour, PracticeService } from "../directory/directory.types";
 
 // Updated this interface to use the strict types rather than 'any[]'
 interface AppointmentsState {
   list: OnlineBooking[];
   practitioners: Practitioner[];
   services: PracticeService[];
-  openingHours: PracticeOpeningHour[]; 
+  openingHours: PracticeOpeningHours[];
+  breaks: PractitionerBreak[];
   isLoading: boolean;
   isUpdating: boolean;
   error: string | null;
@@ -27,7 +30,8 @@ const initialState: AppointmentsState = {
   list: [],
   practitioners: [],
   services: [],
-  openingHours: [], 
+  openingHours: [],
+  breaks: [],
   isLoading: false,
   isUpdating: false,
   error: null,
@@ -102,6 +106,50 @@ export const rescheduleBooking = createAsyncThunk(
   }
 );
 
+export const fetchBreaks = createAsyncThunk(
+  "appointments/fetchBreaks",
+  async (practiceId: string, thunkAPI) => {
+    try {
+      return await appointmentsService.getBreaks(practiceId);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const createBreak = createAsyncThunk(
+  "appointments/createBreak",
+  async (breakData: Omit<PractitionerBreak, "id">, thunkAPI) => {
+    try {
+      return await appointmentsService.insertBreak(breakData);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const editBreak = createAsyncThunk(
+  "appointments/editBreak",
+  async ({ id, data }: { id: string, data: Partial<PractitionerBreak> }, thunkAPI) => {
+    try {
+      return await appointmentsService.updateBreak(id, data);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const removeBreak = createAsyncThunk(
+  "appointments/removeBreak",
+  async (id: string, thunkAPI) => {
+    try {
+      return await appointmentsService.deleteBreak(id);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 // --- SLICE ---
 
 const appointmentsSlice = createSlice({
@@ -132,13 +180,38 @@ const appointmentsSlice = createSlice({
     builder.addCase(fetchPractitioners.fulfilled, (state, action: PayloadAction<Practitioner[]>) => {
       state.practitioners = action.payload;
     });
-       
+
     builder.addCase(fetchPracticeServices.fulfilled, (state, action: PayloadAction<PracticeService[]>) => {
       state.services = action.payload;
     });
 
-    builder.addCase(fetchOpeningHours.fulfilled, (state, action: PayloadAction<PracticeOpeningHour[]>) => {
+    builder.addCase(fetchOpeningHours.fulfilled, (state, action: PayloadAction<PracticeOpeningHours[]>) => {
       state.openingHours = action.payload;
+    });
+
+    builder.addCase(fetchBreaks.fulfilled, (state, action: PayloadAction<PractitionerBreak[]>) => {
+      state.breaks = action.payload;
+    });
+
+    builder.addCase(createBreak.fulfilled, (state, action: PayloadAction<PractitionerBreak>) => {
+      state.breaks.push(action.payload);
+      state.isUpdating = false;
+      state.successMessage = "Break added successfully";
+    });
+
+    builder.addCase(editBreak.fulfilled, (state, action: PayloadAction<PractitionerBreak>) => {
+      const index = state.breaks.findIndex(b => b.id === action.payload.id);
+      if (index !== -1) {
+        state.breaks[index] = action.payload;
+      }
+      state.isUpdating = false;
+      state.successMessage = "Break updated successfully";
+    });
+
+    builder.addCase(removeBreak.fulfilled, (state, action: PayloadAction<string>) => {
+      state.breaks = state.breaks.filter(b => b.id !== action.payload);
+      state.isUpdating = false;
+      state.successMessage = "Break removed successfully";
     });
 
     // 2. Shared Update/Reschedule Logic (Pending)
@@ -165,11 +238,11 @@ const appointmentsSlice = createSlice({
             ...action.payload
           };
           if (action.payload.practitioner) {
-             state.list[index].practitioner = action.payload.practitioner;
-             
-             if (action.payload.practitioner_id) {
-                state.list[index].practitioner_id = action.payload.practitioner_id;
-             }
+            state.list[index].practitioner = action.payload.practitioner;
+
+            if (action.payload.practitioner_id) {
+              state.list[index].practitioner_id = action.payload.practitioner_id;
+            }
           }
         }
       }
