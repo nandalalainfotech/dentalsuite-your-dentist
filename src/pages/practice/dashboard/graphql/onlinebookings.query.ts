@@ -111,3 +111,53 @@ export const RESCHEDULE_MUTATION = gql`
     }
   }
 `;
+
+export const GET_BREAKS_QUERY = gql`
+  query GetBreaks($practice_id: uuid!) {
+    practice_practitioner_breaks(where: { practice_id: { _eq: $practice_id } }) {
+      id
+      practitioner_id
+      title
+      start_time
+      end_time
+      notes
+      color
+    }
+  }
+`;
+
+export const INSERT_BREAK_MUTATION = gql`
+  mutation InsertBreak($object: practice_practitioner_breaks_insert_input!) {
+    insert_practice_practitioner_breaks_one(object: $object) {
+      id
+      practitioner_id
+      title
+      start_time
+      end_time
+      notes
+      color
+    }
+  }
+`;
+
+export const UPDATE_BREAK_MUTATION = gql`
+  mutation UpdateBreak($id: uuid!, $object: practice_practitioner_breaks_set_input!) {
+    update_practice_practitioner_breaks_by_pk(pk_columns: { id: $id }, _set: $object) {
+      id
+      practitioner_id
+      title
+      start_time
+      end_time
+      notes
+      color
+    }
+  }
+`;
+
+export const DELETE_BREAK_MUTATION = gql`
+  mutation DeleteBreak($id: uuid!) {
+    delete_practice_practitioner_breaks_by_pk(id: $id) {
+      id
+    }
+  }
+`;

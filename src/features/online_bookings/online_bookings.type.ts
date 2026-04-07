@@ -13,14 +13,24 @@ export interface Practitioner {
   role?: string | null;
 }
 
+export interface PracticeService {
+  id: string;
+  name: string;
+}
+
+export interface PracticeOpeningHours {
+  id: string;
+  day_of_week: string; // Assuming 0-6 or 1-7 for days
+  is_open: boolean;
+  time_slots: any; // Update this to a specific type if time_slots is structured JSON (e.g., { open: string, close: string }[])
+}
 
 export interface OnlineBooking {
   id: string;
   practice_id: string;
   practitioner_id?: string;
-
   
-  practitioner?: Practitioner;
+  practitioner?: Practitioner | null;
 
   patient_name: string;
   mobile: string;
@@ -34,6 +44,7 @@ export interface OnlineBooking {
   status: string;
   is_rescheduled: boolean;
   
+  // These use GraphQL Aliases in your query
   isNewPatient: boolean;
   isDependent: boolean;
 
@@ -44,17 +55,30 @@ export interface OnlineBooking {
   updated_at: string;
 }
 
-
-export interface EnrichedAppointment extends Omit<OnlineBooking, 'status'> {
-  status: AppointmentStatus; 
-  dentist_name: string;
-  dentist_image: string | null; 
-  dentist_role: string;     
+export interface PractitionerBreak {
+  id: string;
+  practitioner_id: string;
+  title: string;
+  start_time: string; 
+  end_time: string;   
+  notes?: string | null;
+  color: string;
 }
 
+// Replaced 'dentist_' with 'practitioner_' to match the new local DB structure (practice_team_members)
+export interface EnrichedAppointment extends Omit<OnlineBooking, 'status'> {
+  status: AppointmentStatus; 
+  practitioner_name: string;
+  practitioner_image: string | null; 
+  practitioner_role: string;     
+}
 
 export interface AppointmentsState {
   list: OnlineBooking[]; 
+  services: PracticeService[];
+  openingHours: PracticeOpeningHours[];
+  practitioners: Practitioner[];
+  breaks: PractitionerBreak[];
   isLoading: boolean;
   isUpdating: boolean;
   error: string | null;

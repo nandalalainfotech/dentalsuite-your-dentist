@@ -6,18 +6,22 @@ import {
   rescheduleBooking,
   clearMessages
 } from './online_bookings.slice';
+import type { AppointmentsState } from './online_bookings.type';
 
 export const useAppointments = (practiceId?: string) => {
   const dispatch = useAppDispatch();
   
-  // Select data from the updated slice structure
+  // Select data from the updated slice structure with strict typing
   const { 
     list, 
+    practitioners, // <-- Extracted new data mapped to local DB
+    services,      // <-- Extracted new data mapped to local DB
+    openingHours,  // <-- Extracted new data mapped to local DB
     isLoading, 
     isUpdating, 
     error, 
     successMessage 
-  } = useAppSelector((state: any) => state.appointments);
+  } = useAppSelector((state: { appointments: AppointmentsState }) => state.appointments);
 
   // 1. Initial Fetch / Polling
   const refresh = useCallback(() => {
@@ -57,6 +61,11 @@ export const useAppointments = (practiceId?: string) => {
     actionLoading: isUpdating,
     error,
     successMessage,
+    
+    // Safely exposing newly mapped DB tables for UI modals
+    practitioners, 
+    services,
+    openingHours,
     
     // Actions
     refresh,
