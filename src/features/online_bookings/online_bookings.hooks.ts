@@ -1,8 +1,8 @@
 import { useEffect, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store'; 
-import { 
-  fetchAppointments, 
-  updateBookingStatus, 
+import { useAppDispatch, useAppSelector } from '../../store';
+import {
+  fetchAppointments,
+  updateBookingStatus,
   rescheduleBooking,
   clearMessages
 } from './online_bookings.slice';
@@ -10,17 +10,17 @@ import type { AppointmentsState } from './online_bookings.type';
 
 export const useAppointments = (practiceId?: string) => {
   const dispatch = useAppDispatch();
-  
+
   // Select data from the updated slice structure with strict typing
-  const { 
-    list, 
-    practitioners, // <-- Extracted new data mapped to local DB
-    services,      // <-- Extracted new data mapped to local DB
-    openingHours,  // <-- Extracted new data mapped to local DB
-    isLoading, 
-    isUpdating, 
-    error, 
-    successMessage 
+  const {
+    list,
+    practitioners, 
+    services,      
+    openingHours,  
+    isLoading,
+    isUpdating,
+    error,
+    successMessage
   } = useAppSelector((state: { appointments: AppointmentsState }) => state.appointments);
 
   // 1. Initial Fetch / Polling
@@ -35,14 +35,12 @@ export const useAppointments = (practiceId?: string) => {
   }, [refresh]);
 
   // 2. Action Wrappers (Mapping UI actions to Redux Thunks)
-  
+
   const confirmBooking = useCallback((id: string) => {
     dispatch(updateBookingStatus({ id, status: 'confirmed' }));
   }, [dispatch]);
 
   const cancelBooking = useCallback((id: string) => {
-    // API expects 'cancelled', but UI might pass 'dismissed'/'cancelled'
-    // The Thunk just takes the string, so we ensure we send 'cancelled'
     dispatch(updateBookingStatus({ id, status: 'cancelled' }));
   }, [dispatch]);
 
@@ -56,17 +54,17 @@ export const useAppointments = (practiceId?: string) => {
 
   // 3. Return the exact shape expected by PracticeOnlineBookings.tsx
   return {
-    bookings: list,           
-    loading: isLoading,       
+    bookings: list,
+    loading: isLoading,
     actionLoading: isUpdating,
     error,
     successMessage,
-    
+
     // Safely exposing newly mapped DB tables for UI modals
-    practitioners, 
+    practitioners,
     services,
     openingHours,
-    
+
     // Actions
     refresh,
     confirmBooking,

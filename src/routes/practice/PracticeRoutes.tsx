@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import { PracticeAuthProvider } from '../../hooks/usePracticeAuth';
 import { PracticeUserProvider } from '../../context/PracticeUserContext';
 import PracticeSignIn from '../../pages/practice/auth/pages/PracticeSignIn';
-import PracticeSignUp from '../../pages/practice/PracticeSignUp';
+import PracticeSignUp from '../../pages/practice/auth/pages/PracticeSignUp';
 import PracticeProtectedRoute from '../../components/practice/PracticeProtectedRoute';
 import PracticeNavbar from '../../components/practice/PracticeNavbar';
 
@@ -14,8 +14,8 @@ import PracticeDirectoryView from '../../pages/practice/directory/pages/Practice
 import PracticeNewsFeeds from '../../pages/practice/PracticeNewsFeeds';
 import PractiveViewProfile from '../../pages/practice/dashboard/pages/PractiveViewProfile';
 import PracticeAppointmentType from '../../pages/practice/dashboard/pages/PracticeAppointmentType';
-import PracticeBookingCalendar from '../../pages/practice/PracticeBookingCalendar';
-import PracticeAnalyticsView from '../../pages/practice/PracticeAnalyticsView';
+import PracticeBookingCalendar from '../../pages/practice/dashboard/pages/PracticeBookingCalendar';
+import PracticeAnalyticsView from '../../pages/practice/dashboard/pages/PracticeAnalyticsView';
 import PracticeInvoiceHistoryView from '../../pages/practice/PracticeInvoiceHistoryView';
 import PracticeOnlineBookings from '../../pages/practice/dashboard/pages/PracticeOnlineBookings';
 import PracticeSupport from '../../pages/practice/support/components/PracticeSupport';

@@ -134,7 +134,7 @@ const deleteBreak = async (id: string): Promise<string> => {
     mutation: DELETE_BREAK_MUTATION,
     variables: { id },
   });
-  return id; // Return the id so the slice can filter it out
+  return id; 
 };
 
 const appointmentsService = {

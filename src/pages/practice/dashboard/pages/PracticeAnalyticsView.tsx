@@ -9,27 +9,15 @@ import {
   PieChart as PieChartIcon,
   Activity,
   UserPlus,
-  Zap,
   Users,
-  CheckCircle2} from 'lucide-react';
+  CheckCircle2,
+  Zap
+} from 'lucide-react';
+import { useAppointments } from '../../../../features/online_bookings/online_bookings.hooks';
+import { useAppSelector, useAppDispatch } from '../../../../store';
+import { fetchPractitioners } from '../../../../features/online_bookings/online_bookings.slice';
 
-// --- MOCK DATABASE ---
-const MOCK_DB = [
-  { id: 1, date: '2026-01-15', doctor: 'Dr. Emma Watson', type: 'New', source: 'Mobile', patient: 'John Doe', time: '09:00', status: 'Completed' },
-  { id: 2, date: '2026-01-16', doctor: 'Dr. Emma Watson', type: 'Existing', source: 'Web', patient: 'Jane Smith', time: '10:30', status: 'Completed' },
-  { id: 3, date: '2026-01-20', doctor: 'Dr. Sarah Smith', type: 'New', source: 'Mobile', patient: 'Bob Wilson', time: '11:00', status: 'Completed' },
-  { id: 4, date: '2026-01-24', doctor: 'Dr. Emma Watson', type: 'New', source: 'Web', patient: 'Alice Brown', time: '14:00', status: 'Scheduled' },
-  { id: 5, date: '2026-01-25', doctor: 'Dr. Sarah Smith', type: 'Existing', source: 'Mobile', patient: 'Charlie Davis', time: '15:30', status: 'Scheduled' },
-  { id: 6, date: '2026-01-28', doctor: 'Dr. Emma Watson', type: 'Existing', source: 'Web', patient: 'Eva Martinez', time: '09:30', status: 'Scheduled' },
-  { id: 7, date: '2026-02-01', doctor: 'Dr. Sarah Smith', type: 'New', source: 'Mobile', patient: 'Frank Lee', time: '10:00', status: 'Scheduled' },
-  { id: 8, date: '2026-02-02', doctor: 'Dr. Emma Watson', type: 'New', source: 'Mobile', patient: 'Grace Kim', time: '11:30', status: 'Scheduled' },
-  { id: 9, date: '2026-01-17', doctor: 'Dr. Mike Johnson', type: 'New', source: 'Web', patient: 'Henry Chen', time: '13:00', status: 'Completed' },
-  { id: 10, date: '2026-01-22', doctor: 'Dr. Mike Johnson', type: 'Existing', source: 'Mobile', patient: 'Ivy Patel', time: '16:00', status: 'Cancelled' },
-  { id: 11, date: '2026-01-18', doctor: 'Dr. Mike Johnson', type: 'New', source: 'Mobile', patient: 'Jack Brown', time: '10:00', status: 'Completed' },
-  { id: 12, date: '2026-01-19', doctor: 'Dr. Sarah Smith', type: 'New', source: 'Web', patient: 'Kate Wilson', time: '14:30', status: 'Completed' },
-];
-
-const DOCTOR_COLORS: Record<string, string> = {
+const PRACTITIONER_COLORS: Record<string, string> = {
   'Dr. Emma Watson': '#f97316',
   'Dr. Sarah Smith': '#3b82f6',
   'Dr. Mike Johnson': '#10b981',
@@ -37,7 +25,14 @@ const DOCTOR_COLORS: Record<string, string> = {
 };
 
 // --- HELPER FUNCTIONS ---
-const formatDate = (date: Date) => date.toISOString().split('T')[0];
+const formatDate = (date: Date) => {
+  const d = new Date(date);
+  const month = '' + (d.getMonth() + 1);
+  const day = '' + d.getDate();
+  const year = d.getFullYear();
+
+  return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
+};
 
 const formatDisplayDate = (date: Date) => {
   const d = new Date(date);
@@ -83,8 +78,6 @@ const AnimatedNumber = ({ value, duration = 1000 }: { value: number; duration?: 
 
   return <>{displayValue}</>;
 };
-
-// --- SPARKLINE COMPONENT ---
 
 // --- ENHANCED STAT CARD ---
 const ModernStatCard = ({
@@ -138,7 +131,9 @@ const ModernBarChart = ({
   const maxVal = Math.max(...data.map(d => d.value), 1);
   const chartHeight = 200;
   const barWidth = 40;
-  const gap = 20;
+  const gap = 40;
+
+  const chartWidth = Math.max(data.length * (barWidth + gap) + gap, 400);
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -152,6 +147,7 @@ const ModernBarChart = ({
         </div>
       </div>
 
+      {/* If data is empty, grid lines are hidden and "No data" is shown */}
       {data.length === 0 ? (
         <div className="h-48 flex items-center justify-center text-gray-400">
           <p className="text-sm">No data available</p>
@@ -169,8 +165,10 @@ const ModernBarChart = ({
             width="100%"
             height={chartHeight + 40}
             className="ml-6"
-            viewBox={`0 0 ${data.length * (barWidth + gap) + gap} ${chartHeight + 40}`}
-            preserveAspectRatio="xMidYMid meet"
+            // FIX: Use the calculated chartWidth
+            viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`}
+            // FIX: Align the chart to the left edge next to the Y-axis
+            preserveAspectRatio="xMinYMin meet"
           >
             <defs>
               {data.map((_, idx) => (
@@ -187,9 +185,9 @@ const ModernBarChart = ({
                 key={i}
                 x1="0"
                 y1={i * (chartHeight / 4)}
-                x2={data.length * (barWidth + gap)}
+                x2={chartWidth} // FIX: Stretch grid lines across the full calculated width
                 y2={i * (chartHeight / 4)}
-                stroke="#f3f4f6"
+                stroke="#c9caca"
                 strokeWidth="1"
               />
             ))}
@@ -259,16 +257,16 @@ const ModernBarChart = ({
       )}
 
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-2 pt-4 border-t border-gray-100">
         <div className="flex flex-wrap gap-3">
           {data.map((item, idx) => (
             <div
               key={idx}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${hoveredIndex === idx ? 'bg-orange-50' : 'bg-gray-50'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${hoveredIndex === idx ? 'bg-orange-100' : 'bg-gray-100'}`}
               onMouseEnter={() => setHoveredIndex(idx)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-400 to-orange-600" />
+              <div className="w-2 h-2 rounded-full bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600" />
               <span className="text-xs font-medium text-gray-600">{item.label}</span>
               <span className="text-xs font-bold text-gray-900">{item.value}</span>
             </div>
@@ -287,8 +285,8 @@ const ModernAreaChart = ({ dailyData }: { dailyData: { date: string; count: numb
   const avg = dailyData.length > 0 ? (total / dailyData.length).toFixed(1) : '0';
 
   const chartWidth = 600;
-  const chartHeight = 180;
-  const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+  const chartHeight = 280;
+  const padding = { top: 0, right: 10, bottom: 20, left: 20 };
 
   const getX = (index: number) => {
     const usableWidth = chartWidth - padding.left - padding.right;
@@ -377,7 +375,7 @@ const ModernAreaChart = ({ dailyData }: { dailyData: { date: string; count: numb
                 y1={y}
                 x2={chartWidth - padding.right}
                 y2={y}
-                stroke="#f3f4f6"
+                stroke="#a3a4a7"
                 strokeDasharray={i > 0 ? "4,4" : "0"}
               />
               <text x={padding.left - 10} y={y + 4} textAnchor="end" className="text-xs fill-gray-400">
@@ -425,7 +423,7 @@ const ModernAreaChart = ({ dailyData }: { dailyData: { date: string; count: numb
             {hoveredPoint === idx && (
               <g>
                 <rect
-                  x={getX(idx) - 75}  // Half of width (150/2 = 75)
+                  x={getX(idx) - 75}
                   y={getY(day.count) - 50}
                   width="150"
                   height="50"
@@ -435,7 +433,7 @@ const ModernAreaChart = ({ dailyData }: { dailyData: { date: string; count: numb
                 />
                 <text
                   x={getX(idx)}
-                  y={getY(day.count) - 30}  // Adjusted for vertical centering (-50 + 50/2 - 5 = -30)
+                  y={getY(day.count) - 30}
                   textAnchor="middle"
                   className="text-sm fill-white font-medium"
                 >
@@ -443,7 +441,7 @@ const ModernAreaChart = ({ dailyData }: { dailyData: { date: string; count: numb
                 </text>
                 <text
                   x={getX(idx)}
-                  y={getY(day.count) - 12}  // Adjusted for vertical centering (-50 + 50/2 + 13 = -12)
+                  y={getY(day.count) - 12}
                   textAnchor="middle"
                   className="text-sm fill-orange-400 font-bold"
                 >
@@ -630,13 +628,13 @@ const ModernDonutChart = ({
   );
 };
 
-// --- MODERN DOCTOR CHART ---
-const ModernDoctorChart = ({
+// --- MODERN PRACTITIONER CHART ---
+const ModernPractitionerChart = ({
   data,
-  selectedDoctor
+  selectedPractitioner
 }: {
   data: { label: string; value: number; color: string }[];
-  selectedDoctor: string;
+  selectedPractitioner: string;
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const maxVal = Math.max(...data.map(d => d.value), 1);
@@ -647,9 +645,9 @@ const ModernDoctorChart = ({
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">New Patients by Doctor</h3>
+          <h3 className="text-lg font-bold text-gray-900">New Patients by Practitioner</h3>
           <p className="text-sm text-gray-500 mt-1">
-            {selectedDoctor === 'All' ? 'All doctors' : selectedDoctor}
+            {selectedPractitioner === 'All' ? 'All practitioners' : selectedPractitioner}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -677,7 +675,7 @@ const ModernDoctorChart = ({
           {data.map((item, index) => {
             const widthPercentage = (item.value / maxVal) * 100;
             const isHovered = hoveredIndex === index;
-            const isSelected = selectedDoctor !== 'All' && item.label === selectedDoctor;
+            const isSelected = selectedPractitioner !== 'All' && item.label === selectedPractitioner;
 
             return (
               <div
@@ -690,15 +688,15 @@ const ModernDoctorChart = ({
 
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-800">{item.label}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-gray-900">{item.value}</span>
+                        <span className="font-medium text-gray-800">{item.label}</span>
                         {isSelected && (
                           <span className="text-xs bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full font-medium">
                             Selected
                           </span>
                         )}
                       </div>
+                      <span className="text-2xl font-bold text-gray-900">{item.value}</span>
                     </div>
 
                     {/* Progress bar */}
@@ -982,38 +980,62 @@ const FilterDropdown = ({ label, options, value, onChange }: { label: string; op
 
 // --- MAIN COMPONENT ---
 export default function PracticeAnalyticsView() {
-  const [dateRange, setDateRange] = useState({ start: new Date(2026, 0, 14), end: new Date(2026, 0, 29) });
-  const [activePreset, setActivePreset] = useState('Custom');
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [doctorFilter, setDoctorFilter] = useState('All');
-  const [sourceFilter, setSourceFilter] = useState('All');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state: any) => state.auth);
+  const practiceId = user?.practice_id || user?.id;
 
-  const doctors = ['All', ...new Set(MOCK_DB.map(d => d.doctor))];
-  const sources = ['All', 'Mobile', 'Web'];
+  const { bookings, practitioners, loading, refresh } = useAppointments(practiceId);
+
+  // Calculate current week for default state
+  const today = new Date();
+  const initialWeekStart = new Date(today);
+  initialWeekStart.setDate(today.getDate() - today.getDay());
+  const initialWeekEnd = new Date(initialWeekStart);
+  initialWeekEnd.setDate(initialWeekStart.getDate() + 6);
+
+  const [dateRange, setDateRange] = useState({ start: initialWeekStart, end: initialWeekEnd });
+  const [activePreset, setActivePreset] = useState('This Week');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [practitionerFilter, setPractitionerFilter] = useState('All');
+
+  // Fetch practitioners on mount if not already loaded in Redux
+  useEffect(() => {
+    if (practiceId && practitioners.length === 0) {
+      dispatch(fetchPractitioners(practiceId));
+    }
+  }, [dispatch, practiceId, practitioners.length]);
+
+  // Combine practitioners from Redux state and any existing bookings to ensure no one is missed
+  const practitionerList = ['All', ...new Set([
+    ...practitioners.map(p => p.name),
+    ...bookings.map(b => b.practitioner?.name).filter(Boolean) as string[]
+  ])];
 
   const handlePresetSelect = (preset: string) => {
     setActivePreset(preset);
-    const today = new Date(2026, 0, 20);
+    const currentDate = new Date();
 
     switch (preset) {
       case 'Today':
-        setDateRange({ start: today, end: today });
+        setDateRange({ start: currentDate, end: currentDate });
         break;
       case 'This Week':
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
+        const weekStart = new Date(currentDate);
+        weekStart.setDate(currentDate.getDate() - currentDate.getDay());
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         setDateRange({ start: weekStart, end: weekEnd });
         break;
       case 'This Month':
-        setDateRange({ start: new Date(2026, 0, 1), end: new Date(2026, 0, 31) });
+        setDateRange({
+          start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+          end: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+        });
         break;
       case 'Last 30 Days':
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        setDateRange({ start: thirtyDaysAgo, end: today });
+        const thirtyDaysAgo = new Date(currentDate);
+        thirtyDaysAgo.setDate(currentDate.getDate() - 30);
+        setDateRange({ start: thirtyDaysAgo, end: currentDate });
         break;
       case 'Custom':
         setShowCalendar(true);
@@ -1022,67 +1044,86 @@ export default function PracticeAnalyticsView() {
   };
 
   const analyticsData = useMemo(() => {
-    let filtered = MOCK_DB.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= dateRange.start && itemDate <= dateRange.end;
+    // 1. Filter by Date Range
+    let filtered = bookings.filter(item => {
+      if (!item.appointment_date) return false;
+
+      // Safely parse date from 'YYYY-MM-DD' string to avoid timezone shift bugs
+      const [year, month, day] = item.appointment_date.split('-');
+      const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
+
+      const start = new Date(dateRange.start);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(dateRange.end);
+      end.setHours(23, 59, 59, 999);
+
+      return itemDate >= start && itemDate <= end;
     });
 
-    if (doctorFilter !== 'All') filtered = filtered.filter(i => i.doctor === doctorFilter);
-    if (sourceFilter !== 'All') filtered = filtered.filter(i => i.source === sourceFilter);
+    // 2. Filter by Practitioner
+    if (practitionerFilter !== 'All') {
+      filtered = filtered.filter(i => (i.practitioner?.name || 'Unknown') === practitionerFilter);
+    }
 
+    // 3. Compile Stats
     const stats = {
       total: filtered.length,
-      new: filtered.filter(i => i.type === 'New').length,
-      existing: filtered.filter(i => i.type === 'Existing').length,
-      mobile: filtered.filter(i => i.source === 'Mobile').length,
-      web: filtered.filter(i => i.source === 'Web').length,
-      completed: filtered.filter(i => i.status === 'Completed').length,
+      new: filtered.filter(i => i.isNewPatient).length,
+      existing: filtered.filter(i => !i.isNewPatient).length,
+      // Matches your ValidStatus from online bookings types
+      completed: filtered.filter(i => i.status?.toLowerCase() === 'completed').length,
     };
 
-    const doctorMap: Record<string, number> = {};
+    // 4. Bar Chart: Appointments by Practitioner
+    const practitionerMap: Record<string, number> = {};
     filtered.forEach(appt => {
-      doctorMap[appt.doctor] = (doctorMap[appt.doctor] || 0) + 1;
+      const pName = appt.practitioner?.name || 'Unknown';
+      practitionerMap[pName] = (practitionerMap[pName] || 0) + 1;
     });
-    const docData = Object.entries(doctorMap).map(([label, value]) => ({ label, value }));
+    const docData = Object.entries(practitionerMap).map(([label, value]) => ({ label, value }));
 
-    const newPatientsByDoctor: Record<string, number> = {};
-    const newPatientAppts = MOCK_DB.filter(item => {
-      const itemDate = new Date(item.date);
-      const inDateRange = itemDate >= dateRange.start && itemDate <= dateRange.end;
-      const isNewPatient = item.type === 'New';
-      const matchesSource = sourceFilter === 'All' || item.source === sourceFilter;
-      return inDateRange && isNewPatient && matchesSource;
+    // 5. Practitioner Chart: New Patients by Practitioner
+    const newPatientsByPractitioner: Record<string, number> = {};
+    const newPatientAppts = bookings.filter(item => {
+      if (!item.appointment_date) return false;
+      const [year, month, day] = item.appointment_date.split('-');
+      const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
+
+      const start = new Date(dateRange.start); start.setHours(0, 0, 0, 0);
+      const end = new Date(dateRange.end); end.setHours(23, 59, 59, 999);
+
+      const inDateRange = itemDate >= start && itemDate <= end;
+      const isNewPatient = item.isNewPatient;
+      return inDateRange && isNewPatient;
     });
 
     newPatientAppts.forEach(appt => {
-      newPatientsByDoctor[appt.doctor] = (newPatientsByDoctor[appt.doctor] || 0) + 1;
+      const pName = appt.practitioner?.name || 'Unknown';
+      newPatientsByPractitioner[pName] = (newPatientsByPractitioner[pName] || 0) + 1;
     });
 
-    const newPatientsDoctorData = Object.entries(newPatientsByDoctor)
+    const newPatientsPractitionerData = Object.entries(newPatientsByPractitioner)
       .map(([label, value]) => ({
         label,
         value,
-        color: DOCTOR_COLORS[label] || DOCTOR_COLORS['Default']
+        color: PRACTITIONER_COLORS[label] || PRACTITIONER_COLORS['Default']
       }))
       .sort((a, b) => b.value - a.value);
 
+    // 6. Area Chart: Daily Trend
     const days = getDaysArray(dateRange.start, dateRange.end);
     const dailyTrend = days.map(day => {
       const dStr = formatDate(day);
-      const count = filtered.filter(i => i.date === dStr).length;
+      const count = filtered.filter(i => i.appointment_date === dStr).length;
       return { date: dStr, count };
     });
 
-    // Sparkline data for stat cards
     const sparklineData = dailyTrend.slice(-7).map(d => d.count);
 
-    return { filtered, stats, docData, dailyTrend, newPatientsDoctorData, sparklineData };
-  }, [dateRange, doctorFilter, sourceFilter]);
+    return { filtered, stats, docData, dailyTrend, newPatientsPractitionerData, sparklineData };
+  }, [bookings, dateRange, practitionerFilter]);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
-  };
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6 font-sans">
@@ -1102,24 +1143,24 @@ export default function PracticeAnalyticsView() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm border ${isRefreshing
+                onClick={refresh}
+                disabled={loading}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm border ${loading
                   ? 'bg-gray-50 text-gray-400 border-gray-200'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm'
                   }`}
               ><div
-                className={isRefreshing ? 'animate-spin' : ''}
-                style={isRefreshing ? { animationDuration: '0.5s' } : undefined}
+                className={loading ? 'animate-spin' : ''}
+                style={loading ? { animationDuration: '0.5s' } : undefined}
               >
-                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </div>
                 <span>Refresh</span>
 
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500  text-white rounded-xl font-medium hover:shadow-md hover:shadow-orange-200 transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:shadow-md hover:shadow-orange-200 transition-all"
               >
                 <Printer size={18} />
                 <span>Export Report</span>
@@ -1149,8 +1190,7 @@ export default function PracticeAnalyticsView() {
                   />
                 )}
               </div>
-              <FilterDropdown label="Doctor" options={doctors} value={doctorFilter} onChange={setDoctorFilter} />
-              <FilterDropdown label="Source" options={sources} value={sourceFilter} onChange={setSourceFilter} />
+              <FilterDropdown label="Practitioner" options={practitionerList} value={practitionerFilter} onChange={setPractitionerFilter} />
             </div>
             <DatePresets onSelect={handlePresetSelect} active={activePreset} />
           </div>
@@ -1187,7 +1227,7 @@ export default function PracticeAnalyticsView() {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <ModernBarChart
-            title="Appointments by Doctor"
+            title="Appointments by Practitioner"
             subtitle="Total bookings per healthcare provider"
             data={analyticsData.docData}
           />
@@ -1204,9 +1244,9 @@ export default function PracticeAnalyticsView() {
               { label: 'Existing Patients', value: analyticsData.stats.existing, color: '#fbbf24' },
             ]}
           />
-          <ModernDoctorChart
-            data={analyticsData.newPatientsDoctorData}
-            selectedDoctor={doctorFilter}
+          <ModernPractitionerChart
+            data={analyticsData.newPatientsPractitionerData}
+            selectedPractitioner={practitionerFilter}
           />
         </div>
       </div>

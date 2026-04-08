@@ -55,7 +55,7 @@ export const STATUS_LABELS: Record<ValidStatus, string> = {
 export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot: string }> = {
   confirmed: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
-  completed: { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
+  completed: { bg: 'bg-blue-100', text: 'text-blue-600', dot: 'bg-blue-400' },
   dismissed: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400' },
   patient_cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
   cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
@@ -64,8 +64,8 @@ export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot:
 export const TAB_CONFIG: Record<TabType, { label: string; activeColor: string; dotColor: string }> = {
   all: { label: 'All', activeColor: 'bg-gray-900 text-white', dotColor: 'bg-gray-500' },
   pending: { label: 'Pending', activeColor: 'bg-amber-500 text-white', dotColor: 'bg-amber-500' },
-  upcoming: { label: 'Upcoming', activeColor: 'bg-blue-500 text-white', dotColor: 'bg-blue-500' },
-  completed: { label: 'Completed', activeColor: 'bg-emerald-500 text-white', dotColor: 'bg-emerald-500' },
+  upcoming: { label: 'Upcoming', activeColor: 'bg-emerald-500 text-white', dotColor: 'bg-emerald-500' },
+  completed: { label: 'Completed', activeColor: 'bg-blue-500 text-white', dotColor: 'bg-blue-500' },
   cancelled: { label: 'Cancelled', activeColor: 'bg-red-500 text-white', dotColor: 'bg-red-500' },
 };
 
