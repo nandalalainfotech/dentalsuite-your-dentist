@@ -20,9 +20,9 @@ export interface PracticeService {
 
 export interface PracticeOpeningHours {
   id: string;
-  day_of_week: string; // Assuming 0-6 or 1-7 for days
+  day_of_week: string; 
   is_open: boolean;
-  time_slots: any; // Update this to a specific type if time_slots is structured JSON (e.g., { open: string, close: string }[])
+  time_slots: any; 
 }
 
 export interface OnlineBooking {
@@ -38,13 +38,12 @@ export interface OnlineBooking {
   email?: string;
 
   treatment: string;
-  appointment_date: string; // YYYY-MM-DD
-  appointment_time: string; // HH:MM:SS
+  appointment_date: string; 
+  appointment_time: string; 
 
   status: string;
   is_rescheduled: boolean;
   
-  // These use GraphQL Aliases in your query
   isNewPatient: boolean;
   isDependent: boolean;
 
@@ -65,7 +64,6 @@ export interface PractitionerBreak {
   color: string;
 }
 
-// Replaced 'dentist_' with 'practitioner_' to match the new local DB structure (practice_team_members)
 export interface EnrichedAppointment extends Omit<OnlineBooking, 'status'> {
   status: AppointmentStatus; 
   practitioner_name: string;

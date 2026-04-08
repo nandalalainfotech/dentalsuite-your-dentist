@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "../../features/auth/auth.hooks";
+import { useAuth } from "../../../../features/auth/auth.hooks";
 // 1. UPDATED: Import the new hook from your auth folder
 
 export default function PracticeSignUp() {
   const navigate = useNavigate();
-  
+
   // 2. UPDATED: Call your new handleSignup function and loading state
   const { handleSignup, loading: isLoading } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     // Practice Information
     practice_name: "",
@@ -19,7 +19,7 @@ export default function PracticeSignUp() {
     city: "",
     state: "",
     postcode: "",
-    
+
     // Contact Information
     first_name: "",
     last_name: "",
@@ -32,7 +32,7 @@ export default function PracticeSignUp() {
     logo: "",
     termsAccepted: false
   });
-  
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -114,10 +114,10 @@ export default function PracticeSignUp() {
       firstName: formData.first_name,
       lastName: formData.last_name,
       email: formData.email,
-      mobileNumber: formData.mobile, 
+      mobileNumber: formData.mobile,
       password: formData.password,
       practiceLogo: formData.logo,
-      type:formData.type || "practice"
+      type: formData.type || "practice"
     };
 
     // Call the Redux hook
@@ -355,18 +355,6 @@ export default function PracticeSignUp() {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                     placeholder="Re-enter password"
                     required
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Practice Logo (Optional)</label>
-                  <input
-                    type="text"
-                    name="logo"
-                    value={formData.logo}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
-                    placeholder="URL to practice logo"
                   />
                 </div>
               </div>
