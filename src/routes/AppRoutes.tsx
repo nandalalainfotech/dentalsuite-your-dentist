@@ -16,23 +16,36 @@ import BookingSuccess from '../components/booking/BookingSuccess'
 import { ProtectedRoute } from '../components/layout/ProtectedRoute'
 import Aboutus from '../pages/Aboutus'
 import ListYourPractice from '../pages/ListYourPractice'
-import PracticeRoutes from './practice/PracticeRoutes'
-import SuperAdminDashboard from '../pages/superadmin/SuperAdminDashboard'
+import PracticeRoutes from './PracticeRoutes'
+import SuperAdminRoutes from './SuperAdminRoutes'
 
 function AppRoutes() {
     return (
         <>
             <Routes>
+
+                {/* PUBLIC ROUTES */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                        <Dashboard />
-                    </ProtectedRoute>
-                } />
+                <Route path="/aboutus" element={<Aboutus />} />
+                <Route path="/list-your-practice" element={<ListYourPractice />} />
+
+                {/* USER DASHBOARD */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* CLINIC / DENTIST */}
                 <Route path="/clinicprofile/:id" element={<ClinicProfile />} />
                 <Route path="/dentist/:id" element={<DentistProfile />} />
+
+                {/* BOOKING */}
                 <Route path="/booking/:id" element={<BookingPage />} />
                 <Route path="/booking/:id/step-1" element={<BookingStep1 />} />
                 <Route path="/booking/:id/step-2" element={<BookingStep2 />} />
@@ -40,20 +53,27 @@ function AppRoutes() {
                 <Route path="/booking/:id/auth" element={<BookingAuthStep />} />
                 <Route path="/booking/:id/step-4" element={<BookingStep4 />} />
                 <Route path="/booking/:id/step-5" element={<BookingStep5 />} />
-                <Route path="/aboutus" element={<Aboutus />} />
-                <Route path="/list-your-practice" element={<ListYourPractice />} />
-                
-                {/* Practice Routes - Separate Module */}
+
+                {/* BOOKING SUCCESS */}
+                <Route
+                    path="/booking/success"
+                    element={
+                        <ProtectedRoute>
+                            <BookingSuccess />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* PRACTICE MODULE */}
                 <Route path="/practice/*" element={<PracticeRoutes />} />
-                <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+
                 
-                <Route path="/booking/success" element={
-                    <ProtectedRoute>
-                        <BookingSuccess />
-                    </ProtectedRoute>
-                } />
+                {/* SUPER ADMIN MODULE */}
+                <Route path="/superadmin/*" element={<SuperAdminRoutes />} />
+
             </Routes>
         </>
     )
 }
+
 export default AppRoutes

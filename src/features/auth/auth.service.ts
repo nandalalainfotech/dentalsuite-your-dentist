@@ -1,22 +1,34 @@
 import axios from "axios";
 import { localClient } from "../../api/apollo/localClient";
 import { GET_SIGNUP_OPTIONS_QUERY } from "../../pages/practice/auth/graphql/auth.query";
-import type { User, SignupPayload, PracticeTypeOption, StateOption } from "./auth.types";
+import type {
+  User,
+  SignupPayload,
+  PracticeTypeOption,
+  StateOption,
+  LoginResponse,
+} from "./auth.types";
 
 const API_BASE_URL = "http://localhost:3000/auth";
 
-interface LoginPayload { 
-  email: string; 
-  password: string; 
+// =========================
+// TYPES
+// =========================
+interface LoginPayload {
+  email: string;
+  password: string;
+  type?: string;
 }
 
-interface OptionsQueryResponse { 
-  common_practice_types: PracticeTypeOption[]; 
-  common_states: StateOption[]; 
+interface OptionsQueryResponse {
+  common_practice_types: PracticeTypeOption[];
+  common_states: StateOption[];
 }
 
-// --- 1. LOGIN ---
-const login = async (payload: LoginPayload): Promise<User> => {
+// =========================
+// 1. LOGIN
+// =========================
+const login = async (payload: LoginPayload): Promise<LoginResponse> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/login`, {
       email: payload.email,
@@ -24,35 +36,44 @@ const login = async (payload: LoginPayload): Promise<User> => {
     });
 
     const responseData = response.data;
-    const userData = responseData.user || responseData; 
-    const token = responseData.accessToken || responseData.token || "mock-jwt-token"; // Adjusted to match NestJS response
 
-    if (userData.status && userData.status.toLowerCase() !== "approved") {
+    const userData = responseData.user;
+    const accessToken = responseData.accessToken;
+    const refreshToken = responseData.refreshToken;
+
+    if (!userData) {
+      throw new Error("Invalid login response");
     }
 
-    return {
+    const normalizedUser: User = {
       id: userData.id,
       email: userData.email,
       practiceName: userData.practice_name || userData.practiceName,
       phone: userData.practice_phone || userData.practicePhone,
-      
-      
-      practiceId: userData.practice_id || userData.id, 
-      
-      token: token,
+      practiceId: userData.practice_id || userData.id,
+      type: userData.type,
+    };
+
+    return {
+      message: responseData.message,
+      user: normalizedUser,
+      accessToken,
+      refreshToken,
     };
   } catch (error: any) {
-    const message = 
-      error.response?.data?.message || 
-      error.response?.data?.error || 
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
       error.message ||
       "Login failed. Please check your credentials.";
-      
+
     throw new Error(message);
   }
 };
 
-// --- 2. SIGNUP ---
+// =========================
+// 2. SIGNUP
+// =========================
 const signup = async (payload: SignupPayload): Promise<string> => {
   try {
     const practiceData = {
@@ -65,38 +86,63 @@ const signup = async (payload: SignupPayload): Promise<string> => {
       city: payload.practiceCity,
       state: payload.practiceState,
       postcode: payload.practicePostcode,
+
       first_name: payload.firstName,
       last_name: payload.lastName,
       mobile: payload.mobileNumber,
-      password: payload.password, 
-      status: "PENDING", 
-      logo: payload.practiceLogo || "",
+
+      password: payload.password,
+
+      status: "PENDING",
+
+      type: payload.type || "PRACTICE_ADMIN",
+
     };
 
-    const response = await axios.post(`${API_BASE_URL}/register`, practiceData);
+    const response = await axios.post(
+      `${API_BASE_URL}/register`,
+      practiceData
+    );
 
-    return response.data?.message || "Registration successful! Waiting for approval.";
+    console.log("0---------->", practiceData);
+
+
+    return (
+      response.data?.message ||
+      "Registration successful! Waiting for approval."
+    );
   } catch (error: any) {
-    const message = 
-      error.response?.data?.message || 
-      error.response?.data?.error || 
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
       "An error occurred during registration. Please try again.";
 
     throw new Error(message);
   }
 };
 
-// --- 3. GET OPTIONS ---
+// =========================
+// 3. GET SIGNUP OPTIONS
+// =========================
 const getSignupOptions = async () => {
   const { data } = await localClient.query<OptionsQueryResponse>({
     query: GET_SIGNUP_OPTIONS_QUERY,
-    fetchPolicy: "cache-first", 
+    fetchPolicy: "cache-first",
   });
+
   return {
     practiceTypes: data?.common_practice_types || [],
-    states: data?.common_states || []
+    states: data?.common_states || [],
   };
 };
 
-const authService = { login, signup, getSignupOptions };
+// =========================
+// EXPORT
+// =========================
+const authService = {
+  login,
+  signup,
+  getSignupOptions,
+};
+
 export default authService;

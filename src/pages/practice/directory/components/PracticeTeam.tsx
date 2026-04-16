@@ -35,7 +35,9 @@ interface AppointmentType {
 
 interface TeamMember {
     id: string;
-    name: string;
+    first_name: string;
+    last_name: string;
+    email: string;
     role: string;
     qualification: string;
     gender: string;
@@ -352,7 +354,9 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
 
             return {
                 id: t.id,
-                name: t.name || '',
+                first_name: t.first_name || '',
+                last_name: t.last_name || '',
+                email: t.email || '',
                 role: t.role || '',
                 qualification: t.qualification || '',
                 gender: t.gender || '',
@@ -474,7 +478,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
     };
 
     if (editingId && formData && editingApptName) {
-        return <AppointmentTypeEditor practitionerName={formData.name} appointmentName={editingApptName} allTypes={formData.appointmentTypes} onBack={() => setEditingApptName(null)} onSave={handleApptSave} />;
+        return <AppointmentTypeEditor practitionerName={formData.first_name && formData.last_name} appointmentName={editingApptName} allTypes={formData.appointmentTypes} onBack={() => setEditingApptName(null)} onSave={handleApptSave} />;
     }
 
     if (editingId && formData) {
@@ -489,7 +493,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                         </button>
                         <div>
                             <h1 className="text-lg font-bold text-gray-900">Edit Profile</h1>
-                            <p className="text-xs text-gray-500">{formData.name || 'New Practitioner'}</p>
+                            <p className="text-xs text-gray-500">{formData.first_name && formData.last_name || 'New Practitioner'}</p>
                         </div>
                     </div>
                     <button onClick={handleMainSave}
@@ -521,11 +525,28 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                         </div>
                         <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-10">
                             <div className="lg:col-span-2 space-y-6">
-                                <div className="space-y-1.5"><label className="text-sm font-medium text-gray-700">Display Name</label>
-                                    <input type="text" value={formData.name}
-                                        onChange={(e) => updateField('name', e.target.value)}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-1.5"><label className="text-sm font-medium text-gray-700">First Name</label>
+                                        <input type="text" value={formData.first_name}
+                                            onChange={(e) => updateField('first_name', e.target.value)}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm"
+                                            placeholder="Enter your first name"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5"><label className="text-sm font-medium text-gray-700">Last Name</label>
+                                        <input type="text" value={formData.last_name}
+                                            onChange={(e) => updateField('last_name', e.target.value)}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm"
+                                            placeholder="Enter your last name"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5"><label className="text-sm font-medium text-gray-700">Email</label>
+                                    <input type="text" value={formData.email}
+                                        onChange={(e) => updateField('email', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm"
-                                        placeholder="e.g. Dr. Sarah Smith"
+                                        placeholder="Enter your email"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -803,7 +824,9 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                         const newId = `new-${generateUUID()}`;
                         const newMember: TeamMember = {
                             id: newId,
-                            name: '',
+                            first_name: '',
+                            last_name: '',
+                            email: '',
                             role: '',
                             qualification: '',
                             gender: '',
@@ -844,14 +867,18 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                                 <div className="w-full h-full rounded-full overflow-hidden bg-gray-50 flex items-center justify-center">
                                     {member.image ?
                                         <img src={member.image.url || member.image}
-                                            alt={member.name}
+                                            alt={member.first_name}
                                             className="w-full h-full object-cover"
                                         /> :
                                         <Users className="w-8 h-8 text-gray-300" />
                                     }
                                 </div>
                             </div>
-                            <h3 className="font-bold text-gray-900 text-lg mb-1 truncate w-full px-2">{member.name || 'Unnamed'}</h3>
+                            <h3 className="font-bold text-gray-900 text-lg mb-1 truncate w-full px-2">
+                                {member.first_name || member.last_name
+                                    ? `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim()
+                                    : 'Unnamed'}
+                            </h3>
                             <p className="text-gray-500 text-sm mb-6 h-5 truncate w-full px-2">{member.role || 'No Role'}</p>
                             <div className="w-full mt-auto pt-4 border-t border-gray-100 flex gap-2">
                                 <button

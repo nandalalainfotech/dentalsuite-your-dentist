@@ -42,7 +42,9 @@ export interface PractitionerPracticeService {
 export interface PracticeTeamMember {
   id: string;
   practice_id?: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
   role: string | null;
   qualification: string | null;
   gender: string | null;

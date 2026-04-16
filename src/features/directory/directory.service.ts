@@ -121,7 +121,8 @@ const updateTeamMembers = async (practiceId: string, team: any[]): Promise<strin
     const memberObj = {
       id: t.id, 
       practice_id: practiceId,
-      name: t.name,
+      first_name: t.first_name,
+      last_name: t. last_name,
       role: t.role,
       qualification: t.qualification,
       gender: t.gender,

@@ -253,7 +253,7 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
-                  name="cancellation_group" 
+                  name="cancellation_group"
                   checked={formData.cancellationEnabled === false}
                   onChange={() => setFormData({ ...formData, cancellationEnabled: false })}
                   className="text-blue-600 focus:ring-blue-500"
@@ -281,7 +281,9 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
               <tbody className="divide-y divide-gray-100">
                 {teamMembers.map((member) => (
                   <tr key={member.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-6 text-sm text-emerald-600 font-medium">{member.name}</td>
+                    <td className="py-3 px-6 text-sm text-emerald-600 font-medium">{member.first_name || member.last_name
+                      ? `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim()
+                      : ''}</td>
                     <td className="py-3 px-6">
                       <input type="checkbox" checked={!!practitionerSettings[member.id]?.ex} onChange={() => togglePractitioner(member.id, 'ex')}
                         className="w-4 h-4 text-blue-600 rounded border-gray-300"
@@ -459,13 +461,13 @@ export default function PracticeAppointmentType() {
               Are you sure you want to delete this appointment type? This action will remove it from all practitioners and cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setTypeToDelete(null)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition font-medium"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-medium"
               >

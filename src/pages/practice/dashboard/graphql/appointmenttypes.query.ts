@@ -26,7 +26,8 @@ export const GET_DATA = gql`
     }
     practice_team_members(where: { practice_id: { _eq: $practiceId } }) {
       id
-       name
+       first_name
+       last_name
         appointment_types
     }
   }

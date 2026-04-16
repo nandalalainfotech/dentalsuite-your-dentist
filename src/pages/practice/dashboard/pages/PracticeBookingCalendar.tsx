@@ -1298,9 +1298,9 @@ const DroppableTimeSlot: React.FC<{
     }, [drop]);
 
     const getDropIndicatorClass = () => {
-        if (!canDrop && isOver) return 'bg-red-50 border-red-300';
+        if (!canDrop && isOver) return 'bg-red-100 border-red-300';
         if (!canDrop) return '';
-        if (isOver) return 'bg-green-100 border-green-400';
+        if (isOver) return 'bg-green-200 border-green-400';
         return 'bg-blue-50 border-blue-200';
     };
 

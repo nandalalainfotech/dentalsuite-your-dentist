@@ -1,25 +1,24 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
-import { PracticeAuthProvider } from '../../hooks/usePracticeAuth';
-import { PracticeUserProvider } from '../../context/PracticeUserContext';
-import PracticeSignIn from '../../pages/practice/auth/pages/PracticeSignIn';
-import PracticeSignUp from '../../pages/practice/auth/pages/PracticeSignUp';
-import PracticeProtectedRoute from '../../components/practice/PracticeProtectedRoute';
-import PracticeNavbar from '../../components/practice/PracticeNavbar';
+import { PracticeAuthProvider } from '../hooks/usePracticeAuth';
+import { PracticeUserProvider } from '../context/PracticeUserContext';
+import PracticeSignIn from '../pages/practice/auth/pages/PracticeSignIn';
+import PracticeSignUp from '../pages/practice/auth/pages/PracticeSignUp';
+import PracticeProtectedRoute from '../components/practice/PracticeProtectedRoute';
+import PracticeNavbar from '../components/practice/PracticeNavbar';
 
 // --- Import Layout ---
-import PracticeDashboard from '../../pages/practice/dashboard/pages/PracticeDashboard';
+import PracticeDashboard from '../pages/practice/dashboard/pages/PracticeDashboard';
 
 // --- Import Views ---
-import PracticeDirectoryView from '../../pages/practice/directory/pages/PracticeDirectoryView';
-import PracticeNewsFeeds from '../../pages/practice/PracticeNewsFeeds';
-import PractiveViewProfile from '../../pages/practice/dashboard/pages/PractiveViewProfile';
-import PracticeAppointmentType from '../../pages/practice/dashboard/pages/PracticeAppointmentType';
-import PracticeBookingCalendar from '../../pages/practice/dashboard/pages/PracticeBookingCalendar';
-import PracticeAnalyticsView from '../../pages/practice/dashboard/pages/PracticeAnalyticsView';
-import PracticeInvoiceHistoryView from '../../pages/practice/PracticeInvoiceHistoryView';
-import PracticeOnlineBookings from '../../pages/practice/dashboard/pages/PracticeOnlineBookings';
-import PracticeSupport from '../../pages/practice/support/components/PracticeSupport';
-import PracticeUserAccount from '../../pages/practice/useraccount/components/PracticeUserAccount';
+import PracticeDirectoryView from '../pages/practice/directory/pages/PracticeDirectoryView';
+import PractiveViewProfile from '../pages/practice/dashboard/pages/PractiveViewProfile';
+import PracticeAppointmentType from '../pages/practice/dashboard/pages/PracticeAppointmentType';
+import PracticeBookingCalendar from '../pages/practice/dashboard/pages/PracticeBookingCalendar';
+import PracticeAnalyticsView from '../pages/practice/dashboard/pages/PracticeAnalyticsView';
+import PracticeInvoiceHistoryView from '../pages/practice/PracticeInvoiceHistoryView';
+import PracticeOnlineBookings from '../pages/practice/dashboard/pages/PracticeOnlineBookings';
+import PracticeSupport from '../pages/practice/support/components/PracticeSupport';
+import PracticeUserAccount from '../pages/practice/useraccount/components/PracticeUserAccount';
 
 function DashboardLayout() {
   return (
@@ -52,7 +51,6 @@ function PracticeRoutes() {
             {/* Default: Redirect /practice/dashboard -> /practice/dashboard/appointments */}
             <Route index element={<Navigate to="view-profile" replace />} />
 
-            <Route path="newsfeeds" element={<PracticeNewsFeeds />} />
             <Route path="view-profile" element={<PractiveViewProfile />} />
             <Route path="directory" element={<PracticeDirectoryView />} />
             <Route path="appointments" element={<PracticeOnlineBookings />} />

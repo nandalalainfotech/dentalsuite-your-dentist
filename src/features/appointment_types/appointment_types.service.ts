@@ -55,7 +55,8 @@ const getAppointmentTypesData = async (practiceId: string) => {
 
   const teamMembers = data.practice_team_members.map((tm: any) => ({
     id: tm.id,
-    name: tm.name,
+    first_name: tm.first_name,
+    last_name: tm.last_name,
     appointmentTypes: tm.appointment_types || []
   }));
 

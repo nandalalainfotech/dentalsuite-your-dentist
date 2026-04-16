@@ -139,7 +139,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                             onError={(e) => (e.currentTarget.src = "")}
                                         />
                                         <span className="break-words line-clamp-2">
-                                            {(clinicData.practice_name ||  "PRACTICE NAME").toUpperCase()}
+                                            {(clinicData.practice_name || "PRACTICE NAME").toUpperCase()}
                                         </span>
                                     </h1>
 
@@ -251,7 +251,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                             <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-50 shadow-inner transition-colors duration-300 bg-gray-100 flex items-center justify-center">
                                                 <img
                                                     src={member.image || ""}
-                                                    alt={member.name}
+                                                    alt={member.first_name}
                                                     className="w-full h-full object-cover object-center"
                                                     onError={(e) => (e.currentTarget.style.display = "none")}
                                                 />
@@ -261,8 +261,10 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                             </div>
                                         </div>
                                         <div className="text-center w-full">
-                                            <h4 className="text-lg font-bold text-gray-900 mb-1 truncate w-full px-2" title={member.name}>
-                                                {member.name}
+                                            <h4 className="text-lg font-bold text-gray-900 mb-1 truncate w-full px-2" title={member.first_name}>
+                                                {member.first_name || member.last_name
+                                                    ? `${member.first_name ?? ''} ${member.last_name ?? ''}`.trim()
+                                                    : 'Unnamed'}
                                             </h4>
                                             <div className="h-0.5 w-8 bg-orange-500 mx-auto my-3 rounded-full group-hover:w-16 transition-all duration-300"></div>
                                             <p className="text-sm font-semibold text-orange-600 uppercase tracking-wide truncate w-full px-2">
