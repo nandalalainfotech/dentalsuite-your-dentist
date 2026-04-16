@@ -23,7 +23,7 @@ export default function PracticeSignUp() {
     mobile: "",
     password: "",
     confirmPassword: "",
-    type: "",
+    type: "PRACTICE_ADMIN",
 
     logo: "",
     termsAccepted: false
@@ -110,7 +110,7 @@ export default function PracticeSignUp() {
       mobileNumber: formData.mobile,
       password: formData.password,
       practiceLogo: formData.logo,
-      type: formData.type || "practice"
+      type: formData.type || "PRACTICE_ADMIN"
     };
 
     const result = await handleSignup(signupPayload);
