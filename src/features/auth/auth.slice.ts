@@ -1,98 +1,143 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import type { AuthState, User, SignupPayload } from "./auth.types"; // <-- Added SignupPayload
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+
+import type { AuthState, User, SignupPayload } from "./auth.types";
 import authService from "./auth.service";
 
+// =========================
+// INITIAL STATE
+// =========================
+const storedUser = sessionStorage.getItem("user");
+
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
+  user: storedUser ? JSON.parse(storedUser) : null,
+  isAuthenticated: !!storedUser,
   isLoading: false,
   error: null,
 };
 
-// --- Async Thunks ---
-
-// 1. Login Thunk
+// =========================
+// LOGIN THUNK
+// =========================
 export const loginUser = createAsyncThunk(
   "auth/login",
   async ({ email, password }: any, thunkAPI) => {
     try {
-      const user = await authService.login({ email, password });
-      // Save to sessionStorage automatically on success
+      const response = await authService.login({ email, password });
+
+      const { user, accessToken, refreshToken } = response;
+
       sessionStorage.setItem("user", JSON.stringify(user));
-      sessionStorage.setItem("token", user.token); 
+      sessionStorage.setItem("token", accessToken);
+      sessionStorage.setItem("refreshToken", refreshToken);
+
       return user;
     } catch (error: any) {
-      // Since your auth.service.ts throws standard Error objects, error.message works perfectly
-      const message = error.message || "Login failed. Please check your credentials.";
+      const message =
+        error.message || "Login failed. Please check your credentials.";
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
-// 2. NEW: Signup Thunk
+// =========================
+// SIGNUP THUNK
+// =========================
 export const signupUser = createAsyncThunk(
   "auth/signup",
   async (payload: SignupPayload, thunkAPI) => {
     try {
-      // Calls your GraphQL mutation via auth.service.ts
       const responseMessage = await authService.signup(payload);
-      return responseMessage; // Returns: "Registration successful! Waiting for approval."
+      return responseMessage;
     } catch (error: any) {
-      const message = error.message || "Registration failed. Please try again.";
+      const message =
+        error.message || "Registration failed. Please try again.";
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
-// --- Slice ---
-
+// =========================
+// SLICE
+// =========================
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    // -------------------------
+    // SET USER (manual login restore)
+    // -------------------------
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
     },
+
+    // -------------------------
+    // LOGOUT
+    // -------------------------
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
+
       sessionStorage.removeItem("user");
       sessionStorage.removeItem("token");
+      sessionStorage.removeItem("refreshToken");
     },
+
+    // -------------------------
+    // RESET ERROR
+    // -------------------------
     resetError: (state) => {
       state.error = null;
-    }
+    },
   },
+
   extraReducers: (builder) => {
     builder
-      // --- Login Cases ---
+      // =========================
+      // LOGIN
+      // =========================
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
+
+      .addCase(
+        loginUser.fulfilled,
+        (state, action: PayloadAction<User>) => {
+          state.isLoading = false;
+          state.isAuthenticated = true;
+          state.user = action.payload;
+        }
+      )
+
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.error = action.payload as string;
       })
-      
-      // --- NEW: Signup Cases ---
+
+      // =========================
+      // SIGNUP
+      // =========================
       .addCase(signupUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
+
       .addCase(signupUser.fulfilled, (state) => {
         state.isLoading = false;
-        // IMPORTANT: We do NOT set user or isAuthenticated to true 
-        // because the new practice is PENDING approval.
+
+        // IMPORTANT:
+        // user is NOT set here because account is still PENDING
+        state.isAuthenticated = false;
+        state.user = null;
       })
+
       .addCase(signupUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
@@ -100,5 +145,8 @@ export const authSlice = createSlice({
   },
 });
 
+// =========================
+// EXPORTS
+// =========================
 export const { logout, resetError, setUser } = authSlice.actions;
 export default authSlice.reducer;

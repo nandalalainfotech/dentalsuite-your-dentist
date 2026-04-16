@@ -2,13 +2,15 @@ import { gql } from "@apollo/client";
 
 export const SIGNIN_QUERY = gql`
   query Login($email: String!) {
-    practice_info(where: { email: { _eq: $email } }) {
+    accounts(where: { email: { _eq: $email } }) {
       id
       email
       password
-      practice_name
-      practice_phone  # Matches your DB column
+      name
+      type
       status
+      practice_name
+      practice_phone
     }
   }
 `;

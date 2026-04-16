@@ -60,7 +60,9 @@ export const GET_PRACTICE_DIRECTORY_QUERY = gql`
       
       practice_team_members {
         id
-        name
+        first_name
+        last_name
+        email
         role
         qualification
         gender
@@ -162,7 +164,7 @@ export const UPDATE_PRACTICE_TEAM_MUTATION = gql`
       on_conflict: {
         constraint: practice_team_members_pkey,
         update_columns: [
-          name, role, qualification, gender, ahpra_number, education, 
+          first_name, last_name, type, password, email, role, qualification, gender, ahpra_number, education, 
           languages, professional_statement, image, is_visible_online, 
           allow_multiple_bookings, booking_time_limit, booking_time_limit_unit, 
           cancel_time_limit, cancel_time_limit_unit, appointment_types

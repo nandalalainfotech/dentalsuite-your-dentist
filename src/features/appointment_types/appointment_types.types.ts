@@ -25,7 +25,8 @@ export interface PractitionerSetting {
 
 export interface TeamMemberApptContext {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   appointmentTypes: any[]; 
 }
 

@@ -3,14 +3,30 @@ import SignInForm from "../components/SignInForm";
 import loginimg from "../../../../assets/login.png";
 import { useAuth } from "../../../../features/auth/auth.hooks";
 
+type UserType = "SUPER_ADMIN" | "PRACTICE_ADMIN" | "PRACTITIONER";
+
 export default function PracticeSignInPage() {
   const navigate = useNavigate();
   const { handleLogin, loading, error } = useAuth();
 
   const onSubmit = async (email: string, password: string) => {
     try {
-      await handleLogin(email, password);
-      navigate("/practice/dashboard");
+      const result = await handleLogin(email, password);
+
+      const userType = result.user?.type as UserType | undefined;
+
+      const routeMap: Record<UserType, string> = {
+        SUPER_ADMIN: "/superadmin/clients",
+        PRACTICE_ADMIN: "/practice/dashboard",
+        PRACTITIONER: "/practice/practitioner-dashboard",
+      };
+
+      if (userType) {
+        navigate(routeMap[userType]);
+      } else {
+        navigate("/practice/dashboard");
+      }
+
     } catch {
       // error handled in hook
     }
@@ -26,7 +42,7 @@ export default function PracticeSignInPage() {
           <SignInForm
             onSubmit={onSubmit}
             loading={loading}
-            error={error || ""} 
+            error={error || ""}
           />
         </div>
       </div>
