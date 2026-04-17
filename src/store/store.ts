@@ -1,17 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/auth.slice";
 import dashboardReducer from "../features/dashboard/dashboard.slice";
-import appointmentsReducer from "../features/online_bookings/online_bookings.slice"; 
+import appointmentsReducer from "../features/online_bookings/online_bookings.slice";
 import directoryReducer from "../features/directory/directory.slice";
 import appointmentTypesReducer from "../features/appointment_types/appointment_types.slice";
+import permissionsReducer from "../features/permissions/permissions.slice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     dashboard: dashboardReducer,
     appointments: appointmentsReducer,
-    directory: directoryReducer, 
+    directory: directoryReducer,
     appointmentTypes: appointmentTypesReducer,
+    permissions: permissionsReducer,
   },
 });
 
