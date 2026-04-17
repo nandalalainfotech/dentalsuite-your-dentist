@@ -15,6 +15,7 @@ export const GET_PERMISSION_MODULES_MASTER = gql`
       description
       display_order
       is_active
+      path
     }
   }
 `;

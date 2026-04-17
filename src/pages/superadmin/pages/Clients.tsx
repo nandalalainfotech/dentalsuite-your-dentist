@@ -43,6 +43,7 @@ interface PermissionModule {
     description: string;
     display_order: number;
     is_active: boolean;
+    path: string;
 }
 
 export default function Clients() {
@@ -91,6 +92,7 @@ export default function Clients() {
             // Create permissions array with all actions for all modules
             const allPermissions = modules.map(module => ({
                 module: module.module_key,
+                path: module.path,
                 actions: [...module.actions] // All actions for this module
             }));
 
