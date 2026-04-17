@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { GET_CLIENTS, UPDATE_PRACTICE_STATUS } from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
+import { GET_PERMISSION_MODULES_MASTER, UPDATE_PRACTICE_PERMISSIONS } from '../graphql/permissions.queries';
 
 interface Client {
     id: string;
@@ -34,12 +35,24 @@ interface ClientsResponse {
     accounts: Client[];
 }
 
+interface PermissionModule {
+    id: string;
+    module_name: string;
+    module_key: string;
+    actions: string[];
+    description: string;
+    display_order: number;
+    is_active: boolean;
+    path: string;
+}
+
 export default function Clients() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [showActionsId, setShowActionsId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchCategory, setSearchCategory] = useState<'practice_name' | 'email' | 'address' | 'status'>('practice_name');
-    
+    const [isApproving, setIsApproving] = useState<string | null>(null);
+
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const { data, loading, error, refetch } = useQuery<ClientsResponse>(
@@ -47,7 +60,16 @@ export default function Clients() {
         { client: localClient }
     );
 
+    const { data: modulesData } = useQuery<{ practice_permission_modules_master: PermissionModule[] }>(
+        GET_PERMISSION_MODULES_MASTER,
+        { client: localClient }
+    );
+
     const [updateStatus] = useMutation(UPDATE_PRACTICE_STATUS, {
+        client: localClient,
+    });
+
+    const [updatePermissions] = useMutation(UPDATE_PRACTICE_PERMISSIONS, {
         client: localClient,
     });
 
@@ -61,13 +83,46 @@ export default function Clients() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showActionsId]);
 
-    const handleStatusChange = async (id: string, status: string) => {
+    const handleApprove = async (id: string) => {
+        setIsApproving(id);
         try {
-            await updateStatus({ variables: { id, status } });
+            // Get all modules with all their actions
+            const modules = modulesData?.practice_permission_modules_master ?? [];
+
+            // Create permissions array with all actions for all modules
+            const allPermissions = modules.map(module => ({
+                module: module.module_key,
+                path: module.path,
+                actions: [...module.actions] // All actions for this module
+            }));
+
+            // Save permissions in background
+            await updatePermissions({
+                variables: {
+                    practiceId: id,
+                    permissions: allPermissions
+                }
+            });
+
+            // Update status to APPROVED
+            await updateStatus({ variables: { id, status: "APPROVED" } });
+
             setShowActionsId(null);
             await refetch();
         } catch (err) {
-            console.error("Error updating status:", err);
+            console.error("Error approving:", err);
+        } finally {
+            setIsApproving(null);
+        }
+    };
+
+    const handleDecline = async (id: string) => {
+        try {
+            await updateStatus({ variables: { id, status: "DECLINED" } });
+            setShowActionsId(null);
+            await refetch();
+        } catch (err) {
+            console.error("Error declining:", err);
         }
     };
 
@@ -80,7 +135,6 @@ export default function Clients() {
 
     if (error) return <div className="p-10 text-red-500 text-center bg-red-50 rounded-2xl border border-red-100">Unable to load accounts.</div>;
 
-    // Filter Logic
     const clients = data?.accounts ?? [];
     const filteredClients = clients.filter((client) => {
         const valueToSearch = client[searchCategory]?.toLowerCase() || "";
@@ -100,7 +154,7 @@ export default function Clients() {
                 <div className="flex items-center gap-3 bg-gray-300 p-2 rounded-2xl shadow-sm border border-gray-100">
                     <div className="relative flex items-center">
                         <Filter size={16} className="absolute left-4 text-gray-400" />
-                        <select 
+                        <select
                             value={searchCategory}
                             onChange={(e) => setSearchCategory(e.target.value as any)}
                             className="pl-10 pr-8 py-2.5 bg-gray-50 border-none rounded-xl text-sm font-bold text-[#1a2b3c] appearance-none focus:ring-2 focus:ring-[#f47521]/50 cursor-pointer outline-none"
@@ -117,8 +171,8 @@ export default function Clients() {
 
                     <div className="relative flex items-center group">
                         <Search size={18} className="absolute left-4 text-gray-400 group-focus-within:text-[#f47521] transition-colors" />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder={`Search by ${searchCategory.replace('_', ' ')}...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -143,17 +197,17 @@ export default function Clients() {
                         const isExpanded = expandedId === client.id;
                         const isActionsOpen = showActionsId === client.id;
                         const isPending = client.status === 'PENDING';
+                        const isApprovingThis = isApproving === client.id;
 
                         return (
                             <div
                                 key={client.id}
-                                className={`group transition-all duration-300 bg-white border rounded-[18px] ${
-                                    isExpanded ? 'border-[#f47521] shadow-xl ring-1 ring-[#f47521]/5' : 'border-gray-100 hover:border-gray-300 shadow-sm'
-                                }`}
+                                className={`group transition-all duration-300 bg-white border rounded-[18px] ${isExpanded ? 'border-[#f47521] shadow-xl ring-1 ring-[#f47521]/5' : 'border-gray-100 hover:border-gray-300 shadow-sm'
+                                    }`}
                             >
                                 {/* Main Row */}
-                                <div 
-                                    className="grid grid-cols-12 gap-4 px-8 py-6 items-center cursor-pointer" 
+                                <div
+                                    className="grid grid-cols-12 gap-4 px-8 py-6 items-center cursor-pointer"
                                     onClick={() => setExpandedId(isExpanded ? null : client.id)}
                                 >
                                     <div className="col-span-3 font-bold text-[#1a2b3c] text-[15px]">
@@ -169,11 +223,10 @@ export default function Clients() {
                                     </div>
 
                                     <div className="col-span-2">
-                                        <div className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                            client.status === 'APPROVED' ? 'bg-green-50 text-green-600' :
+                                        <div className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${client.status === 'APPROVED' ? 'bg-green-50 text-green-600' :
                                             client.status === 'PENDING' ? 'bg-orange-50 text-[#f47521]' :
-                                            'bg-red-50 text-red-600'
-                                        }`}>
+                                                'bg-red-50 text-red-600'
+                                            }`}>
                                             {client.status}
                                         </div>
                                     </div>
@@ -187,20 +240,31 @@ export default function Clients() {
                                                         setShowActionsId(isActionsOpen ? null : client.id);
                                                     }}
                                                     className={`p-2 rounded-xl transition-all ${isActionsOpen ? 'bg-[#f47521] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100 hover:text-[#f47521]'}`}
+                                                    disabled={isApprovingThis}
                                                 >
-                                                    <MoreVertical size={20} strokeWidth={2.5} />
+                                                    {isApprovingThis ? (
+                                                        <Loader2 size={20} className="animate-spin" />
+                                                    ) : (
+                                                        <MoreVertical size={20} strokeWidth={2.5} />
+                                                    )}
                                                 </button>
 
-                                                {isActionsOpen && (
+                                                {isActionsOpen && !isApprovingThis && (
                                                     <div className="absolute right-0 mt-3 w-44 bg-white border border-gray-100 shadow-2xl rounded-2xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); handleStatusChange(client.id, "APPROVED"); }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleApprove(client.id);
+                                                            }}
                                                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-green-600 hover:bg-green-50"
                                                         >
                                                             <Check size={16} strokeWidth={3} /> Approve
                                                         </button>
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); handleStatusChange(client.id, "DECLINED"); }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDecline(client.id);
+                                                            }}
                                                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50"
                                                         >
                                                             <X size={16} strokeWidth={3} /> Decline
@@ -211,9 +275,9 @@ export default function Clients() {
                                         ) : (
                                             <div className="p-2 flex items-center justify-center w-[36px]">
                                                 {client.status === 'APPROVED' ? (
-                                                    <Check size={18} strokeWidth={3} className="text-green-600 opacity-70"/> 
+                                                    <Check size={18} strokeWidth={3} className="text-green-600 opacity-70" />
                                                 ) : (
-                                                    <X size={18} strokeWidth={3} className="text-red-600 opacity-70"/>
+                                                    <X size={18} strokeWidth={3} className="text-red-600 opacity-70" />
                                                 )}
                                             </div>
                                         )}
@@ -227,7 +291,6 @@ export default function Clients() {
                                 {isExpanded && (
                                     <div className="px-8 pb-10 pt-4 border-t border-gray-50 bg-[#fafafa]/30">
                                         <div className="grid grid-cols-3 gap-12">
-                                            {/* Details Columns stay exactly as per your previous design */}
                                             <div className="space-y-6">
                                                 <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Personal Details</h4>
                                                 <div className="space-y-4">

@@ -43,7 +43,7 @@ export default function PracticeDashboard() {
 
   // 1. Use new Auth Hook for Logout
   const { handleLogout, user: authUser } = useAuth();
-  
+
   // 2. Use new Dashboard Hook for Profile Data
   const { profile, loading } = useDashboard();
 
@@ -58,12 +58,12 @@ export default function PracticeDashboard() {
       </div>
     );
   }
-const DEFAULT_LOGO = "https://cdn-icons-png.flaticon.com/512/377/377429.png";
-    const logoUrl = (profile?.logo && profile.logo !== "") 
-    ? profile.logo 
+  const DEFAULT_LOGO = "https://cdn-icons-png.flaticon.com/512/377/377429.png";
+  const logoUrl = (profile?.logo && profile.logo !== "")
+    ? profile.logo
     : DEFAULT_LOGO;
 
-  const businessName = profile?.practiceName || authUser?.practiceName || "My Practice"; 
+  const businessName = profile?.practiceName || authUser?.practiceName || "My Practice";
 
   const isTabbedView = location.pathname.includes('/directory') || location.pathname.includes('/appointments');
 
@@ -80,10 +80,10 @@ const DEFAULT_LOGO = "https://cdn-icons-png.flaticon.com/512/377/377429.png";
               <div className="flex items-center gap-4 mb-2">
                 <div className="w-16 h-14 rounded-full flex items-center justify-center shadow-md relative overflow-hidden bg-gray-100">
                   {/* Fixed Image Tag */}
-                  <img 
-                    src={logoUrl} 
-                    alt={businessName} 
-                    className="w-10 h-10 sm:w-16 sm:h-14 rounded-full flex-shrink-0 object-cover" 
+                  <img
+                    src={logoUrl}
+                    alt={businessName}
+                    className="w-10 h-10 sm:w-16 sm:h-14 rounded-full flex-shrink-0 object-cover"
                   />
                 </div>
                 <div>
@@ -96,7 +96,10 @@ const DEFAULT_LOGO = "https://cdn-icons-png.flaticon.com/512/377/377429.png";
             </div>
 
             {/* NAVIGATION LINKS */}
-            <PracticeSidebar onLogout={() => setShowLogoutModal(true)} />
+            <PracticeSidebar
+              practiceId={profile?.id ?? ""}
+              onLogout={() => setShowLogoutModal(true)}
+            />
           </div>
         </aside>
 

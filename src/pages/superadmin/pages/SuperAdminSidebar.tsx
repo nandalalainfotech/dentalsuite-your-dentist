@@ -41,6 +41,14 @@ export default function SuperAdminSidebar({
                     </>
                 )}
             </NavLink>
+            <NavLink to="/superadmin/usersettings" className={getLinkClass} onClick={onClose}>
+                {({ isActive }) => (
+                    <>
+                        <div className={getIconClass(isActive)}><Users size={18} /></div>
+                        <span>User Settings</span>
+                    </>
+                )}
+            </NavLink>
 
         </nav>
     );
