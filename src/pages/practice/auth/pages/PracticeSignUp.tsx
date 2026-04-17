@@ -116,7 +116,7 @@ export default function PracticeSignUp() {
     const result = await handleSignup(signupPayload);
 
     if (result.success) {
-      setSuccess("Account created successfully! Your account is pending Superadmin approval. Redirecting to login...");
+      setSuccess("Account created successfully! Your account is waiting for approval. Redirecting to login...");
       setTimeout(() => {
         navigate("/practice/signin");
       }, 3500);
