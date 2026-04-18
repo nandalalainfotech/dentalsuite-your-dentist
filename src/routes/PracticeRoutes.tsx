@@ -4,6 +4,7 @@ import { PracticeUserProvider } from '../context/PracticeUserContext';
 import PracticeSignIn from '../pages/practice/auth/pages/PracticeSignIn';
 import PracticeSignUp from '../pages/practice/auth/pages/PracticeSignUp';
 import PracticeProtectedRoute from '../components/practice/PracticeProtectedRoute';
+import PracticePermissionRoute from '../components/practice/PracticePermissionRoute';
 import PracticeNavbar from '../components/practice/PracticeNavbar';
 
 // --- Import Layout ---
@@ -52,14 +53,14 @@ function PracticeRoutes() {
             <Route index element={<Navigate to="view-profile" replace />} />
 
             <Route path="view-profile" element={<PractiveViewProfile />} />
-            <Route path="directory" element={<PracticeDirectoryView />} />
-            <Route path="appointments" element={<PracticeOnlineBookings />} />
-            <Route path="appointment-type" element={<PracticeAppointmentType />} />
-            <Route path="booking-calendar" element={<PracticeBookingCalendar />} />
-            <Route path="analytics" element={<PracticeAnalyticsView />} />
-            <Route path="invoice-history" element={<PracticeInvoiceHistoryView />} />
-            <Route path="support" element={<PracticeSupport />} />
-            <Route path="user-accounts" element={<PracticeUserAccount />} />
+            <Route path="directory" element={<PracticePermissionRoute module="directory"><PracticeDirectoryView /></PracticePermissionRoute>} />
+            <Route path="appointments" element={<PracticePermissionRoute module="appointments"><PracticeOnlineBookings /></PracticePermissionRoute>} />
+            <Route path="appointment-type" element={<PracticePermissionRoute module="appointment_type"><PracticeAppointmentType /></PracticePermissionRoute>} />
+            <Route path="booking-calendar" element={<PracticePermissionRoute module="booking_calendar"><PracticeBookingCalendar /></PracticePermissionRoute>} />
+            <Route path="analytics" element={<PracticePermissionRoute module="analytics"><PracticeAnalyticsView /></PracticePermissionRoute>} />
+            <Route path="invoice-history" element={<PracticePermissionRoute module="invoice"><PracticeInvoiceHistoryView /></PracticePermissionRoute>} />
+            <Route path="support" element={<PracticePermissionRoute module="support"><PracticeSupport /></PracticePermissionRoute>} />
+            <Route path="user-accounts" element={<PracticePermissionRoute module="user_accounts"><PracticeUserAccount /></PracticePermissionRoute>} />
 
             {/* Fallback for unknown dashboard routes */}
             <Route path="*" element={<Navigate to="view-profile" replace />} />
