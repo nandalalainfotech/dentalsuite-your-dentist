@@ -1,5 +1,5 @@
 // src/features/permissions/hooks/usePermissions.ts
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 import {
     fetchMasterModules,
@@ -10,6 +10,7 @@ import {
     resetPermissions,
 } from "./permissions.slice";
 import { useAppDispatch, useAppSelector } from "../../store";
+import type { RootState } from "../../store/store";
 
 export const usePermissions = () => {
     const dispatch = useAppDispatch();
@@ -99,5 +100,46 @@ export const usePermissions = () => {
         resetMessages,
         hasPermission,
         getPermissionMatrix,
+    };
+};
+
+export const usePracticePermissions = (practiceId?: string) => {
+    const dispatch = useAppDispatch();
+    const authPracticeId = useAppSelector((state: RootState) => state.auth.user?.practiceId || state.auth.user?.id);
+    const resolvedPracticeId = practiceId || authPracticeId;
+    const {
+        permissions,
+        practicePermissions,
+        isLoading,
+        error,
+    } = useAppSelector((state: RootState) => state.permissions);
+
+    useEffect(() => {
+        if (!resolvedPracticeId) return;
+        if (isLoading) return;
+        if (practicePermissions?.practice_id === resolvedPracticeId) return;
+
+        dispatch(fetchPracticePermissions(resolvedPracticeId));
+    }, [dispatch, resolvedPracticeId, practicePermissions?.practice_id, isLoading]);
+
+    const hasPermission = useCallback(
+        (moduleKey: string, actionKey: string) => {
+            const modulePermission = permissions.find((permission) => permission.module === moduleKey);
+            return modulePermission?.actions?.includes(actionKey) ?? false;
+        },
+        [permissions]
+    );
+
+    return {
+        practiceId: resolvedPracticeId,
+        permissions,
+        isLoading,
+        error,
+        isReady: !resolvedPracticeId || practicePermissions?.practice_id === resolvedPracticeId,
+        hasPermission,
+        canView: (moduleKey: string) => hasPermission(moduleKey, "view"),
+        canCreate: (moduleKey: string) => hasPermission(moduleKey, "create"),
+        canEdit: (moduleKey: string) => hasPermission(moduleKey, "edit"),
+        canDelete: (moduleKey: string) => hasPermission(moduleKey, "delete"),
     };
 };

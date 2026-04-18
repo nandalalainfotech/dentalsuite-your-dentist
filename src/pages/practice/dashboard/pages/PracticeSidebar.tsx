@@ -1,33 +1,13 @@
 import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { FileText, X, Loader2 } from 'lucide-react';
-import { useQuery } from '@apollo/client/react';
 import { Icons } from '../../../../components/dashboard/Icons';
-import { localClient } from '../../../../api/apollo/localClient';
-import { GET_PRACTICE_PERMISSIONS } from '../../../superadmin/graphql/permissions.queries';
+import { usePracticePermissions } from '../../../../features/permissions/Permissions.hooks';
 
 interface PracticeSidebarProps {
   onLogout?: () => void;
   onClose?: () => void;
   practiceId: string;
-}
-
-interface Permission {
-  path: string;
-  module: string;
-  actions: string[];
-}
-
-interface PracticePermission {
-  id: string;
-  practice_id: string;
-  permissions: Permission[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface PermissionsResponse {
-  practice_permissions: PracticePermission[];
 }
 
 const NAVIGATION_ITEMS = {
@@ -89,19 +69,7 @@ const NAVIGATION_ITEMS = {
 };
 
 export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebarProps) {
-  const { data, loading, error } = useQuery<PermissionsResponse>(
-    GET_PRACTICE_PERMISSIONS,
-    {
-      client: localClient,
-      variables: { practiceId },
-      skip: !practiceId,
-    }
-  );
-
-  const permissionsData = useMemo(
-    () => data?.practice_permissions?.[0]?.permissions ?? [],
-    [data]
-  );
+  const { isLoading, isReady, hasPermission } = usePracticePermissions(practiceId);
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     `w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${isActive
@@ -119,19 +87,13 @@ export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebar
 
       if ('alwaysShow' in navItem && navItem.alwaysShow) return true;
 
-      if (loading || error) return false;
+      if (!isReady) return false;
 
-      const permission = permissionsData.find(
-        (p) => p.module === navItem.module
-      );
-
-      if (!permission) return false;
-
-      return permission.actions?.includes(navItem.requiredAction) ?? false;
+      return hasPermission(navItem.module, navItem.requiredAction);
     });
-  }, [permissionsData, loading, error]);
+  }, [hasPermission, isReady]);
 
-  if (loading) {
+  if (isLoading || !isReady) {
     return (
       <nav className="flex flex-col pb-4 h-full">
         {onClose && (
@@ -149,10 +111,6 @@ export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebar
     );
   }
 
-  if (error) {
-    console.error('Error loading permissions:', error);
-  }
-
   return (
     <nav className="flex flex-col pb-4 h-full">
       {onClose && (
@@ -163,49 +121,26 @@ export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebar
         </div>
       )}
 
-      {visibleNavItems.length > 0 ? (
-        visibleNavItems.map(([path, config]) => {
-          const Icon = config.icon;
-          return (
-            <NavLink
-              key={path}
-              to={path}
-              className={getLinkClass}
-              onClick={onClose}
-            >
-              {({ isActive }) => (
-                <>
-                  <div className={getIconClass(isActive)}>
-                    <Icon />
-                  </div>
-                  <span>{config.label}</span>
-                </>
-              )}
-            </NavLink>
-          );
-        })
-      ) : (
-        Object.entries(NAVIGATION_ITEMS).map(([path, config]) => {
-          const Icon = config.icon;
-          return (
-            <NavLink
-              key={path}
-              to={path}
-              className={getLinkClass}
-              onClick={onClose}
-            >
-              {({ isActive }) => (
-                <>
-                  <div className={getIconClass(isActive)}>
-                    <Icon />
-                  </div>
-                  <span>{config.label}</span>
-                </>
-              )}
-            </NavLink>
-          );
-        })
-      )}
+      {visibleNavItems.map(([path, config]) => {
+        const Icon = config.icon;
+        return (
+          <NavLink
+            key={path}
+            to={path}
+            className={getLinkClass}
+            onClick={onClose}
+          >
+            {({ isActive }) => (
+              <>
+                <div className={getIconClass(isActive)}>
+                  <Icon />
+                </div>
+                <span>{config.label}</span>
+              </>
+            )}
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

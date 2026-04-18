@@ -5,6 +5,7 @@ import { Plus, ChevronLeft, HelpCircle, ChevronsUpDown } from 'lucide-react';
 import { fetchAppointmentData, saveAppointmentData, deleteAppointmentType } from '../../../../features/appointment_types/appointment_types.slice';
 import type { AppointmentType, TeamMemberApptContext, PractitionerSetting } from '../../../../features/appointment_types/appointment_types.types';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
+import { usePracticePermissions } from '../../../../features/permissions/Permissions.hooks';
 
 const timeOptions = [5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 90, 120];
 
@@ -323,6 +324,10 @@ export default function PracticeAppointmentType() {
   const { data: appointmentTypes, teamMembers, loading, saveLoading } = useAppSelector((state) => state.appointmentTypes);
   const { user: authPractice, isAuthenticated } = useAppSelector((state: any) => state.auth);
   const currentPracticeId = authPractice?.practiceId || authPractice?.id;
+  const { canCreate, canEdit, canDelete } = usePracticePermissions(currentPracticeId);
+  const canCreateAppointmentType = canCreate('appointment_type');
+  const canEditAppointmentType = canEdit('appointment_type');
+  const canDeleteAppointmentType = canDelete('appointment_type');
 
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [editingData, setEditingData] = useState<AppointmentType | null>(null);
@@ -337,6 +342,13 @@ export default function PracticeAppointmentType() {
   }, [dispatch, isAuthenticated, currentPracticeId]);
 
   const handleSave = async (data: AppointmentType, settings: Record<string, PractitionerSetting>) => {
+    const isExistingRecord = Boolean(data.id && !data.id.startsWith('temp-'));
+    const canSave = isExistingRecord ? canEditAppointmentType : canCreateAppointmentType;
+
+    if (!canSave) {
+      alert(`You do not have permission to ${isExistingRecord ? 'edit' : 'create'} appointment types.`);
+      return;
+    }
 
     if (!currentPracticeId) {
       alert("Authentication error: Practice ID missing.");
@@ -361,6 +373,10 @@ export default function PracticeAppointmentType() {
 
   // --- UPDATED DELETE HANDLERS ---
   const triggerDelete = (id: string) => {
+    if (!canDeleteAppointmentType) {
+      alert('You do not have permission to delete appointment types.');
+      return;
+    }
     setTypeToDelete(id);
   };
 
@@ -385,9 +401,9 @@ export default function PracticeAppointmentType() {
           setEditingData(null);
           setView('editor');
         }}
-          disabled={loading}
+          disabled={loading || !canCreateAppointmentType}
           className={`flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded font-medium text-sm 
-          ${loading ? 'opacity-50' : ''}`}>
+          ${(loading || !canCreateAppointmentType) ? 'opacity-50 cursor-not-allowed' : ''}`}>
           <Plus size={16}
           /> New Appointment Type
         </button>
@@ -434,11 +450,21 @@ export default function PracticeAppointmentType() {
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => { setEditingData(type); setView('editor'); }}
-                            className="px-2 py-1 text-sm font-bold text-blue-600 border border-blue-400 rounded hover:bg-blue-600 hover:text-white">
+                            disabled={!canEditAppointmentType}
+                            className={`px-2 py-1 text-sm font-bold border rounded ${
+                              canEditAppointmentType
+                                ? 'text-blue-600 border-blue-400 hover:bg-blue-600 hover:text-white'
+                                : 'text-gray-400 border-gray-200 cursor-not-allowed'
+                            }`}>
                             Edit
                           </button>
                           <button onClick={() => triggerDelete(type.id)}
-                            className="px-2 py-1 text-sm font-bold text-red-600 border border-red-400 rounded hover:bg-red-600 hover:text-white">
+                            disabled={!canDeleteAppointmentType}
+                            className={`px-2 py-1 text-sm font-bold border rounded ${
+                              canDeleteAppointmentType
+                                ? 'text-red-600 border-red-400 hover:bg-red-600 hover:text-white'
+                                : 'text-gray-400 border-gray-200 cursor-not-allowed'
+                            }`}>
                             Delete
                           </button>
                         </div>

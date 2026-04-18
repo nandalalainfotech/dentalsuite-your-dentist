@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Loader2, Edit3, CheckCircle } from 'lucide-react'; 
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { fetchDirectory } from '../../../../features/directory/directory.slice';
+import { usePracticePermissions } from '../../../../features/permissions/Permissions.hooks';
 import PracticeEditor from '../components/PracticeEditor';
 import PracticeProfilePreview from '../components/PracticeProfilePreview';
 import type { DirectoryProfile } from '../../../../features/directory/directory.types';
@@ -12,6 +13,8 @@ export default function DirectoryView() {
     
     const userState = useAppSelector((state: any) => state.auth.user);
     const authPracticeId = userState?.practiceId || userState?.user?.practiceId || userState?.id || userState?.user?.id;
+    const { canEdit } = usePracticePermissions(authPracticeId);
+    const canEditDirectory = canEdit('directory');
 
     // 2. Get Directory Data
     const { data: directoryData, isLoading } = useAppSelector((state: any) => state.directory);
@@ -108,8 +111,13 @@ export default function DirectoryView() {
                         </button>
                     ) : (
                         <button 
-                            onClick={() => toggleEditMode(true)} 
-                            className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl bg-orange-600 text-white font-medium hover:bg-orange-700 flex items-center gap-2 transition transform active:scale-95"
+                            onClick={() => canEditDirectory && toggleEditMode(true)} 
+                            disabled={!canEditDirectory}
+                            className={`w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 transition transform active:scale-95 ${
+                                canEditDirectory
+                                    ? 'bg-orange-600 hover:bg-orange-700'
+                                    : 'bg-gray-300 cursor-not-allowed'
+                            }`}
                         >
                             <Edit3 className="w-4 h-4" /> Update Directory
                         </button>
