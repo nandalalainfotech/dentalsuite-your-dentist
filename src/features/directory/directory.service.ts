@@ -82,6 +82,8 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
     first_name: payload.data.first_name,
     last_name: payload.data.last_name,
     mobile: payload.data.mobile,
+    banner_image: payload.data.banner_image,
+    description: payload.data.description,
   };
 
   const baseInfoChanges = {
@@ -94,8 +96,6 @@ const updateDirectory = async (payload: UpdateDirectoryPayload): Promise<string>
     twitter_url: payload.data.twitter_url,
     youtube_url: payload.data.youtube_url,
     formatted_address: payload.data.formatted_address,
-    banner_image: payload.data.banner_image,
-    description: payload.data.description,
   };
 
   await localClient.mutate({
@@ -123,6 +123,7 @@ const updateTeamMembers = async (practiceId: string, team: any[]): Promise<strin
       practice_id: practiceId,
       first_name: t.first_name,
       last_name: t. last_name,
+      email: t.email,
       role: t.role,
       qualification: t.qualification,
       gender: t.gender,

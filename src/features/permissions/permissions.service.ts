@@ -1,12 +1,12 @@
 // src/features/permissions/permissions.service.ts
 import { localClient } from "../../api/apollo/localClient";
-import { GET_PERMISSION_MODULES_MASTER, GET_PRACTICE_PERMISSIONS, UPDATE_PRACTICE_PERMISSIONS } from "../../pages/superadmin/graphql/permissions.queries";
+import {  GET_PERMISSION_MODULES_MASTER, GET_PRACTICE_PERMISSIONS, UPDATE_PRACTICE_PERMISSIONS } from "../../pages/superadmin/graphql/permissions.queries";
 import type { PermissionModuleMaster, PracticeModulePermission, PracticePermissionsData } from "./permissions.types";
 
 
 class PermissionsService {
 
-    // Get all master modules
+    //Get all master modules
     async getMasterModules(): Promise<PermissionModuleMaster[]> {
         const response = await localClient.query({
             query: GET_PERMISSION_MODULES_MASTER,

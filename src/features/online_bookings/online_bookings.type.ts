@@ -8,7 +8,9 @@ export type AppointmentStatus =
 
 export interface Practitioner {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  name:string;
   image?: string | null;
   role?: string | null;
 }

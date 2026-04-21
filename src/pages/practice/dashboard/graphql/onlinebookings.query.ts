@@ -15,7 +15,8 @@ export const GET_APPOINTMENTS_QUERY = gql`
       
       practitioner {
         id
-        name
+        first_name
+        last_name
         image
         role
       }
@@ -41,7 +42,8 @@ export const GET_PRACTITIONERS_QUERY = gql`
   query GetPractitioners($practice_id: uuid!) {
     practice_team_members(where: { practice_id: { _eq: $practice_id } }) {
       id
-      name
+      first_name
+      last_name
       image
       role
     }

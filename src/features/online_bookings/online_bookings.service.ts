@@ -72,7 +72,9 @@ const getPractitioners = async (practiceId: string): Promise<Practitioner[]> => 
   // Map to clean structure, keeping your specific image object check
   return rawMembers.map((m: any) => ({
     id: m.id,
-    name: m.name,
+    first_name: m.first_name,
+    last_name:m.last_name,
+    name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Unknown',
     image: m.image && typeof m.image === 'object' ? m.image.url : m.image,
     role: m.role
   }));

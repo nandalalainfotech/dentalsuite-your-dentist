@@ -17,6 +17,8 @@ export interface EnrichedAppointment {
   // Flattened Practitioner Info
   dentist_id: string;
   dentist_name: string;
+  dentist_first_name: string;
+  dentist_last_name: string;
   dentist_image: string;
   dentist_role: string;
 
@@ -191,6 +193,9 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
 
   const time = apt.appointment_time?.substring(0, 5) || '00:00';
   const bookedAt = new Date(`${apt.appointment_date}T${time}`);
+  const fName = apt.practitioner?.first_name || apt.dentist_first_name || 'Unknown';
+  const lName = apt.practitioner?.last_name || apt.dentist_last_name || '';
+  const fullName = `${fName} ${lName}`.trim();
 
   return {
     id: apt.id,
@@ -199,7 +204,9 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
 
     // Relational Data Flattening
     dentist_id: apt.practitioner?.id || apt.dentist_id || '',
-    dentist_name: apt.practitioner?.name || apt.dentist_name || 'Unknown',
+    dentist_name: fullName,
+    dentist_first_name: fName,
+    dentist_last_name: lName,
     dentist_image: apt.practitioner?.image || null,
     dentist_role: apt.practitioner?.role || 'General Practitioner',
 

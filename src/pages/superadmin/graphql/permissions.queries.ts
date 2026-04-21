@@ -42,7 +42,7 @@ export const UPDATE_PRACTICE_PERMISSIONS = gql`
         permissions: $permissions
       }
       on_conflict: {
-        constraint: unique_practice_permissions
+        constraint: practice_permissions_practice_id_key
         update_columns: [permissions, updated_at]
       }
     ) {

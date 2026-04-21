@@ -3,11 +3,14 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import {
     ChevronDown,
     MoreVertical,
-    Check,
-    X,
     Loader2,
     Search,
-    Filter
+    Filter,
+    Ban,
+    Edit2,
+    RotateCcw,
+    Trash2,
+    UserCheck
 } from "lucide-react";
 import { GET_CLIENTS, UPDATE_PRACTICE_STATUS } from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
@@ -46,32 +49,27 @@ interface PermissionModule {
     path: string;
 }
 
+interface PermissionModulesResponse {
+    practice_permission_modules_master: PermissionModule[];
+}
+
 export default function Clients() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [showActionsId, setShowActionsId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchCategory, setSearchCategory] = useState<'practice_name' | 'email' | 'address' | 'status'>('practice_name');
-    const [isApproving, setIsApproving] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const { data, loading, error, refetch } = useQuery<ClientsResponse>(
-        GET_CLIENTS,
-        { client: localClient }
-    );
-
-    const { data: modulesData } = useQuery<{ practice_permission_modules_master: PermissionModule[] }>(
+    const { data, loading, error, refetch } = useQuery<ClientsResponse>(GET_CLIENTS, { client: localClient });
+    const { data: modulesData } = useQuery<PermissionModulesResponse>(
         GET_PERMISSION_MODULES_MASTER,
         { client: localClient }
     );
 
-    const [updateStatus] = useMutation(UPDATE_PRACTICE_STATUS, {
-        client: localClient,
-    });
-
-    const [updatePermissions] = useMutation(UPDATE_PRACTICE_PERMISSIONS, {
-        client: localClient,
-    });
+    const [updateStatus] = useMutation(UPDATE_PRACTICE_STATUS, { client: localClient });
+    const [updatePermissions] = useMutation(UPDATE_PRACTICE_PERMISSIONS, { client: localClient });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -83,46 +81,41 @@ export default function Clients() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showActionsId]);
 
-    const handleApprove = async (id: string) => {
-        setIsApproving(id);
+    const handleStatusUpdate = async (id: string, newStatus: string) => {
+        setIsProcessing(id);
         try {
-            // Get all modules with all their actions
-            const modules = modulesData?.practice_permission_modules_master ?? [];
+            // If approving, also set up permissions
+            if (newStatus === 'ACTIVE') {
+                const modules = modulesData?.practice_permission_modules_master ?? [];
+                const allPermissions = modules.map((module: any) => ({
+                    module: module.module_key,
+                    path: module.path,
+                    actions: [...module.actions]
+                }));
 
-            // Create permissions array with all actions for all modules
-            const allPermissions = modules.map(module => ({
-                module: module.module_key,
-                path: module.path,
-                actions: [...module.actions] // All actions for this module
-            }));
+                await updatePermissions({
+                    variables: { practiceId: id, permissions: allPermissions }
+                });
+            }
 
-            // Save permissions in background
-            await updatePermissions({
-                variables: {
-                    practiceId: id,
-                    permissions: allPermissions
-                }
-            });
-
-            // Update status to APPROVED
-            await updateStatus({ variables: { id, status: "APPROVED" } });
-
+            await updateStatus({ variables: { id, status: newStatus } });
             setShowActionsId(null);
             await refetch();
         } catch (err) {
-            console.error("Error approving:", err);
+            console.error(`Error updating status to ${newStatus}:`, err);
         } finally {
-            setIsApproving(null);
+            setIsProcessing(null);
         }
     };
 
-    const handleDecline = async (id: string) => {
-        try {
-            await updateStatus({ variables: { id, status: "DECLINED" } });
-            setShowActionsId(null);
-            await refetch();
-        } catch (err) {
-            console.error("Error declining:", err);
+    const getStatusStyles = (status: string) => {
+        switch (status) {
+            case 'ACTIVE': return 'bg-green-50 text-green-600 border-green-100';
+            case 'VERIFIED': return 'bg-blue-50 text-blue-600 border-blue-100';
+            case 'PENDING': return 'bg-orange-50 text-orange-600 border-orange-100';
+            case 'DECLINED':
+            case 'INACTIVE': return 'bg-red-50 text-red-600 border-red-100';
+            default: return 'bg-gray-50 text-gray-600 border-gray-100';
         }
     };
 
@@ -133,10 +126,9 @@ export default function Clients() {
         </div>
     );
 
-    if (error) return <div className="p-10 text-red-500 text-center bg-red-50 rounded-2xl border border-red-100">Unable to load accounts.</div>;
+    if (error) return <div className="p-10 text-red-500 text-center">Unable to load accounts.</div>;
 
-    const clients = data?.accounts ?? [];
-    const filteredClients = clients.filter((client) => {
+    const filteredClients = (data?.accounts ?? []).filter((client) => {
         const valueToSearch = client[searchCategory]?.toLowerCase() || "";
         return valueToSearch.includes(searchTerm.toLowerCase());
     });
@@ -183,8 +175,8 @@ export default function Clients() {
             </div>
 
             <div className="space-y-4">
-                {/* Header Grid */}
-                <div className="grid grid-cols-12 gap-4 px-8 py-4 text-[11px] font-bold text-gray-700 border bg-gray-300 uppercase tracking-[0.1em]">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 px-8 py-4 text-[11px] font-bold text-gray-700 border bg-gray-100 rounded-t-xl uppercase tracking-wider">
                     <div className="col-span-3">Practice Name</div>
                     <div className="col-span-3">Contact Email</div>
                     <div className="col-span-3">Location</div>
@@ -192,174 +184,157 @@ export default function Clients() {
                     <div className="col-span-1 text-right">Actions</div>
                 </div>
 
-                {filteredClients.length > 0 ? (
-                    filteredClients.map((client) => {
-                        const isExpanded = expandedId === client.id;
-                        const isActionsOpen = showActionsId === client.id;
-                        const isPending = client.status === 'PENDING';
-                        const isApprovingThis = isApproving === client.id;
+                {filteredClients.map((client) => {
+                    const isExpanded = expandedId === client.id;
+                    const isActionsOpen = showActionsId === client.id;
+                    const status = client.status || 'PENDING';
+                    const isProcessingThis = isProcessing === client.id;
 
-                        return (
-                            <div
-                                key={client.id}
-                                className={`group transition-all duration-300 bg-white border rounded-[18px] ${isExpanded ? 'border-[#f47521] shadow-xl ring-1 ring-[#f47521]/5' : 'border-gray-100 hover:border-gray-300 shadow-sm'
-                                    }`}
-                            >
-                                {/* Main Row */}
-                                <div
-                                    className="grid grid-cols-12 gap-4 px-8 py-6 items-center cursor-pointer"
-                                    onClick={() => setExpandedId(isExpanded ? null : client.id)}
-                                >
-                                    <div className="col-span-3 font-bold text-[#1a2b3c] text-[15px]">
-                                        {client.practice_name || "Untitled Practice"}
-                                    </div>
+                    return (
+                        <div key={client.id} className={`group transition-all duration-300 bg-white border rounded-[18px] ${isExpanded ? 'border-[#f47521] shadow-lg' : 'border-gray-100 hover:border-gray-200 shadow-sm'}`}>
+                            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : client.id)}>
+                                <div className="col-span-3 font-bold text-[#1a2b3c] text-[15px]">{client.practice_name || "Untitled Practice"}</div>
+                                <div className="col-span-3 text-gray-500 text-sm font-medium truncate pr-4">{client.email}</div>
+                                <div className="col-span-3 text-gray-400 text-sm truncate">{client.address || "Address missing"}</div>
 
-                                    <div className="col-span-3 text-gray-500 text-sm font-medium truncate pr-4">
-                                        {client.email}
-                                    </div>
-
-                                    <div className="col-span-3 text-gray-400 text-sm truncate">
-                                        {client.address || "Address missing"}
-                                    </div>
-
-                                    <div className="col-span-2">
-                                        <div className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${client.status === 'APPROVED' ? 'bg-green-50 text-green-600' :
-                                            client.status === 'PENDING' ? 'bg-orange-50 text-[#f47521]' :
-                                                'bg-red-50 text-red-600'
-                                            }`}>
-                                            {client.status}
-                                        </div>
-                                    </div>
-
-                                    <div className="col-span-1 flex items-center justify-end gap-2">
-                                        {isPending ? (
-                                            <div className="relative" ref={isActionsOpen ? dropdownRef : null}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setShowActionsId(isActionsOpen ? null : client.id);
-                                                    }}
-                                                    className={`p-2 rounded-xl transition-all ${isActionsOpen ? 'bg-[#f47521] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100 hover:text-[#f47521]'}`}
-                                                    disabled={isApprovingThis}
-                                                >
-                                                    {isApprovingThis ? (
-                                                        <Loader2 size={20} className="animate-spin" />
-                                                    ) : (
-                                                        <MoreVertical size={20} strokeWidth={2.5} />
-                                                    )}
-                                                </button>
-
-                                                {isActionsOpen && !isApprovingThis && (
-                                                    <div className="absolute right-0 mt-3 w-44 bg-white border border-gray-100 shadow-2xl rounded-2xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleApprove(client.id);
-                                                            }}
-                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-green-600 hover:bg-green-50"
-                                                        >
-                                                            <Check size={16} strokeWidth={3} /> Approve
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDecline(client.id);
-                                                            }}
-                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50"
-                                                        >
-                                                            <X size={16} strokeWidth={3} /> Decline
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className="p-2 flex items-center justify-center w-[36px]">
-                                                {client.status === 'APPROVED' ? (
-                                                    <Check size={18} strokeWidth={3} className="text-green-600 opacity-70" />
-                                                ) : (
-                                                    <X size={18} strokeWidth={3} className="text-red-600 opacity-70" />
-                                                )}
-                                            </div>
-                                        )}
-                                        <div className={`text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#f47521]' : ''}`}>
-                                            <ChevronDown size={20} />
-                                        </div>
+                                <div className="col-span-2">
+                                    <div className={`inline-flex px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusStyles(status)}`}>
+                                        {status}
                                     </div>
                                 </div>
 
-                                {/* Expanded Details */}
-                                {isExpanded && (
-                                    <div className="px-8 pb-10 pt-4 border-t border-gray-50 bg-[#fafafa]/30">
-                                        <div className="grid grid-cols-3 gap-12">
-                                            <div className="space-y-6">
-                                                <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Personal Details</h4>
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Owner Name</label>
-                                                        <p className="text-[#1a2b3c] font-bold text-sm mt-0.5">{(client.first_name ?? "") + " " + (client.last_name ?? "") || "Not provided"}</p>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mobile</label>
-                                                            <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.mobile || "—"}</p>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Practice Phone</label>
-                                                            <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.practice_phone || "—"}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                <div className="col-span-1 flex items-center justify-end gap-2">
+                                    <div className="relative" ref={isActionsOpen ? dropdownRef : null}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowActionsId(isActionsOpen ? null : client.id);
+                                            }}
+                                            className={`p-2 rounded-xl transition-all ${isActionsOpen ? 'bg-[#f47521] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-100 hover:text-[#f47521]'}`}
+                                            disabled={isProcessingThis}
+                                        >
+                                            {isProcessingThis ? <Loader2 size={20} className="animate-spin" /> : <MoreVertical size={20} strokeWidth={2.5} />}
+                                        </button>
 
-                                            <div className="space-y-6">
-                                                <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Location</h4>
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Full Address</label>
-                                                        <p className="text-[#1a2b3c] font-bold text-sm mt-0.5 leading-relaxed">{client.address || "—"}</p>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">City / State</label>
-                                                            <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.city || "—"}{client.state ? `, ${client.state}` : ''}</p>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Postcode</label>
-                                                            <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.postcode || "—"}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        {isActionsOpen && (
+                                            <div className="absolute right-0 mt-3 w-52 bg-white border border-gray-100 shadow-2xl rounded-2xl z-20 py-2 animate-in fade-in slide-in-from-top-2">
+                                                {/* Common Action: Edit */}
+                                                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50">
+                                                    <Edit2 size={16} /> Edit Details
+                                                </button>
 
-                                            <div className="space-y-6">
-                                                <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Business Profile</h4>
-                                                <div className="space-y-4">
+                                                {/* PENDING State */}
+                                                {status === 'PENDING' && (
+                                                    <>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleStatusUpdate(client.id, 'DECLINED'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50">
+                                                            <Ban size={16} /> Decline
+                                                        </button>
+                                                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-blue-600 hover:bg-blue-50">
+                                                            <RotateCcw size={16} /> Resend Verification
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* VERIFIED State */}
+                                                {status === 'VERIFIED' && (
+                                                    <>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleStatusUpdate(client.id, 'ACTIVE'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-green-600 hover:bg-green-50">
+                                                            <UserCheck size={16} /> Approve
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleStatusUpdate(client.id, 'DECLINED'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50">
+                                                            <Ban size={16} /> Decline
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* ACTIVE State */}
+                                                {status === 'ACTIVE' && (
+                                                    <>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleStatusUpdate(client.id, 'INACTIVE'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-orange-600 hover:bg-orange-50">
+                                                            <Ban size={16} /> Mark Inactive
+                                                        </button>
+                                                        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50">
+                                                            <Trash2 size={16} /> Delete Account
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className={`text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#f47521]' : ''}`}>
+                                        <ChevronDown size={20} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Expanded Details */}
+                            {isExpanded && (
+                                <div className="px-8 pb-10 pt-4 border-t border-gray-50 bg-[#fafafa]/30">
+                                    <div className="grid grid-cols-3 gap-12">
+                                        <div className="space-y-6">
+                                            <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Personal Details</h4>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Owner Name</label>
+                                                    <p className="text-[#1a2b3c] font-bold text-sm mt-0.5">{(client.first_name ?? "") + " " + (client.last_name ?? "") || "Not provided"}</p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">ABN / ACN</label>
-                                                        <p className="text-[#1a2b3c] font-bold text-sm mt-0.5">{client.abn_number || "—"}</p>
+                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mobile</label>
+                                                        <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.mobile || "—"}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Practice Category</label>
-                                                        <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.practice_type || "General Dentistry"}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Registration Date</label>
-                                                        <p className="text-gray-400 text-xs mt-1 font-medium">{new Date(client.created_at).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Practice Phone</label>
+                                                        <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.practice_phone || "—"}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div className="space-y-6">
+                                            <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Location</h4>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Full Address</label>
+                                                    <p className="text-[#1a2b3c] font-bold text-sm mt-0.5 leading-relaxed">{client.address || "—"}</p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">City / State</label>
+                                                        <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.city || "—"}{client.state ? `, ${client.state}` : ''}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Postcode</label>
+                                                        <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.postcode || "—"}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <h4 className="text-[11px] font-extrabold text-[#f47521] uppercase tracking-[0.15em]">Business Profile</h4>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">ABN / ACN</label>
+                                                    <p className="text-[#1a2b3c] font-bold text-sm mt-0.5">{client.abn_number || "—"}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Practice Category</label>
+                                                    <p className="text-gray-700 font-semibold text-sm mt-0.5">{client.practice_type || "General Dentistry"}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Registration Date</label>
+                                                    <p className="text-gray-400 text-xs mt-1 font-medium">{new Date(client.created_at).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })
-                ) : (
-                    <div className="py-20 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                        <p className="text-gray-400 font-medium">No results found matching your search.</p>
-                        <button onClick={() => setSearchTerm('')} className="mt-2 text-[#f47521] font-bold text-sm">Clear search</button>
-                    </div>
-                )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })
+                }
             </div>
         </div>
     );

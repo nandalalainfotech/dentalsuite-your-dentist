@@ -1,7 +1,7 @@
 // src/components/PermissionManager.tsx
 import React, { useEffect } from "react";
 import { Check, X, Save, Loader2 } from "lucide-react";
-import { usePermissions } from "../../../../features/permissions/Permissions.hooks";
+import { usePermissions } from "../../../features/permissions/Permissions.hooks";
 
 
 interface PermissionManagerProps {
@@ -147,7 +147,7 @@ export const PermissionManager: React.FC<PermissionManagerProps> = ({ practiceId
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
                     <p className="text-xs text-gray-500">
-                        ✅ Green checkmark means permission is enabled. Click to toggle.
+                         Green checkmark means permission is enabled. Click to toggle.
                     </p>
                 </div>
             </div>
