@@ -53,7 +53,6 @@ export interface PracticeTeamMember {
   languages: string | null;
   professional_statement: string | null;
   
-  // ADDED: The new junction array
   practitioner_practice_services: PractitionerPracticeService[];
   
   image: string | null;
@@ -63,7 +62,7 @@ export interface PracticeTeamMember {
   booking_time_limit_unit: string | null;
   cancel_time_limit: number | null;
   cancel_time_limit_unit: string | null;
-  appointment_types: any | null; // jsonb
+  appointment_types: any | null; 
 }
 
 export interface PracticeInsurance {

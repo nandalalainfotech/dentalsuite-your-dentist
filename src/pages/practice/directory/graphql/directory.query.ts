@@ -31,6 +31,8 @@ export const GET_PRACTICE_DIRECTORY_QUERY = gql`
       mobile
       type
       status
+      banner_image
+      description
 
       practice_base_info {
         id
@@ -42,8 +44,6 @@ export const GET_PRACTICE_DIRECTORY_QUERY = gql`
         twitter_url
         youtube_url
         formatted_address
-        banner_image
-        description
       }
         
       practice_opening_hours { 

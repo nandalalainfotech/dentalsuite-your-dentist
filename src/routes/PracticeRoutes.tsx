@@ -54,7 +54,7 @@ function PracticeRoutes() {
 
             <Route path="view-profile" element={<PractiveViewProfile />} />
             <Route path="directory" element={<PracticePermissionRoute module="directory"><PracticeDirectoryView /></PracticePermissionRoute>} />
-            <Route path="appointments" element={<PracticePermissionRoute module="appointments"><PracticeOnlineBookings /></PracticePermissionRoute>} />
+            <Route path="appointments" element={<PracticePermissionRoute module="online_bookings"><PracticeOnlineBookings /></PracticePermissionRoute>} />
             <Route path="appointment-type" element={<PracticePermissionRoute module="appointment_type"><PracticeAppointmentType /></PracticePermissionRoute>} />
             <Route path="booking-calendar" element={<PracticePermissionRoute module="booking_calendar"><PracticeBookingCalendar /></PracticePermissionRoute>} />
             <Route path="analytics" element={<PracticePermissionRoute module="analytics"><PracticeAnalyticsView /></PracticePermissionRoute>} />

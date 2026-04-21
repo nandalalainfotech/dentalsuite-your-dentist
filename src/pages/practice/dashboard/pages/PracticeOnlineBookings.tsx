@@ -11,7 +11,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store';
 import { useAppointments } from '../../../../features/online_bookings/online_bookings.hooks';
 // --- ADDED: fetchOpeningHours ---
-import { fetchPractitioners, fetchPracticeServices, fetchOpeningHours } from '../../../../features/online_bookings/online_bookings.slice'; 
+import { fetchPractitioners, fetchPracticeServices, fetchOpeningHours } from '../../../../features/online_bookings/online_bookings.slice';
 
 // Utils
 import {
@@ -48,8 +48,8 @@ export default function PracticeOnlineBookings() {
   // 1. Auth & Redux
   const { user } = useAppSelector((state: any) => state.auth);
   // --- ADDED: openingHours from Redux state ---
-  const { 
-    practitioners: directoryPractitioners, 
+  const {
+    practitioners: directoryPractitioners,
     services: practiceServices,
     openingHours = [] // Default to empty array if not loaded yet
   } = useAppSelector((state) => state.appointments);
@@ -108,7 +108,7 @@ export default function PracticeOnlineBookings() {
   useEffect(() => {
     if (practiceId) {
       dispatch(fetchPractitioners(practiceId));
-      dispatch(fetchPracticeServices(practiceId)); 
+      dispatch(fetchPracticeServices(practiceId));
       dispatch(fetchOpeningHours(practiceId)); // Fetching hours
     }
   }, [dispatch, practiceId]);
@@ -197,7 +197,7 @@ export default function PracticeOnlineBookings() {
       // Dropdowns
       if (filters.search && !apt.patient_name?.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.type && apt.treatment !== filters.type) return false;
-      if (filters.practitioner && apt.dentist_name !== filters.practitioner) return false; 
+      if (filters.practitioner && apt.dentist_name !== filters.practitioner) return false;
       if (filters.status && apt.status !== filters.status) return false;
 
       // Dates
@@ -392,7 +392,14 @@ export default function PracticeOnlineBookings() {
                     onChange={(e) => handleFilterChange('practitioner', e.target.value)}
                     className="w-full px-3 py-2 bg-gray-50 rounded-lg text-sm">
                     <option value="">All</option>
-                    {directoryPractitioners.map((p, i) => <option key={i} value={p.name}>{p.name}</option>)}
+                    {directoryPractitioners.map((p, i) => {
+                      const fullName = `${p.first_name} ${p.last_name}`;
+                      return (
+                        <option key={i} value={fullName}>
+                          {fullName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
@@ -581,11 +588,11 @@ export default function PracticeOnlineBookings() {
           onConfirm={handleRescheduleConfirm}
           practitioners={directoryPractitioners.map(p => ({
             id: p.id,
-            name: p.name,
+            name: `${p.first_name} ${p.last_name}`,
             image: p.image || null
           }))}
           openingHours={openingHours}
-          existingBookings={appointments} 
+          existingBookings={appointments}
         />
       }
 

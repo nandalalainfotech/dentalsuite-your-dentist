@@ -80,7 +80,7 @@ export const useAuth = () => {
   // DERIVED VALUES (IMPORTANT)
   // =========================
   const userType = user?.type;
-  const isApproved = user?.status === "APPROVED";
+  const isApproved = user?.status === "ACTIVE";
 
   // =========================
   // RETURN

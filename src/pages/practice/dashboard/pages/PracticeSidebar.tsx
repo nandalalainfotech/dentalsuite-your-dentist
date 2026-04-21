@@ -27,7 +27,7 @@ const NAVIGATION_ITEMS = {
   '/practice/dashboard/appointments': {
     icon: Icons.Appointment,
     label: 'Online Bookings',
-    module: 'appointments',
+    module: 'online_bookings',
     requiredAction: 'view'
   },
   '/practice/dashboard/appointment-type': {
