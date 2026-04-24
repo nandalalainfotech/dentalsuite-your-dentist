@@ -1,20 +1,8 @@
-// src/features/permissions/permissions.service.ts
 import { localClient } from "../../api/apollo/localClient";
-import {  GET_PERMISSION_MODULES_MASTER, GET_PRACTICE_PERMISSIONS, UPDATE_PRACTICE_PERMISSIONS } from "../../pages/superadmin/graphql/permissions.queries";
-import type { PermissionModuleMaster, PracticeModulePermission, PracticePermissionsData } from "./permissions.types";
-
+import { CREATE_PRACTICE_PERMISSIONS, GET_PRACTICE_PERMISSIONS, UPDATE_PRACTICE_PERMISSIONS } from "../../pages/superadmin/graphql/permissions.queries";
+import type { PracticeModulePermission, PracticePermissionsData } from "./permissions.types";
 
 class PermissionsService {
-
-    //Get all master modules
-    async getMasterModules(): Promise<PermissionModuleMaster[]> {
-        const response = await localClient.query({
-            query: GET_PERMISSION_MODULES_MASTER,
-            fetchPolicy: "cache-first",
-        });
-        return (response.data as any).practice_permission_modules_master;
-    }
-
     // Get practice permissions
     async getPracticePermissions(practiceId: string): Promise<PracticePermissionsData | null> {
         const response = await localClient.query({
@@ -38,6 +26,22 @@ class PermissionsService {
             },
         });
         return "Permissions updated successfully!";
+    }
+
+    async createPracticePermissions(
+        practiceId: string,
+        permissions: PracticeModulePermission[],
+        defaultPermission: PracticeModulePermission[]
+    ): Promise<string> {
+        await localClient.mutate({
+            mutation: CREATE_PRACTICE_PERMISSIONS,
+            variables: {
+                practiceId,
+                permissions,
+                defaultPermission,
+            },
+        });
+        return "Practice permissions created successfully!";
     }
 }
 

@@ -1,156 +1,126 @@
 // src/components/PermissionManager.tsx
 import React, { useEffect } from "react";
-import { Check, X, Save, Loader2 } from "lucide-react";
+import { Check, X, Save, Loader2, Lock } from "lucide-react";
 import { usePermissions } from "../../../features/permissions/Permissions.hooks";
-
 
 interface PermissionManagerProps {
     practiceId: string;
 }
 
-export const PermissionManager: React.FC<PermissionManagerProps> = ({ practiceId }) => {
+const PermissionManager = ({ practiceId }: PermissionManagerProps) => {
     const {
-        masterModules,
+        permissions,
+        practicePermissions,
         isLoading,
         isSaving,
-        error,
         successMessage,
-        loadData,
         loadPracticePermissions,
-        clearPracticePermissions,
         savePermissions,
         toggleModulePermission,
-        resetMessages,
-        hasPermission,
+        resetMessages
     } = usePermissions();
 
     useEffect(() => {
-        loadData();
-        clearPracticePermissions();
-        loadPracticePermissions(practiceId);
-    }, [practiceId, loadData, clearPracticePermissions, loadPracticePermissions]);
+        if (practiceId) loadPracticePermissions(practiceId); // Load practice permissions
+    }, [practiceId, loadPracticePermissions]);
 
-    useEffect(() => {
-        if (successMessage || error) {
-            const timer = setTimeout(() => resetMessages(), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [successMessage, error, resetMessages]);
+    const ACTION_COLUMNS = ['view', 'create', 'edit', 'delete'];
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-            </div>
-        );
-    }
+    // Check if using default permissions
+    const isUsingDefault = practicePermissions?.permissions?.length === 0;
+    const hasCustomPermissions = practicePermissions?.permissions?.length > 0;
+
+    if (isLoading) return (
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[22px] border border-gray-100 shadow-sm">
+            <Loader2 className="animate-spin text-[#f47521] mb-4" size={32} />
+            <p className="text-gray-400 font-medium tracking-wide">Loading permissions...</p>
+        </div>
+    );
 
     return (
-        <div className="w-full max-w-7xl mx-auto">
-            <div className="mb-10">
-                <h1 className="text-3xl font-extrabold text-[#1a2b3c] tracking-tight">
-                    Permission Manager
-                </h1>
-                <p className="text-gray-500 mt-2 font-medium">
-                    Manage module permissions for your practice
-                </p>
+        <div className="bg-white rounded-[22px] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-50 bg-[#fafafa]/50 flex justify-between items-center">
+                <div>
+                    <h3 className="font-bold text-[#1a2b3c] text-xl">Module Permissions</h3>
+                    <p className="text-sm text-gray-500 font-medium mt-0.5">
+                        Configure feature access for this clinic
+                        {isUsingDefault && !hasCustomPermissions && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                Using Default Settings
+                            </span>
+                        )}
+                        {hasCustomPermissions && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                Custom Settings
+                            </span>
+                        )}
+                    </p>
+                </div>
+                <button
+                    onClick={() => savePermissions(practiceId)}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#f47521] text-white rounded-xl hover:bg-[#e06510] disabled:opacity-50 transition-all text-sm font-bold shadow-lg shadow-orange-100"
+                >
+                    {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                    {isSaving ? 'Updating...' : 'Save Configuration'}
+                </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-gray-900">Module Permissions</h2>
-                        <button
-                            onClick={() => savePermissions(practiceId)}
-                            disabled={isSaving}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
-                        >
-                            {isSaving ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={16} />
-                                    Save Changes
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Success/Error Messages */}
+            <div className="px-8">
                 {successMessage && (
-                    <div className="mx-6 mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-                        {successMessage}
+                    <div className="mt-6 px-5 py-3.5 bg-green-50 border border-green-100 rounded-xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center gap-3 text-green-700 font-bold text-sm">
+                            <Check size={16} strokeWidth={3} /> {successMessage}
+                        </div>
+                        <button onClick={resetMessages} className="text-green-400 hover:text-green-600"><X size={20} /></button>
                     </div>
                 )}
-                {error && (
-                    <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                        {error}
-                    </div>
-                )}
+            </div>
 
-                {/* Permission Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Module
-                                </th>
-                                {masterModules[0]?.actions.map((action: any) => (
-                                    <th
-                                        key={action}
-                                        className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                    >
-                                        {action.charAt(0).toUpperCase() + action.slice(1)}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {masterModules.map((module: any) => (
-                                <tr key={module.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {module.module_name}
-                                        </div>
-                                        <div className="text-xs text-gray-500">{module.description}</div>
+            <div className="p-6">
+                <table className="w-full border-separate border-spacing-y-2">
+                    <thead>
+                        <tr>
+                            <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-700 border bg-gray-300 uppercase tracking-[0.15em]">Module</th>
+                            {ACTION_COLUMNS.map((action: any) => (
+                                <th key={action} className="px-4 py-4 text-center text-[11px] font-bold text-gray-700 border bg-gray-300 uppercase tracking-[0.15em] w-32">{action}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {permissions.map((module: any) => {
+                            return (
+                                <tr key={module.module} className="group transition-all">
+                                    <td className="px-6 py-5 bg-gray-50/50 rounded-l-[18px] border-y border-l border-gray-100 group-hover:bg-gray-50 transition-colors">
+                                        <span className="font-bold text-[#1a2b3c] block text-sm uppercase tracking-tight">
+                                            {module.module.replace(/_/g, ' ')}
+                                        </span>
+                                        <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter mt-1 block">Key: {module.module}</span>
                                     </td>
-                                    {module.actions.map((action: any) => {
-                                        const isChecked = hasPermission(module.module_key, action);
+                                    {ACTION_COLUMNS.map((action: any) => {
+                                        const hasPermission = module.actions?.includes(action);
                                         return (
-                                            <td key={action} className="px-4 py-4 text-center">
-                                                <button
-                                                    onClick={() =>
-                                                        toggleModulePermission(module.module_key, action)
-                                                    }
-                                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${isChecked
-                                                        ? "bg-orange-500 text-white hover:bg-orange-600"
-                                                        : "bg-gray-100 text-gray-400 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    {isChecked ? <Check size={16} /> : <X size={16} />}
-                                                </button>
+                                            <td key={action} className="py-5 bg-gray-50/50 border-y border-gray-100 text-center group-hover:bg-gray-50 last:border-r last:rounded-r-[18px] transition-colors">
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        onClick={() => toggleModulePermission(module.module, action)}
+                                                        className={`w-8 h-8 rounded-[10px] border-2 flex items-center justify-center transition-all duration-300 ${hasPermission ? 'bg-[#f47521] border-[#f47521] text-white shadow-md' : 'bg-white border-gray-200 hover:border-[#f47521]'
+                                                            }`}
+                                                    >
+                                                        {hasPermission && <Check size={18} strokeWidth={3} />}
+                                                    </button>
+                                                </div>
                                             </td>
                                         );
                                     })}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
-                    <p className="text-xs text-gray-500">
-                         Green checkmark means permission is enabled. Click to toggle.
-                    </p>
-                </div>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
 };
+
+export default PermissionManager;

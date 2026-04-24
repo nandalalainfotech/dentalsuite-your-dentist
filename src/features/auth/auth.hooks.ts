@@ -48,13 +48,12 @@ export const useAuth = () => {
   // =========================
   const handleSignup = async (payload: SignupPayload) => {
     try {
-      const responseMessage = await dispatch(
-        signupUser(payload)
-      ).unwrap();
+      const response = await dispatch(signupUser(payload)).unwrap();
 
       return {
         success: true,
-        message: responseMessage,
+        message: response.message,
+        user: response.user, // Include the user data
       };
     } catch (err) {
       return {

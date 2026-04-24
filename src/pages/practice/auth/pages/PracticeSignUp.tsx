@@ -1,11 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../../../features/auth/auth.hooks";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { GET_PERMISSION_MODULES_MASTER, CREATE_PRACTICE_PERMISSIONS } from "../../../superadmin/graphql/permissions.queries";
+import { localClient } from "../../../../api/apollo/localClient";
+
 
 export default function PracticeSignUp() {
   const navigate = useNavigate();
 
   const { handleSignup, loading: isLoading } = useAuth();
+
+  // Add these for permissions
+  const { data: modulesData } = useQuery(GET_PERMISSION_MODULES_MASTER, {
+    client: localClient
+  });
+  const [updatePermissions] = useMutation(CREATE_PRACTICE_PERMISSIONS, {
+    client: localClient
+  });
 
   const [formData, setFormData] = useState({
     practice_name: "",
@@ -113,9 +125,49 @@ export default function PracticeSignUp() {
       type: formData.type || "PRACTICE_ADMIN"
     };
 
+    // Step 1: Signup
     const result = await handleSignup(signupPayload);
 
     if (result.success) {
+      const practiceId = result.user?.id;
+      console.log("Practice ID from signup:", practiceId);
+
+      if (practiceId) {
+        try {
+          // Step 3: Get permission modules
+          const modules = (modulesData as any)?.practice_permission_modules_master ?? [];
+
+          if (modules.length > 0) {
+            // Step 4: Create permissions for the practice
+            const allPermissions = modules.map((module: any) => ({
+              module: module.module_key,
+              path: module.path,
+              actions: [...module.actions]
+            }));
+
+            // Define default permissions (can be same or different from regular permissions)
+            const defaultPermissions = modules.map((module: any) => ({
+              module: module.module_key,
+              path: module.path,
+              actions: [...module.actions] // Or specify default actions like ['read']
+            }));
+
+            await updatePermissions({
+              variables: {
+                practiceId: practiceId,
+                permissions: allPermissions,
+                defaultPermission: defaultPermissions // Add this variable
+              }
+            });
+            console.log("Permissions setup completed successfully");
+          }
+        } catch (permError) {
+          console.error("Permission setup error:", permError);
+        }
+      } else {
+        console.log("No practice ID found in user object:", result.user);
+      }
+
       setSuccess("Account created successfully! Your account is waiting for approval. Redirecting to login...");
       setTimeout(() => {
         navigate("/practice/signin");
