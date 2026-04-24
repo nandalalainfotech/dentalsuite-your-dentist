@@ -1,8 +1,5 @@
-// src/features/permissions/hooks/usePermissions.ts
 import { useCallback, useEffect } from "react";
-
 import {
-    fetchMasterModules,
     fetchPracticePermissions,
     updatePracticePermissions,
     togglePermission,
@@ -15,18 +12,13 @@ import type { RootState } from "../../store/store";
 export const usePermissions = () => {
     const dispatch = useAppDispatch();
     const {
-        masterModules,
+        practicePermissions,
         permissions,
         isLoading,
         isSaving,
         error,
         successMessage,
     } = useAppSelector((state: any) => state.permissions);
-
-    // Load all data
-    const loadData = useCallback(() => {
-        dispatch(fetchMasterModules());
-    }, [dispatch]);
 
     // Load practice permissions
     const loadPracticePermissions = useCallback(
@@ -73,33 +65,19 @@ export const usePermissions = () => {
         [permissions]
     );
 
-    // Get permission matrix for UI
-    const getPermissionMatrix = useCallback(() => {
-        const matrix: Record<string, Record<string, boolean>> = {};
-        masterModules.forEach((module: { module_key: string; actions: any[]; }) => {
-            matrix[module.module_key] = {};
-            module.actions.forEach((action) => {
-                matrix[module.module_key][action] = hasPermission(module.module_key, action);
-            });
-        });
-        return matrix;
-    }, [masterModules, hasPermission]);
-
     return {
-        masterModules,
+        practicePermissions,
         permissions,
         isLoading,
         isSaving,
         error,
         successMessage,
-        loadData,
         loadPracticePermissions,
         clearPracticePermissions,
         savePermissions,
         toggleModulePermission,
         resetMessages,
         hasPermission,
-        getPermissionMatrix,
     };
 };
 

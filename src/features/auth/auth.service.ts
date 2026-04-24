@@ -72,9 +72,9 @@ const login = async (payload: LoginPayload): Promise<LoginResponse> => {
 };
 
 // =========================
-// 2. SIGNUP
+// 2. SIGNUP - UPDATE THIS
 // =========================
-const signup = async (payload: SignupPayload): Promise<string> => {
+const signup = async (payload: SignupPayload): Promise<{ message: string; user: User }> => {
   try {
     const practiceData = {
       practice_name: payload.practiceName,
@@ -96,7 +96,6 @@ const signup = async (payload: SignupPayload): Promise<string> => {
       status: "PENDING",
 
       type: payload.type || "PRACTICE_ADMIN",
-
     };
 
     const response = await axios.post(
@@ -104,13 +103,24 @@ const signup = async (payload: SignupPayload): Promise<string> => {
       practiceData
     );
 
-    console.log("0---------->", practiceData);
+    console.log("Signup response:", response.data);
 
+    // Normalize the user data
+    const userData = response.data.user;
+    const normalizedUser: User = {
+      id: userData.id,
+      email: userData.email,
+      practiceName: userData.practice_name || payload.practiceName,
+      phone: userData.practice_phone || payload.practicePhone,
+      practiceId: userData.practice_id || userData.id,
+      type: userData.type || "PRACTICE_ADMIN",
+      status: userData.status || "PENDING",
+    };
 
-    return (
-      response.data?.message ||
-      "Registration successful! Waiting for approval."
-    );
+    return {
+      message: response.data?.message || "Registration successful! Waiting for approval.",
+      user: normalizedUser,
+    };
   } catch (error: any) {
     const message =
       error.response?.data?.message ||

@@ -1,11 +1,8 @@
-// src/features/permissions/permissions.slice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import permissionsService from "./permissions.service";
 import type { PermissionsState, PracticeModulePermission, PracticePermissionsData } from "./permissions.types";
 
-
 const initialState: PermissionsState = {
-    masterModules: [],
     practicePermissions: null,
     permissions: [],
     isLoading: false,
@@ -14,25 +11,13 @@ const initialState: PermissionsState = {
     successMessage: null,
 };
 
-// Fetch master modules
-export const fetchMasterModules = createAsyncThunk(
-    "permissions/fetchMasterModules",
-    async (_, thunkAPI) => {
-        try {
-            return await permissionsService.getMasterModules();
-        } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
-        }
-    }
-);
-
 // Fetch practice permissions
 export const fetchPracticePermissions = createAsyncThunk(
     "permissions/fetchPracticePermissions",
     async (practiceId: string, thunkAPI) => {
         try {
             const data = await permissionsService.getPracticePermissions(practiceId);
-            return data || { permissions: [] };
+            return data || { permissions: [], default_permission: [] };
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -71,12 +56,14 @@ const permissionsSlice = createSlice({
             state.permissions = [];
             state.practicePermissions = null;
         },
+        setPermissions: (state, action: PayloadAction<PracticeModulePermission[]>) => {
+            state.permissions = action.payload;
+        },
         togglePermission: (state, action: PayloadAction<{ moduleKey: string; actionKey: string }>) => {
             const { moduleKey, actionKey } = action.payload;
             const moduleIndex = state.permissions.findIndex((p) => p.module === moduleKey);
 
             if (moduleIndex === -1) {
-                // Module doesn't exist, create with this action
                 state.permissions.push({ module: moduleKey, actions: [actionKey] });
             } else {
                 const actions = [...state.permissions[moduleIndex].actions];
@@ -98,27 +85,23 @@ const permissionsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Fetch master modules
-            .addCase(fetchMasterModules.pending, (state) => {
-                state.isLoading = true;
-            })
-            .addCase(fetchMasterModules.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.masterModules = action.payload;
-            })
-            .addCase(fetchMasterModules.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
             // Fetch practice permissions
             .addCase(fetchPracticePermissions.pending, (state) => {
                 state.isLoading = true;
             })
             .addCase(fetchPracticePermissions.fulfilled, (state, action) => {
                 state.isLoading = false;
-                if (action.payload && 'permissions' in action.payload) {
+                if (action.payload) {
                     state.practicePermissions = action.payload as PracticePermissionsData;
-                    state.permissions = (action.payload as any).permissions || [];
+                    // Priority: permissions (custom) > default_permission (fallback)
+                    const customPermissions = (action.payload as any).permissions || [];
+                    const defaultPermissions = (action.payload as any).default_permission || [];
+
+                    if (customPermissions.length > 0) {
+                        state.permissions = customPermissions;
+                    } else {
+                        state.permissions = defaultPermissions;
+                    }
                 } else {
                     state.practicePermissions = null;
                     state.permissions = [];
@@ -145,5 +128,5 @@ const permissionsSlice = createSlice({
     },
 });
 
-export const { clearMessages, resetPermissions, togglePermission } = permissionsSlice.actions;
+export const { clearMessages, resetPermissions, togglePermission, setPermissions } = permissionsSlice.actions;
 export default permissionsSlice.reducer;

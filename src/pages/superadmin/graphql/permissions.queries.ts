@@ -27,6 +27,7 @@ export const GET_PRACTICE_PERMISSIONS = gql`
       id
       practice_id
       permissions
+      default_permission
       created_at
       updated_at
     }
@@ -50,6 +51,31 @@ export const UPDATE_PRACTICE_PERMISSIONS = gql`
       returning {
         id
         permissions
+        updated_at
+      }
+    }
+  }
+`;
+
+
+export const CREATE_PRACTICE_PERMISSIONS = gql`
+  mutation CreatePracticePermissions($practiceId: uuid!, $permissions: jsonb!, $defaultPermission: jsonb!) {
+    insert_practice_permissions(
+      objects: {
+        practice_id: $practiceId
+        permissions: $permissions
+        default_permission: $defaultPermission
+      }
+      on_conflict: {
+        constraint: practice_permissions_practice_id_key
+        update_columns: [permissions, default_permission, updated_at]
+      }
+    ) {
+      affected_rows
+      returning {
+        id
+        permissions
+        default_permission
         updated_at
       }
     }

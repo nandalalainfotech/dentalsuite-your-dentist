@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { GET_CLIENTS, UPDATE_PRACTICE_STATUS } from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
-import { GET_PERMISSION_MODULES_MASTER, UPDATE_PRACTICE_PERMISSIONS } from '../graphql/permissions.queries';
 
 interface Client {
     id: string;
@@ -38,21 +37,6 @@ interface ClientsResponse {
     accounts: Client[];
 }
 
-interface PermissionModule {
-    id: string;
-    module_name: string;
-    module_key: string;
-    actions: string[];
-    description: string;
-    display_order: number;
-    is_active: boolean;
-    path: string;
-}
-
-interface PermissionModulesResponse {
-    practice_permission_modules_master: PermissionModule[];
-}
-
 export default function Clients() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [showActionsId, setShowActionsId] = useState<string | null>(null);
@@ -63,13 +47,8 @@ export default function Clients() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const { data, loading, error, refetch } = useQuery<ClientsResponse>(GET_CLIENTS, { client: localClient });
-    const { data: modulesData } = useQuery<PermissionModulesResponse>(
-        GET_PERMISSION_MODULES_MASTER,
-        { client: localClient }
-    );
 
     const [updateStatus] = useMutation(UPDATE_PRACTICE_STATUS, { client: localClient });
-    const [updatePermissions] = useMutation(UPDATE_PRACTICE_PERMISSIONS, { client: localClient });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -84,20 +63,6 @@ export default function Clients() {
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         setIsProcessing(id);
         try {
-            // If approving, also set up permissions
-            if (newStatus === 'ACTIVE') {
-                const modules = modulesData?.practice_permission_modules_master ?? [];
-                const allPermissions = modules.map((module: any) => ({
-                    module: module.module_key,
-                    path: module.path,
-                    actions: [...module.actions]
-                }));
-
-                await updatePermissions({
-                    variables: { practiceId: id, permissions: allPermissions }
-                });
-            }
-
             await updateStatus({ variables: { id, status: newStatus } });
             setShowActionsId(null);
             await refetch();
