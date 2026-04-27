@@ -42,15 +42,26 @@ export default function PracticeDashboard() {
   const navigate = useNavigate();
 
   // 1. Use new Auth Hook for Logout
-  const { handleLogout, user: authUser } = useAuth();
+  const {
+    handleLogout,
+    handleLogin,  // ← Add this
+    user: authUser,
+    isAuthenticated,
+    loading: authLoading,
+    error: authError,
+    userType,
+    isApproved
+  } = useAuth();
 
   // 2. Use new Dashboard Hook for Profile Data
-  const { profile, loading } = useDashboard();
+  const { profile, loading: profileLoading } = useDashboard();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const isLoading = (profileLoading && !profile) || authLoading;
+
   // Loading State
-  if (loading && !profile) {
+  if (isLoading && !profile) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <Loader2 className="w-10 h-10 animate-spin text-orange-500 mb-4" />
@@ -58,6 +69,7 @@ export default function PracticeDashboard() {
       </div>
     );
   }
+
   const DEFAULT_LOGO = "https://cdn-icons-png.flaticon.com/512/377/377429.png";
   const logoUrl = (profile?.logo && profile.logo !== "")
     ? profile.logo
@@ -97,7 +109,7 @@ export default function PracticeDashboard() {
 
             {/* NAVIGATION LINKS */}
             <PracticeSidebar
-              practiceId={profile?.id ?? ""}
+              practiceId={authUser?.id ?? ""}
               onLogout={() => setShowLogoutModal(true)}
             />
           </div>

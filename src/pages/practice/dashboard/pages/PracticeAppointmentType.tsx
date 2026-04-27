@@ -324,7 +324,8 @@ export default function PracticeAppointmentType() {
   const { data: appointmentTypes, teamMembers, loading, saveLoading } = useAppSelector((state) => state.appointmentTypes);
   const { user: authPractice, isAuthenticated } = useAppSelector((state: any) => state.auth);
   const currentPracticeId = authPractice?.practiceId || authPractice?.id;
-  const { canCreate, canEdit, canDelete } = usePracticePermissions(currentPracticeId);
+  const permissionSubjectId = authPractice?.id;
+  const { canCreate, canEdit, canDelete } = usePracticePermissions(permissionSubjectId);
   const canCreateAppointmentType = canCreate('appointment_type');
   const canEditAppointmentType = canEdit('appointment_type');
   const canDeleteAppointmentType = canDelete('appointment_type');

@@ -14,6 +14,7 @@ export interface PracticePermissionsData {
 
 export interface PermissionsState {
     practicePermissions: PracticePermissionsData | null;
+    loadedPracticeId: string | null;
     permissions: PracticeModulePermission[];
     isLoading: boolean;
     isSaving: boolean;

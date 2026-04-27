@@ -81,3 +81,28 @@ export const CREATE_PRACTICE_PERMISSIONS = gql`
     }
   }
 `;
+
+
+export const CREATE_PRACTICE_PERMISSIONS_USER_SETTINGS = gql`
+  mutation CreatePracticePermissions($id: uuid!, $permissions: jsonb!, $defaultPermission: jsonb!) {
+    insert_practice_permissions(
+      objects: {
+        id: $id
+        permissions: $permissions
+        default_permission: $defaultPermission
+      }
+      on_conflict: {
+        constraint: practice_permissions_pkey
+        update_columns: [permissions, default_permission, updated_at]
+      }
+    ) {
+      affected_rows
+      returning {
+        id
+        permissions
+        default_permission
+        updated_at
+      }
+    }
+  }
+`;

@@ -1,9 +1,11 @@
+// src/features/permissions/permissions.slice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import permissionsService from "./permissions.service";
 import type { PermissionsState, PracticeModulePermission, PracticePermissionsData } from "./permissions.types";
 
 const initialState: PermissionsState = {
     practicePermissions: null,
+    loadedPracticeId: null,
     permissions: [],
     isLoading: false,
     isSaving: false,
@@ -14,9 +16,10 @@ const initialState: PermissionsState = {
 // Fetch practice permissions
 export const fetchPracticePermissions = createAsyncThunk(
     "permissions/fetchPracticePermissions",
-    async (practiceId: string, thunkAPI) => {
+    async (userId: string, thunkAPI) => {
         try {
-            const data = await permissionsService.getPracticePermissions(practiceId);
+            const data = await permissionsService.getPracticePermissions(userId);
+            console.log("=== Service Response ===", data);
             return data || { permissions: [], default_permission: [] };
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
@@ -28,15 +31,15 @@ export const fetchPracticePermissions = createAsyncThunk(
 export const updatePracticePermissions = createAsyncThunk(
     "permissions/updatePracticePermissions",
     async (
-        payload: { practiceId: string; permissions: PracticeModulePermission[] },
+        payload: { userId: string; permissions: PracticeModulePermission[] },
         thunkAPI
     ) => {
         try {
             const message = await permissionsService.updatePracticePermissions(
-                payload.practiceId,
+                payload.userId,
                 payload.permissions
             );
-            thunkAPI.dispatch(fetchPracticePermissions(payload.practiceId));
+            thunkAPI.dispatch(fetchPracticePermissions(payload.userId));
             return message;
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
@@ -55,6 +58,7 @@ const permissionsSlice = createSlice({
         resetPermissions: (state) => {
             state.permissions = [];
             state.practicePermissions = null;
+            state.loadedPracticeId = null;
         },
         setPermissions: (state, action: PayloadAction<PracticeModulePermission[]>) => {
             state.permissions = action.payload;
@@ -64,21 +68,25 @@ const permissionsSlice = createSlice({
             const moduleIndex = state.permissions.findIndex((p) => p.module === moduleKey);
 
             if (moduleIndex === -1) {
+                // Create new module with the action
                 state.permissions.push({ module: moduleKey, actions: [actionKey] });
             } else {
-                const actions = [...state.permissions[moduleIndex].actions];
-                const actionIndex = actions.indexOf(actionKey);
+                // Create a new array to avoid mutation issues
+                const currentActions = [...state.permissions[moduleIndex].actions];
+                const actionIndex = currentActions.indexOf(actionKey);
 
                 if (actionIndex === -1) {
-                    actions.push(actionKey);
+                    currentActions.push(actionKey);
                 } else {
-                    actions.splice(actionIndex, 1);
+                    currentActions.splice(actionIndex, 1);
                 }
 
-                if (actions.length === 0) {
+                if (currentActions.length === 0) {
+                    // Remove the module if no actions left
                     state.permissions.splice(moduleIndex, 1);
                 } else {
-                    state.permissions[moduleIndex].actions = actions;
+                    // Update the actions
+                    state.permissions[moduleIndex].actions = currentActions;
                 }
             }
         },
@@ -88,28 +96,56 @@ const permissionsSlice = createSlice({
             // Fetch practice permissions
             .addCase(fetchPracticePermissions.pending, (state) => {
                 state.isLoading = true;
+                state.error = null;
+                state.loadedPracticeId = null;
             })
             .addCase(fetchPracticePermissions.fulfilled, (state, action) => {
                 state.isLoading = false;
+                state.loadedPracticeId = action.meta.arg;
+
+                console.log("=== SLICE: fetchPracticePermissions.fulfilled ===");
+                console.log("Action payload:", action.payload);
+
                 if (action.payload) {
+                    // Store the full practice permissions data
                     state.practicePermissions = action.payload as PracticePermissionsData;
-                    // Priority: permissions (custom) > default_permission (fallback)
+
+                    // Get custom permissions and default permissions
                     const customPermissions = (action.payload as any).permissions || [];
                     const defaultPermissions = (action.payload as any).default_permission || [];
 
-                    if (customPermissions.length > 0) {
-                        state.permissions = customPermissions;
-                    } else {
-                        state.permissions = defaultPermissions;
+                    console.log("Custom permissions:", customPermissions);
+                    console.log("Default permissions:", defaultPermissions);
+
+                    // Priority: use custom permissions if they exist and are not empty
+                    let permissionsToUse = [];
+
+                    if (Array.isArray(customPermissions) && customPermissions.length > 0) {
+                        permissionsToUse = customPermissions;
+                        console.log("Using custom permissions");
+                    } else if (Array.isArray(defaultPermissions) && defaultPermissions.length > 0) {
+                        permissionsToUse = defaultPermissions;
+                        console.log("Using default permissions");
                     }
+
+                    // Ensure each permission has the correct structure
+                    state.permissions = permissionsToUse.map((perm: any) => ({
+                        module: perm.module || perm.module_key,
+                        actions: Array.isArray(perm.actions) ? [...perm.actions] : []
+                    }));
+
+                    console.log("Final permissions in state:", state.permissions);
                 } else {
+                    console.log("No permissions data found");
                     state.practicePermissions = null;
                     state.permissions = [];
                 }
             })
             .addCase(fetchPracticePermissions.rejected, (state, action) => {
                 state.isLoading = false;
+                state.loadedPracticeId = action.meta.arg;
                 state.error = action.payload as string;
+                console.error("Fetch permissions error:", action.payload);
             })
             // Update practice permissions
             .addCase(updatePracticePermissions.pending, (state) => {
@@ -120,10 +156,12 @@ const permissionsSlice = createSlice({
             .addCase(updatePracticePermissions.fulfilled, (state, action) => {
                 state.isSaving = false;
                 state.successMessage = action.payload;
+                console.log("Permissions updated successfully:", action.payload);
             })
             .addCase(updatePracticePermissions.rejected, (state, action) => {
                 state.isSaving = false;
                 state.error = action.payload as string;
+                console.error("Update permissions error:", action.payload);
             });
     },
 });

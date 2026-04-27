@@ -15,16 +15,14 @@ export default function PracticeSignInPage() {
 
       const userType = result.user?.type as UserType | undefined;
 
-      const routeMap: Record<UserType, string> = {
-        SUPER_ADMIN: "/superadmin/clients",
-        PRACTICE_ADMIN: "/practice/dashboard",
-        PRACTITIONER: "/practice/practitioner-dashboard",
-      };
-
-      if (userType) {
-        navigate(routeMap[userType]);
-      } else {
+      if (userType === "SUPER_ADMIN") {
+        navigate("/superadmin/clients");
+      } else if (userType === "PRACTICE_ADMIN") {
         navigate("/practice/dashboard");
+      } else if (userType === "PRACTITIONER") {
+        navigate("/practice/practitioner-dashboard");
+      } else {
+        navigate("/practice/dashboard"); // default fallback
       }
 
     } catch {

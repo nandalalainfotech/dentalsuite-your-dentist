@@ -1,3 +1,4 @@
+// src/features/permissions/Permissions.hooks.ts
 import { useCallback, useEffect } from "react";
 import {
     fetchPracticePermissions,
@@ -22,9 +23,10 @@ export const usePermissions = () => {
 
     // Load practice permissions
     const loadPracticePermissions = useCallback(
-        (practiceId: string) => {
-            if (practiceId) {
-                dispatch(fetchPracticePermissions(practiceId));
+        (userId: string) => {
+            if (userId) {
+                console.log("Dispatching fetchPracticePermissions for userId:", userId);
+                dispatch(fetchPracticePermissions(userId));
             }
         },
         [dispatch]
@@ -37,8 +39,9 @@ export const usePermissions = () => {
 
     // Save permissions
     const savePermissions = useCallback(
-        (practiceId: string) => {
-            dispatch(updatePracticePermissions({ practiceId, permissions }));
+        (userId: string) => {
+            console.log("Saving permissions for userId:", userId, permissions);
+            dispatch(updatePracticePermissions({ userId, permissions }));
         },
         [dispatch, permissions]
     );
@@ -46,6 +49,7 @@ export const usePermissions = () => {
     // Toggle single permission
     const toggleModulePermission = useCallback(
         (moduleKey: string, actionKey: string) => {
+            console.log("Toggling permission:", moduleKey, actionKey);
             dispatch(togglePermission({ moduleKey, actionKey }));
         },
         [dispatch]
@@ -82,12 +86,13 @@ export const usePermissions = () => {
 };
 
 export const usePracticePermissions = (practiceId?: string) => {
+    console.log("practiceId========in the hooks file=============>", practiceId);
     const dispatch = useAppDispatch();
-    const authPracticeId = useAppSelector((state: RootState) => state.auth.user?.practiceId || state.auth.user?.id);
-    const resolvedPracticeId = practiceId || authPracticeId;
+    const authPermissionId = useAppSelector((state: RootState) => state.auth.user?.id);
+    const resolvedPracticeId = practiceId || authPermissionId;
     const {
         permissions,
-        practicePermissions,
+        loadedPracticeId,
         isLoading,
         error,
     } = useAppSelector((state: RootState) => state.permissions);
@@ -95,10 +100,10 @@ export const usePracticePermissions = (practiceId?: string) => {
     useEffect(() => {
         if (!resolvedPracticeId) return;
         if (isLoading) return;
-        if (practicePermissions?.practice_id === resolvedPracticeId) return;
+        if (loadedPracticeId === resolvedPracticeId) return;
 
         dispatch(fetchPracticePermissions(resolvedPracticeId));
-    }, [dispatch, resolvedPracticeId, practicePermissions?.practice_id, isLoading]);
+    }, [dispatch, resolvedPracticeId, loadedPracticeId, isLoading]);
 
     const hasPermission = useCallback(
         (moduleKey: string, actionKey: string) => {
@@ -113,7 +118,7 @@ export const usePracticePermissions = (practiceId?: string) => {
         permissions,
         isLoading,
         error,
-        isReady: !resolvedPracticeId || practicePermissions?.practice_id === resolvedPracticeId,
+        isReady: !resolvedPracticeId || loadedPracticeId === resolvedPracticeId,
         hasPermission,
         canView: (moduleKey: string) => hasPermission(moduleKey, "view"),
         canCreate: (moduleKey: string) => hasPermission(moduleKey, "create"),
