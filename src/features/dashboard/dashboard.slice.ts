@@ -10,9 +10,9 @@ const initialState: DashboardState = {
 
 export const fetchProfile = createAsyncThunk(
   "dashboard/fetchProfile",
-  async (userId: string, thunkAPI) => {
+  async (practiceId: string, thunkAPI) => {
     try {
-      return await dashboardService.getProfile(userId);
+      return await dashboardService.getProfile(practiceId);
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message);
     }

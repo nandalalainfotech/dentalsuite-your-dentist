@@ -5,6 +5,7 @@ import appointmentsReducer from "../features/online_bookings/online_bookings.sli
 import directoryReducer from "../features/directory/directory.slice";
 import appointmentTypesReducer from "../features/appointment_types/appointment_types.slice";
 import permissionsReducer from "../features/permissions/permissions.slice";
+import practiceUsersReducer from "../features/PracticeUserAccount/PracticeUserAccount.slice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     directory: directoryReducer,
     appointmentTypes: appointmentTypesReducer,
     permissions: permissionsReducer,
+    practiceUsers: practiceUsersReducer,
   },
 });
 

@@ -18,6 +18,7 @@ export const GET_CLIENTS = gql`
       first_name
       last_name
       mobile
+      type
     }
   }
 `;

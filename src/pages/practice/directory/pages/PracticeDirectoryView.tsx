@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { Loader2, Edit3, CheckCircle } from 'lucide-react'; 
+import { Loader2, Edit3, CheckCircle } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { fetchDirectory } from '../../../../features/directory/directory.slice';
 import { usePracticePermissions } from '../../../../features/permissions/Permissions.hooks';
@@ -10,10 +10,11 @@ import type { DirectoryProfile } from '../../../../features/directory/directory.
 
 export default function DirectoryView() {
     const dispatch = useAppDispatch();
-    
+
     const userState = useAppSelector((state: any) => state.auth.user);
     const authPracticeId = userState?.practiceId || userState?.user?.practiceId || userState?.id || userState?.user?.id;
-    const { canEdit } = usePracticePermissions(authPracticeId);
+    const permissionSubjectId = userState?.id || userState?.user?.id;
+    const { canEdit } = usePracticePermissions(permissionSubjectId);
     const canEditDirectory = canEdit('directory');
 
     // 2. Get Directory Data
@@ -21,7 +22,7 @@ export default function DirectoryView() {
 
     useEffect(() => {
         if (!authPracticeId) return;
-        
+
         if (isLoading) return;
 
         if (!directoryData || directoryData.id !== authPracticeId) {
@@ -73,7 +74,7 @@ export default function DirectoryView() {
             <div className="flex h-screen w-full items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <p className="text-gray-500 mb-4">No directory information found.</p>
-                    <button 
+                    <button
                         onClick={() => dispatch(fetchDirectory(authPracticeId))}
                         className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
                     >
@@ -87,7 +88,7 @@ export default function DirectoryView() {
     // --- MAIN RENDER ---
     return (
         <div className="flex flex-col w-full max-w-full overflow-x-hidden animate-in fade-in duration-500 font-sans text-gray-800 bg-white min-h-screen">
-            
+
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 bg-white sticky top-0 z-30 shadow-sm gap-4 border-b border-gray-100">
                 <div>
@@ -103,21 +104,20 @@ export default function DirectoryView() {
 
                 <div className="flex gap-3 w-full sm:w-auto">
                     {isEditing ? (
-                        <button 
-                            onClick={() => toggleEditMode(false)} 
+                        <button
+                            onClick={() => toggleEditMode(false)}
                             className="w-full sm:w-auto justify-center px-6 py-2.5 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 flex items-center gap-2 shadow-lg shadow-gray-200 transition transform active:scale-95"
                         >
                             <CheckCircle className="w-4 h-4" /> Done Editing
                         </button>
                     ) : (
-                        <button 
-                            onClick={() => canEditDirectory && toggleEditMode(true)} 
+                        <button
+                            onClick={() => canEditDirectory && toggleEditMode(true)}
                             disabled={!canEditDirectory}
-                            className={`w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 transition transform active:scale-95 ${
-                                canEditDirectory
+                            className={`w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 transition transform active:scale-95 ${canEditDirectory
                                     ? 'bg-orange-600 hover:bg-orange-700'
                                     : 'bg-gray-300 cursor-not-allowed'
-                            }`}
+                                }`}
                         >
                             <Edit3 className="w-4 h-4" /> Update Directory
                         </button>

@@ -19,7 +19,8 @@ import PracticeAnalyticsView from '../pages/practice/dashboard/pages/PracticeAna
 import PracticeInvoiceHistoryView from '../pages/practice/PracticeInvoiceHistoryView';
 import PracticeOnlineBookings from '../pages/practice/dashboard/pages/PracticeOnlineBookings';
 import PracticeSupport from '../pages/practice/support/components/PracticeSupport';
-import PracticeUserAccount from '../pages/practice/useraccount/components/PracticeUserAccount';
+import PracticeUserAccount from '../pages/practice/useraccount/pages/PracticeUserAccount';
+
 
 function DashboardLayout() {
   return (
@@ -52,7 +53,8 @@ function PracticeRoutes() {
             {/* Default: Redirect /practice/dashboard -> /practice/dashboard/appointments */}
             <Route index element={<Navigate to="view-profile" replace />} />
 
-            <Route path="view-profile" element={<PractiveViewProfile />} />
+            {/* <Route path="view-profile" element={<PractiveViewProfile />} /> */}
+            <Route path="view-profile" element={<PracticePermissionRoute module="view_profile"><PractiveViewProfile /></PracticePermissionRoute>} />
             <Route path="directory" element={<PracticePermissionRoute module="directory"><PracticeDirectoryView /></PracticePermissionRoute>} />
             <Route path="appointments" element={<PracticePermissionRoute module="online_bookings"><PracticeOnlineBookings /></PracticePermissionRoute>} />
             <Route path="appointment-type" element={<PracticePermissionRoute module="appointment_type"><PracticeAppointmentType /></PracticePermissionRoute>} />
