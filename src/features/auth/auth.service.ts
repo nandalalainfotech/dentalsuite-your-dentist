@@ -74,7 +74,7 @@ const login = async (payload: LoginPayload): Promise<LoginResponse> => {
 // =========================
 // 2. SIGNUP - UPDATE THIS
 // =========================
-const signup = async (payload: SignupPayload): Promise<{ message: string; user: User }> => {
+const signup = async (payload: SignupPayload): Promise<{ message: string; user: User; success: boolean }> => {
   try {
     const practiceData = {
       practice_name: payload.practiceName,
@@ -120,6 +120,7 @@ const signup = async (payload: SignupPayload): Promise<{ message: string; user: 
     return {
       message: response.data?.message || "Registration successful! Waiting for approval.",
       user: normalizedUser,
+      success: true
     };
   } catch (error: any) {
     const message =

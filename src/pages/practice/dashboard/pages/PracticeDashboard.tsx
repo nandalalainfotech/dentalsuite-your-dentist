@@ -44,17 +44,18 @@ export default function PracticeDashboard() {
   // 1. Use new Auth Hook for Logout
   const {
     handleLogout,
-    handleLogin,  // ← Add this
     user: authUser,
-    isAuthenticated,
-    loading: authLoading,
-    error: authError,
-    userType,
-    isApproved
-  } = useAuth();
+    loading: authLoading } = useAuth();
+    
+  const isAdminView =
+    authUser?.type === "SUPER_ADMIN" &&
+    sessionStorage.getItem("isImpersonating") === "true";
+
+  // Determine correct practice id
+  const practiceId = authUser?.practiceId || authUser?.id || "";
 
   // 2. Use new Dashboard Hook for Profile Data
-  const { profile, loading: profileLoading } = useDashboard();
+  const { profile, loading: profileLoading } = useDashboard(practiceId);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -109,7 +110,8 @@ export default function PracticeDashboard() {
 
             {/* NAVIGATION LINKS */}
             <PracticeSidebar
-              practiceId={authUser?.id ?? ""}
+              practiceId={practiceId ?? profile?.id ?? ""}
+              isAdminView={isAdminView}
               onLogout={() => setShowLogoutModal(true)}
             />
           </div>

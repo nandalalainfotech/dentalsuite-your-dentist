@@ -4,6 +4,7 @@ import { useAuth } from "../../../../features/auth/auth.hooks";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { GET_PERMISSION_MODULES_MASTER, CREATE_PRACTICE_PERMISSIONS } from "../../../superadmin/graphql/permissions.queries";
 import { localClient } from "../../../../api/apollo/localClient";
+import toast from "react-hot-toast";
 
 
 export default function PracticeSignUp() {
@@ -66,34 +67,34 @@ export default function PracticeSignUp() {
       !formData.confirmPassword || !formData.first_name || !formData.last_name || !formData.mobile ||
       !formData.address || !formData.city || !formData.state ||
       !formData.postcode || !formData.practice_phone || !formData.practice_type) {
-      setError("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return false;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      toast.error("Password must be at least 6 characters long");
       return false;
     }
 
     if (!formData.termsAccepted) {
-      setError("You must accept the terms and conditions");
+      toast.error("You must accept the terms and conditions");
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
       return false;
     }
 
     const abnRegex = /^\d{6,11}$/;
     if (!abnRegex.test(formData.abn_number)) {
-      setError("Please enter a valid ABN number");
+      toast.error("Please enter a valid ABN number");
       return false;
     }
 
@@ -149,14 +150,14 @@ export default function PracticeSignUp() {
             const defaultPermissions = modules.map((module: any) => ({
               module: module.module_key,
               path: module.path,
-              actions: [...module.actions] // Or specify default actions like ['read']
+              actions: [...module.actions]
             }));
 
             await updatePermissions({
               variables: {
                 practiceId: practiceId,
                 permissions: allPermissions,
-                defaultPermission: defaultPermissions // Add this variable
+                defaultPermission: defaultPermissions
               }
             });
             console.log("Permissions setup completed successfully");
@@ -169,6 +170,7 @@ export default function PracticeSignUp() {
       }
 
       setSuccess("Account created successfully! Your account is waiting for approval. Redirecting to login...");
+
       setTimeout(() => {
         navigate("/practice/signin");
       }, 3500);
@@ -323,16 +325,25 @@ export default function PracticeSignUp() {
 
             {/* Terms */}
             <div>
-              <label className="flex items-start gap-3 text-sm">
+              <label className="flex items-start gap-3 text-sm cursor-pointer">
                 <input
                   type="checkbox"
                   name="termsAccepted"
                   checked={formData.termsAccepted}
                   onChange={handleInputChange}
+                  className="mt-1"
                 />
-                <span className="text-gray-600">
-                  I agree to the <a href="#" className="text-orange-600 hover:underline">Terms & Conditions</a> and <a href="#" className="text-orange-600 hover:underline">Privacy Policy</a>.
-                  I confirm that I have the authority to register this practice and that all provided information is accurate.
+                <span className="text-gray-600 leading-relaxed">
+                  I agree to the{" "}
+                  <a href="#" className="text-orange-600 hover:underline">
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a href="#" className="text-orange-600 hover:underline">
+                    Privacy Policy
+                  </a>
+                  . I confirm that I have the authority to register this practice and that all
+                  provided information is accurate.
                 </span>
               </label>
             </div>

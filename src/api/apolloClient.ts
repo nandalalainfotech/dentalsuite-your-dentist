@@ -15,14 +15,14 @@ interface CreateApolloClientOptions {
   httpUrl: string;
   wsUrl?: string;
   enableSubscriptions?: boolean;
-  useAdminSecret?: boolean; // 🔥 NEW
+  useAdminSecret?: boolean; // NEW
 }
 
 export function createApolloClient({
   httpUrl,
   wsUrl,
   enableSubscriptions = false,
-  useAdminSecret = false, // 🔥 NEW
+  useAdminSecret = false, // NEW
 }: CreateApolloClientOptions) {
   /* ==============================
      HTTP LINK
@@ -32,21 +32,25 @@ export function createApolloClient({
   });
 
   /* ==============================
-     AUTH LINK (UPDATED 🔥)
+     AUTH LINK (UPDATED )
   ============================== */
   const authLink = setContext((_, { headers }) => {
-    const token = localStorage.getItem("accessToken");
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isImpersonating = urlParams.get("impersonate") === "true";
+
+    const token = isImpersonating
+      ? localStorage.getItem("impersonationToken")
+      : localStorage.getItem("accessToken");
 
     return {
       headers: {
         ...headers,
 
-        // ✅ For QA API
         ...(token && !useAdminSecret
           ? { Authorization: `Bearer ${token}` }
           : {}),
 
-        // ✅ For LOCAL HASURA
         ...(useAdminSecret
           ? { "x-hasura-admin-secret": "myadminsecret" }
           : {}),
@@ -92,8 +96,8 @@ export function createApolloClient({
         return useAdminSecret
           ? { headers: { "x-hasura-admin-secret": "myadminsecret" } }
           : token
-          ? { headers: { Authorization: `Bearer ${token}` } }
-          : {};
+            ? { headers: { Authorization: `Bearer ${token}` } }
+            : {};
       },
     });
 

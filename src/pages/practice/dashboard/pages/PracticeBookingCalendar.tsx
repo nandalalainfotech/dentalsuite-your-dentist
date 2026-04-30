@@ -672,6 +672,7 @@ interface AppointmentDetailsModalProps {
     services: Service[];
     onUpdateStatus: (id: string, status: Appointment['status']) => void;
     onOpenReschedule: (appointment: Appointment) => void;
+    isAdminView: boolean;
 }
 
 type DropdownAction = Appointment['status'] | 'reschedule';
@@ -683,7 +684,8 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     practitioners,
     services,
     onUpdateStatus,
-    onOpenReschedule
+    onOpenReschedule,
+    isAdminView
 }) => {
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -710,12 +712,16 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     const isFinalStatus = ['completed', 'cancelled', 'dismissed', 'patient_cancelled'].includes(appointment.status);
 
     const handleActionClick = (action: DropdownAction) => {
+
+        if (isAdminView) return;
+
         if (action === 'reschedule') {
             onOpenReschedule(appointment);
             onClose();
         } else {
             onUpdateStatus(appointment.id, action as Appointment['status']);
         }
+
         setIsStatusDropdownOpen(false);
     };
 
@@ -797,7 +803,10 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                     </div>
                                     <div className="relative" ref={dropdownRef}>
                                         <button
-                                            onClick={() => !isFinalStatus && setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                            onClick={() => {
+                                                if (isAdminView) return;
+                                                if (!isFinalStatus) setIsStatusDropdownOpen(!isStatusDropdownOpen);
+                                            }}
                                             disabled={isFinalStatus}
                                             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${isFinalStatus ? 'cursor-default' : 'hover:shadow-md cursor-pointer'}`}
                                             style={{ backgroundColor: `${service?.color || '#3B82F6'}15`, color: service?.color || '#3B82F6' }}
@@ -814,7 +823,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                 />
                                             )}
                                         </button>
-                                        {isStatusDropdownOpen && (
+                                        {isStatusDropdownOpen && !isAdminView && (
                                             <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                                                 <div className="p-2 bg-gray-100 border-b border-gray-100">
                                                     <p className="text-[10px] font-bold text-gray-700 uppercase tracking-wider px-2">
@@ -1140,7 +1149,7 @@ const ConfirmationModal: React.FC<{
                     </button>
                     <button
                         onClick={onConfirm}
-                        className="flex-1 px-4 py-3 bg-blue-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/30 active:scale-95"
+                        className="flex-1 px-4 py-3 bg-blue-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all "
                     >
                         Confirm
                     </button>
@@ -1156,8 +1165,9 @@ const DraggableAppointment: React.FC<{
     top: number;
     height: number;
     isMobile: boolean;
+    isAdminView: boolean;
     onClick: (e: React.MouseEvent) => void;
-}> = ({ appointment, service, top, height, isMobile, onClick }) => {
+}> = ({ appointment, service, isAdminView, top, height, isMobile, onClick }) => {
     const patient = appointment.patientDetails;
     const isCompact = ((appointment.endTime.getTime() - appointment.startTime.getTime()) / 60000) <= 20;
     const isCancelled = ['cancelled', 'patient_cancelled', 'dismissed'].includes(appointment.status);
@@ -1168,7 +1178,11 @@ const DraggableAppointment: React.FC<{
     const isPastAppointment = appointment.startTime < new Date();
 
     // Only allow dragging for pending and confirmed appointments that haven't been rescheduled and are not in the past
-    const canDrag = ['pending', 'confirmed'].includes(appointment.status) && !isRescheduled && !isPastAppointment;
+    const canDrag =
+        !isAdminView &&
+        ['pending', 'confirmed'].includes(appointment.status) &&
+        !isRescheduled &&
+        !isPastAppointment;
     const divRef = useRef<HTMLDivElement>(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
@@ -1228,7 +1242,7 @@ const DraggableAppointment: React.FC<{
                 <div className="px-1.5 sm:px-2 lg:px-3 py-1 sm:py-1.5 lg:py-2 h-full flex flex-col">
                     <div className="flex items-center gap-1.5 mb-1">
                         {isRescheduled && <RefreshCw size={12} className="flex-shrink-0" />}
-                        {isPastAppointment }
+                        {isPastAppointment}
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                                 <p className="text-[10px] sm:text-sm font-bold truncate">{patient?.name}</p>
@@ -1267,11 +1281,12 @@ const DroppableTimeSlot: React.FC<{
     hour: number;
     minute: number;
     isOutside: boolean;
+    isAdminView: boolean;
     cellHeight: number;
     onDrop: (item: DragItem, targetDay: Date, targetHour: number, targetMinute: number) => void;
     onClick: () => void;
     children?: React.ReactNode;
-}> = ({ day, hour, minute, isOutside, cellHeight, onDrop, onClick, children }) => {
+}> = ({ day, hour, minute, isOutside, isAdminView, cellHeight, onDrop, onClick, children }) => {
     const divRef = useRef<HTMLDivElement>(null);
 
     // Check if the time slot is in the past
@@ -1281,7 +1296,7 @@ const DroppableTimeSlot: React.FC<{
 
     const [{ isOver, canDrop }, drop] = useDrop(() => ({
         accept: 'appointment',
-        canDrop: () => !isOutside && !isPastSlot,
+        canDrop: () => !isAdminView && !isOutside && !isPastSlot,
         drop: (item: DragItem) => {
             onDrop(item, day, hour, minute);
         },
@@ -1327,6 +1342,7 @@ const PracticeBookingCalendar = () => {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state: any) => state.auth);
     const practiceId = user?.practice_id || user?.id;
+    const isAdminView = user?.type === "SUPER_ADMIN_VIEW";
 
     const { bookings, onReschedule } = useAppointments(practiceId);
     const { practitioners: dbPractitioners, services: dbServices, breaks: dbBreaks, openingHours } = useAppSelector((state: any) => state.appointments);
@@ -1709,6 +1725,7 @@ const PracticeBookingCalendar = () => {
     };
 
     const handleSlotClick = (day: Date, hour: number, minutes: number) => {
+        if (isAdminView) return;
         const clickedTime = new Date(day);
         clickedTime.setHours(hour, minutes, 0, 0);
 
@@ -1734,6 +1751,8 @@ const PracticeBookingCalendar = () => {
     };
 
     const handleBreakClick = (breakEvent: CalendarEvent) => {
+        if (isAdminView) return;
+
         setEditingBreak(breakEvent);
         setSelectedDayForModal(breakEvent.startTime);
         setIsBreakModalOpen(true);
@@ -1784,12 +1803,17 @@ const PracticeBookingCalendar = () => {
     };
 
     const handleUpdateAppointmentStatus = (id: string, status: Appointment['status']) => {
+        if (isAdminView) return;
+
         dispatch(updateBookingStatus({ id, status }));
         setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-        if (selectedAppointment?.id === id) setSelectedAppointment(prev => prev ? { ...prev, status } : null);
+        if (selectedAppointment?.id === id)
+            setSelectedAppointment(prev => prev ? { ...prev, status } : null);
     };
 
     const handleOpenReschedule = (appointment: Appointment) => {
+        if (isAdminView) return;
+
         setRescheduleAppointment(appointment);
         setIsRescheduleModalOpen(true);
     };
@@ -1993,6 +2017,7 @@ const PracticeBookingCalendar = () => {
                                                                 hour={slot.hour}
                                                                 minute={minute}
                                                                 isOutside={isOutside}
+                                                                isAdminView={isAdminView}
                                                                 cellHeight={CELL_HEIGHT}
                                                                 onDrop={handleAppointmentDrop}
                                                                 onClick={() => !isOutside && handleSlotClick(day, slot.hour, minute)}
@@ -2016,6 +2041,7 @@ const PracticeBookingCalendar = () => {
                                                         service={service}
                                                         top={top}
                                                         height={height}
+                                                        isAdminView={isAdminView}
                                                         isMobile={isMobile}
                                                         onClick={(e) => { e.stopPropagation(); handleAppointmentClick(appointment); }}
                                                     />
@@ -2098,6 +2124,7 @@ const PracticeBookingCalendar = () => {
                     onOpenReschedule={handleOpenReschedule}
                     practitioners={dynamicPractitioners}
                     services={dynamicServices}
+                    isAdminView={isAdminView}
                 />
 
                 {isRescheduleModalOpen && originalRescheduleApt && (

@@ -244,7 +244,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 {clinicData.practice_team_members.map((member) => (
                                     <div key={member.id} className="group flex flex-col items-center p-6 aspect-[3/3] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 cursor-default">
                                         <div className="relative w-28 h-28 mb-5 flex-shrink-0">
