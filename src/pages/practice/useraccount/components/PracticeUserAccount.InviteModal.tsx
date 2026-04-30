@@ -40,7 +40,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
         mobile: '',
     });
 
-    // Permission state
     const [modulePermissions, setModulePermissions] = useState<ModulePermission[]>([]);
     const [defaultPermissions, setDefaultPermissions] = useState<ModulePermission[]>([]);
     const [useDefaultPermissions, setUseDefaultPermissions] = useState(true);
@@ -49,25 +48,17 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
     const [success, setSuccess] = useState('');
     const [isSettingPermissions, setIsSettingPermissions] = useState(false);
 
-    // Initialize permissions when modules data loads
     useEffect(() => {
         if ((modulesData as any)?.practice_permission_modules_master) {
             const modules = (modulesData as any).practice_permission_modules_master;
-
-            // Create default permissions based on common role patterns
-            // You can modify this based on your business logic
             const getDefaultActionsForModule = (module: any) => {
-                // For Support module, only give view
                 if (module.module_key === 'support') {
                     return ['view'];
                 }
-                // For Analytics, give view, export, download
                 if (module.module_key === 'analytics') {
                     return module.actions?.filter((action: string) => ['view', 'export', 'download'].includes(action)) || [];
                 }
-                // For other modules, give common permissions (view, create, edit)
-                // But not delete by default for safety
-                return module.actions?.filter((action: string) => ['view', 'create', 'edit'].includes(action)) || [];
+                return module.actions?.filter((action: string) => ['view', 'create', 'edit', 'delete'].includes(action)) || [];
             };
 
             const initialPermissions = modules.map((module: any) => ({
@@ -75,7 +66,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                 module_name: module.module_name,
                 path: module.path,
                 available_actions: module.actions || [],
-                actions: [] // Start with no permissions selected for custom mode
+                actions: []
             }));
 
             const defaultPerms = modules.map((module: any) => ({
@@ -89,7 +80,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
             setModulePermissions(initialPermissions);
             setDefaultPermissions(defaultPerms);
 
-            // Set initial permissions to default if useDefaultPermissions is true
             if (useDefaultPermissions) {
                 setModulePermissions(JSON.parse(JSON.stringify(defaultPerms)));
             }
@@ -127,7 +117,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                     ? module.actions.filter(a => a !== action)
                     : [...module.actions, action];
 
-                // If adding 'create', 'update', or 'delete', ensure 'view' is also present (if view is available)
                 if (!actionExists && action !== 'view') {
                     if (!updatedActions.includes('view') && module.available_actions.includes('view')) {
                         updatedActions = ['view', ...updatedActions];
@@ -140,22 +129,18 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
         }));
     };
 
-    // Check if an action should be disabled for a module
     const isActionDisabled = (module: ModulePermission, action: string) => {
-        // If the action is not available in the module's available_actions from API, disable it
         if (!module.available_actions.includes(action)) {
             return true;
         }
         return false;
     };
 
-    // Apply default permissions to custom permissions
     const applyDefaultPermissions = () => {
         setModulePermissions(JSON.parse(JSON.stringify(defaultPermissions)));
         setUseDefaultPermissions(true);
     };
 
-    // Reset to empty permissions (custom mode)
     const resetToEmptyPermissions = () => {
         setModulePermissions(prev => prev.map(module => ({
             ...module,
@@ -164,7 +149,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
         setUseDefaultPermissions(false);
     };
 
-    // Toggle between default and custom mode
     const toggleDefaultMode = () => {
         if (useDefaultPermissions) {
             resetToEmptyPermissions();
@@ -208,7 +192,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
 
     const setupUserPermissions = async (userId: string) => {
         try {
-            // Get all available modules
             let modules = (modulesData as any)?.practice_permission_modules_master ?? [];
 
             if (modulesLoading && modules.length === 0) {
@@ -234,7 +217,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                 return false;
             }
 
-            // Build permissions based on selected checkboxes
             const selectedPermissions = modulePermissions
                 .filter(module => module.actions.length > 0)
                 .map(module => ({
@@ -243,7 +225,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                     actions: module.actions
                 }));
 
-            // Build default permissions (for fallback)
             const defaultPermsToSend = defaultPermissions
                 .filter(module => module.actions.length > 0)
                 .map(module => ({
@@ -253,7 +234,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                 }));
 
             if (selectedPermissions.length === 0 && defaultPermsToSend.length === 0) {
-                // If no permissions selected and no defaults, don't set any permissions
                 return true;
             }
 
@@ -265,9 +245,9 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
 
             await updatePermissions({
                 variables: {
-                    practiceId: userId, // Using userId as practice_id in permissions table
+                    practiceId: userId,
                     permissions: permissionsToSend,
-                    defaultPermission: defaultPermsToSendCloned // Send cloned default permissions
+                    defaultPermission: defaultPermsToSendCloned
                 }
             });
 
@@ -577,7 +557,6 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                                     </thead>
                                     <tbody>
                                         {modulePermissions.map((module) => {
-                                            // Check if current permissions match default permissions
                                             const isUsingDefault = useDefaultPermissions &&
                                                 JSON.stringify(module.actions.sort()) ===
                                                 JSON.stringify(defaultPermissions.find(d => d.module_key === module.module_key)?.actions.sort() || []);

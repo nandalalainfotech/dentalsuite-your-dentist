@@ -19,7 +19,6 @@ export const fetchPracticePermissions = createAsyncThunk(
     async (userId: string, thunkAPI) => {
         try {
             const data = await permissionsService.getPracticePermissions(userId);
-            console.log("=== Service Response ===", data);
             return data || { permissions: [], default_permission: [] };
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
@@ -102,10 +101,6 @@ const permissionsSlice = createSlice({
             .addCase(fetchPracticePermissions.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.loadedPracticeId = action.meta.arg;
-
-                console.log("=== SLICE: fetchPracticePermissions.fulfilled ===");
-                console.log("Action payload:", action.payload);
-
                 if (action.payload) {
                     // Store the full practice permissions data
                     state.practicePermissions = action.payload as PracticePermissionsData;
@@ -114,18 +109,13 @@ const permissionsSlice = createSlice({
                     const customPermissions = (action.payload as any).permissions || [];
                     const defaultPermissions = (action.payload as any).default_permission || [];
 
-                    console.log("Custom permissions:", customPermissions);
-                    console.log("Default permissions:", defaultPermissions);
-
                     // Priority: use custom permissions if they exist and are not empty
                     let permissionsToUse = [];
 
                     if (Array.isArray(customPermissions) && customPermissions.length > 0) {
                         permissionsToUse = customPermissions;
-                        console.log("Using custom permissions");
                     } else if (Array.isArray(defaultPermissions) && defaultPermissions.length > 0) {
                         permissionsToUse = defaultPermissions;
-                        console.log("Using default permissions");
                     }
 
                     // Ensure each permission has the correct structure
@@ -134,9 +124,7 @@ const permissionsSlice = createSlice({
                         actions: Array.isArray(perm.actions) ? [...perm.actions] : []
                     }));
 
-                    console.log("Final permissions in state:", state.permissions);
                 } else {
-                    console.log("No permissions data found");
                     state.practicePermissions = null;
                     state.permissions = [];
                 }
