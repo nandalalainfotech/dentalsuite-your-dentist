@@ -25,7 +25,6 @@ const PermissionManager = ({ practiceId }: PermissionManagerProps) => {
 
     useEffect(() => {
         if (practiceId) {
-            console.log("Loading permissions for userId:", practiceId);
             loadPracticePermissions(practiceId);
         }
     }, [practiceId, loadPracticePermissions]);
@@ -52,7 +51,6 @@ const PermissionManager = ({ practiceId }: PermissionManagerProps) => {
     // Check if an action is available for a module (based on default_permission)
     const isActionAvailable = (moduleKey: string, action: string) => {
         if (!practicePermissions?.default_permission) {
-            console.log("Default permission not loaded yet");
             return true;
         }
 
@@ -61,12 +59,10 @@ const PermissionManager = ({ practiceId }: PermissionManagerProps) => {
         );
 
         if (!defaultModule) {
-            console.log(`Module ${moduleKey} not found in default_permission, enabling all actions`);
             return true;
         }
 
         const isAvailable = defaultModule.actions?.includes(action) || false;
-        console.log(`Module ${moduleKey}, action ${action}: ${isAvailable ? 'available' : 'not available'}`);
         return isAvailable;
     };
 
@@ -113,12 +109,9 @@ const PermissionManager = ({ practiceId }: PermissionManagerProps) => {
     // Log for debugging
     useEffect(() => {
         if (practicePermissions?.default_permission) {
-            console.log("Default permissions loaded:", practicePermissions.default_permission);
             practicePermissions.default_permission.forEach((module: any) => {
-                console.log(`Module ${module.module} has actions:`, module.actions);
             });
         }
-        console.log("Current permissions:", permissions);
     }, [practicePermissions, permissions]);
 
     if (isLoading) {
