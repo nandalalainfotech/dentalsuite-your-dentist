@@ -336,6 +336,12 @@ export default function PracticeAppointmentType() {
   // --- NEW STATE FOR CUSTOM DELETE MODAL ---
   const [typeToDelete, setTypeToDelete] = useState<string | null>(null);
 
+  // This SUPER_ADMIN_VIEW command enables view only for superadmin in practice dashboard  
+  // The SUPER_ADMIN command enables view, add, edit and delete for superadmin in practice dashboard
+
+  // const isSuperAdminView = authPractice?.type === "SUPER_ADMIN_VIEW" || authPractice?.user?.type === "SUPER_ADMIN_VIEW";
+  const isSuperAdminView = authPractice?.type === "SUPER_ADMIN" || authPractice?.user?.type === "SUPER_ADMIN";
+
   useEffect(() => {
     if (isAuthenticated && currentPracticeId) {
       dispatch(fetchAppointmentData(currentPracticeId));
@@ -344,7 +350,7 @@ export default function PracticeAppointmentType() {
 
   const handleSave = async (data: AppointmentType, settings: Record<string, PractitionerSetting>) => {
     const isExistingRecord = Boolean(data.id && !data.id.startsWith('temp-'));
-    const canSave = isExistingRecord ? canEditAppointmentType : canCreateAppointmentType;
+    const canSave = isExistingRecord ? canEditAppointmentType && !isSuperAdminView : canCreateAppointmentType;
 
     if (!canSave) {
       alert(`You do not have permission to ${isExistingRecord ? 'edit' : 'create'} appointment types.`);
@@ -374,6 +380,7 @@ export default function PracticeAppointmentType() {
 
   // --- UPDATED DELETE HANDLERS ---
   const triggerDelete = (id: string) => {
+    if (isSuperAdminView) return;
     if (!canDeleteAppointmentType) {
       alert('You do not have permission to delete appointment types.');
       return;
@@ -397,14 +404,17 @@ export default function PracticeAppointmentType() {
   return (
     <div className="p-6 bg-white min-h-screen relative">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Appointment Types</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {isSuperAdminView ? "Appointment Types (View Only)" : "Appointment Types"}
+        </h1>
         <button onClick={() => {
+          if (isSuperAdminView) return;
           setEditingData(null);
           setView('editor');
         }}
-          disabled={loading || !canCreateAppointmentType}
+          disabled={loading || !canCreateAppointmentType || isSuperAdminView}
           className={`flex items-center gap-2 px-2 py-2 bg-blue-600 text-white rounded font-medium text-sm 
-          ${(loading || !canCreateAppointmentType) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          ${(loading || !canCreateAppointmentType || isSuperAdminView) ? 'opacity-50 cursor-not-allowed' : ''}`}>
           <Plus size={16}
           /> New Appointment Type
         </button>
@@ -451,21 +461,19 @@ export default function PracticeAppointmentType() {
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => { setEditingData(type); setView('editor'); }}
-                            disabled={!canEditAppointmentType}
-                            className={`px-2 py-1 text-sm font-bold border rounded ${
-                              canEditAppointmentType
-                                ? 'text-blue-600 border-blue-400 hover:bg-blue-600 hover:text-white'
-                                : 'text-gray-400 border-gray-200 cursor-not-allowed'
-                            }`}>
+                            disabled={!canEditAppointmentType && !isSuperAdminView || isSuperAdminView}
+                            className={`px-2 py-1 text-sm font-bold border rounded ${canEditAppointmentType && !isSuperAdminView
+                              ? 'text-blue-600 border-blue-400 hover:bg-blue-600 hover:text-white'
+                              : 'text-gray-400 border-gray-200 cursor-not-allowed'
+                              }`}>
                             Edit
                           </button>
                           <button onClick={() => triggerDelete(type.id)}
-                            disabled={!canDeleteAppointmentType}
-                            className={`px-2 py-1 text-sm font-bold border rounded ${
-                              canDeleteAppointmentType
-                                ? 'text-red-600 border-red-400 hover:bg-red-600 hover:text-white'
-                                : 'text-gray-400 border-gray-200 cursor-not-allowed'
-                            }`}>
+                            disabled={!canDeleteAppointmentType || isSuperAdminView}
+                            className={`px-2 py-1 text-sm font-bold border rounded ${canDeleteAppointmentType && !isSuperAdminView
+                              ? 'text-red-600 border-red-400 hover:bg-red-600 hover:text-white'
+                              : 'text-gray-400 border-gray-200 cursor-not-allowed'
+                              }`}>
                             Delete
                           </button>
                         </div>

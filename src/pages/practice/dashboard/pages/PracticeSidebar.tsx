@@ -8,6 +8,7 @@ interface PracticeSidebarProps {
   onLogout?: () => void;
   onClose?: () => void;
   practiceId: string;
+  isAdminView?: boolean;
 }
 
 const NAVIGATION_ITEMS = {
@@ -16,7 +17,7 @@ const NAVIGATION_ITEMS = {
     label: 'View Profile',
     module: 'view_profile',
     requiredAction: 'view',
-    alwaysShow: true
+    
   },
   '/practice/dashboard/directory': {
     icon: Icons.Folder,
@@ -83,6 +84,7 @@ export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebar
   const visibleNavItems = useMemo(() => {
     return Object.entries(NAVIGATION_ITEMS).filter(([path]) => {
       const navItem = NAVIGATION_ITEMS[path as keyof typeof NAVIGATION_ITEMS];
+
       if (!navItem) return false;
 
       if ('alwaysShow' in navItem && navItem.alwaysShow) return true;
@@ -90,6 +92,7 @@ export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebar
       if (!isReady) return false;
 
       return hasPermission(navItem.module, navItem.requiredAction);
+
     });
   }, [hasPermission, isReady]);
 

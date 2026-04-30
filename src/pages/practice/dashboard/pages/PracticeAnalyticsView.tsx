@@ -982,9 +982,20 @@ const FilterDropdown = ({ label, options, value, onChange }: { label: string; op
 export default function PracticeAnalyticsView() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state: any) => state.auth);
-  const practiceId = user?.practice_id || user?.id;
+  const practiceId = user?.practiceId || user?.practice_id || user?.id;
 
   const { bookings, practitioners, loading, refresh } = useAppointments(practiceId);
+
+  // Different section uses different command
+  // This SUPER_ADMIN_VIEW command enables view only for superadmin in practice dashboard  
+  // The SUPER_ADMIN command enables view, add, edit and delete for superadmin in practice dashboard
+
+  // const isSuperAdminView =
+  //   user?.type === "SUPER_ADMIN_VIEW" ||
+  //   user?.user?.type === "SUPER_ADMIN_VIEW";
+  const isSuperAdminView =
+    user?.type === "SUPER_ADMIN" ||
+    user?.user?.type === "SUPER_ADMIN";
 
   // Calculate current week for default state
   const today = new Date();
@@ -993,10 +1004,14 @@ export default function PracticeAnalyticsView() {
   const initialWeekEnd = new Date(initialWeekStart);
   initialWeekEnd.setDate(initialWeekStart.getDate() + 6);
 
-  const [dateRange, setDateRange] = useState({ start: initialWeekStart, end: initialWeekEnd });
-  const [activePreset, setActivePreset] = useState('This Week');
+  const [dateRange, setDateRange] = useState({
+    start: initialWeekStart,
+    end: initialWeekEnd,
+  });
+
+  const [activePreset, setActivePreset] = useState("This Week");
   const [showCalendar, setShowCalendar] = useState(false);
-  const [practitionerFilter, setPractitionerFilter] = useState('All');
+  const [practitionerFilter, setPractitionerFilter] = useState("All");
 
   // Fetch practitioners on mount if not already loaded in Redux
   useEffect(() => {
@@ -1005,51 +1020,59 @@ export default function PracticeAnalyticsView() {
     }
   }, [dispatch, practiceId, practitioners.length]);
 
-  // Combine practitioners from Redux state and any existing bookings to ensure no one is missed
-  const practitionerList = ['All', ...new Set([
-    ...practitioners.map(p => p.name),
-    ...bookings.map(b => b.practitioner?.name).filter(Boolean) as string[]
-  ])];
+  // Combine practitioners
+  const practitionerList = [
+    "All",
+    ...new Set([
+      ...practitioners.map((p) => p.name),
+      ...bookings.map((b) => b.practitioner?.name).filter(Boolean) as string[],
+    ]),
+  ];
 
   const handlePresetSelect = (preset: string) => {
     setActivePreset(preset);
     const currentDate = new Date();
 
     switch (preset) {
-      case 'Today':
+      case "Today":
         setDateRange({ start: currentDate, end: currentDate });
         break;
-      case 'This Week':
+
+      case "This Week":
         const weekStart = new Date(currentDate);
         weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
+
         setDateRange({ start: weekStart, end: weekEnd });
         break;
-      case 'This Month':
+
+      case "This Month":
         setDateRange({
           start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
-          end: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+          end: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0),
         });
         break;
-      case 'Last 30 Days':
+
+      case "Last 30 Days":
         const thirtyDaysAgo = new Date(currentDate);
         thirtyDaysAgo.setDate(currentDate.getDate() - 30);
+
         setDateRange({ start: thirtyDaysAgo, end: currentDate });
         break;
-      case 'Custom':
+
+      case "Custom":
         setShowCalendar(true);
         break;
     }
   };
 
   const analyticsData = useMemo(() => {
-    // 1. Filter by Date Range
-    let filtered = bookings.filter(item => {
+    let filtered = bookings.filter((item) => {
       if (!item.appointment_date) return false;
 
-      // Safely parse date from 'YYYY-MM-DD' string to avoid timezone shift bugs
-      const [year, month, day] = item.appointment_date.split('-');
+      const [year, month, day] = item.appointment_date.split("-");
       const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
 
       const start = new Date(dateRange.start);
@@ -1061,161 +1084,212 @@ export default function PracticeAnalyticsView() {
       return itemDate >= start && itemDate <= end;
     });
 
-    // 2. Filter by Practitioner
-    if (practitionerFilter !== 'All') {
-      filtered = filtered.filter(i => (i.practitioner?.name || 'Unknown') === practitionerFilter);
+    if (practitionerFilter !== "All") {
+      filtered = filtered.filter(
+        (i) => (i.practitioner?.name || "Unknown") === practitionerFilter
+      );
     }
 
-    // 3. Compile Stats
     const stats = {
       total: filtered.length,
-      new: filtered.filter(i => i.isNewPatient).length,
-      existing: filtered.filter(i => !i.isNewPatient).length,
-      // Matches your ValidStatus from online bookings types
-      completed: filtered.filter(i => i.status?.toLowerCase() === 'completed').length,
+      new: filtered.filter((i) => i.isNewPatient).length,
+      existing: filtered.filter((i) => !i.isNewPatient).length,
+      completed: filtered.filter(
+        (i) => i.status?.toLowerCase() === "completed"
+      ).length,
     };
 
-    // 4. Bar Chart: Appointments by Practitioner
     const practitionerMap: Record<string, number> = {};
-    filtered.forEach(appt => {
-      const pName = appt.practitioner?.name || 'Unknown';
+
+    filtered.forEach((appt) => {
+      const pName = appt.practitioner?.name || "Unknown";
       practitionerMap[pName] = (practitionerMap[pName] || 0) + 1;
     });
-    const docData = Object.entries(practitionerMap).map(([label, value]) => ({ label, value }));
 
-    // 5. Practitioner Chart: New Patients by Practitioner
+    const docData = Object.entries(practitionerMap).map(([label, value]) => ({
+      label,
+      value,
+    }));
+
     const newPatientsByPractitioner: Record<string, number> = {};
-    const newPatientAppts = bookings.filter(item => {
+
+    const newPatientAppts = bookings.filter((item) => {
       if (!item.appointment_date) return false;
-      const [year, month, day] = item.appointment_date.split('-');
+
+      const [year, month, day] = item.appointment_date.split("-");
       const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
 
-      const start = new Date(dateRange.start); start.setHours(0, 0, 0, 0);
-      const end = new Date(dateRange.end); end.setHours(23, 59, 59, 999);
+      const start = new Date(dateRange.start);
+      start.setHours(0, 0, 0, 0);
 
-      const inDateRange = itemDate >= start && itemDate <= end;
-      const isNewPatient = item.isNewPatient;
-      return inDateRange && isNewPatient;
+      const end = new Date(dateRange.end);
+      end.setHours(23, 59, 59, 999);
+
+      return itemDate >= start && itemDate <= end && item.isNewPatient;
     });
 
-    newPatientAppts.forEach(appt => {
-      const pName = appt.practitioner?.name || 'Unknown';
-      newPatientsByPractitioner[pName] = (newPatientsByPractitioner[pName] || 0) + 1;
+    newPatientAppts.forEach((appt) => {
+      const pName = appt.practitioner?.name || "Unknown";
+      newPatientsByPractitioner[pName] =
+        (newPatientsByPractitioner[pName] || 0) + 1;
     });
 
-    const newPatientsPractitionerData = Object.entries(newPatientsByPractitioner)
+    const newPatientsPractitionerData = Object.entries(
+      newPatientsByPractitioner
+    )
       .map(([label, value]) => ({
         label,
         value,
-        color: PRACTITIONER_COLORS[label] || PRACTITIONER_COLORS['Default']
+        color:
+          PRACTITIONER_COLORS[label] || PRACTITIONER_COLORS["Default"],
       }))
       .sort((a, b) => b.value - a.value);
 
-    // 6. Area Chart: Daily Trend
     const days = getDaysArray(dateRange.start, dateRange.end);
-    const dailyTrend = days.map(day => {
+
+    const dailyTrend = days.map((day) => {
       const dStr = formatDate(day);
-      const count = filtered.filter(i => i.appointment_date === dStr).length;
+      const count = filtered.filter((i) => i.appointment_date === dStr).length;
       return { date: dStr, count };
     });
 
-    const sparklineData = dailyTrend.slice(-7).map(d => d.count);
+    const sparklineData = dailyTrend.slice(-7).map((d) => d.count);
 
-    return { filtered, stats, docData, dailyTrend, newPatientsPractitionerData, sparklineData };
+    return {
+      filtered,
+      stats,
+      docData,
+      dailyTrend,
+      newPatientsPractitionerData,
+      sparklineData,
+    };
   }, [bookings, dateRange, practitionerFilter]);
-
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6 font-sans">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
 
-                <h1 className="text-3xl font-bold bg-gray-800 bg-clip-text text-transparent">
-                  Practice Analytics
-                </h1>
-              </div>
-              <p className="text-gray-500">Track and analyze your appointment data</p>
+            <div>
+              <h1 className="text-3xl font-bold bg-gray-800 bg-clip-text text-transparent">
+                Practice Analytics
+              </h1>
+
+              <p className="text-gray-500">
+                Track and analyze your appointment data
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={refresh}
-                disabled={loading}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm border ${loading
-                  ? 'bg-gray-50 text-gray-400 border-gray-200'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm'
-                  }`}
-              ><div
-                className={loading ? 'animate-spin' : ''}
-                style={loading ? { animationDuration: '0.5s' } : undefined}
-              >
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                </div>
-                <span>Refresh</span>
 
-              </button>
+              {/* Refresh */}
               <button
-                onClick={() => window.print()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:shadow-md hover:shadow-orange-200 transition-all"
+                onClick={() => {
+                  if (!isSuperAdminView) {
+                    refresh();
+                  }
+                }}
+                disabled={isSuperAdminView || loading}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm border
+                ${isSuperAdminView
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
+                  }`}
               >
-                <Printer size={18} />
-                <span>Export Report</span>
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                />
+                <span>Refresh</span>
               </button>
+
+              {/* Export */}
+              {!isSuperAdminView && (
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:shadow-md hover:shadow-orange-200 transition-all"
+                >
+                  <Printer size={18} />
+                  <span>Export Report</span>
+                </button>
+              )}
             </div>
           </div>
 
           {/* Filters */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex flex-wrap items-center gap-4 mb-4">
+
+              {/* Date Picker */}
               <div className="relative">
                 <button
-                  onClick={() => { setShowCalendar(!showCalendar); setActivePreset('Custom'); }}
+                  onClick={() => {
+                    setShowCalendar(!showCalendar);
+                    setActivePreset("Custom");
+                  }}
                   className="flex items-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl hover:border-orange-300 transition-all bg-white"
                 >
                   <CalendarIcon size={18} className="text-orange-500" />
+
                   <span className="text-sm font-medium text-gray-700">
-                    {formatDisplayDate(dateRange.start)} - {formatDisplayDate(dateRange.end)}
+                    {formatDisplayDate(dateRange.start)} -{" "}
+                    {formatDisplayDate(dateRange.end)}
                   </span>
                 </button>
+
                 {showCalendar && (
                   <DateRangePicker
                     startDate={dateRange.start}
                     endDate={dateRange.end}
-                    onChange={(s, e) => setDateRange({ start: s, end: e })}
+                    onChange={(s, e) =>
+                      setDateRange({ start: s, end: e })
+                    }
                     onClose={() => setShowCalendar(false)}
                   />
                 )}
               </div>
-              <FilterDropdown label="Practitioner" options={practitionerList} value={practitionerFilter} onChange={setPractitionerFilter} />
+
+              <FilterDropdown
+                label="Practitioner"
+                options={practitionerList}
+                value={practitionerFilter}
+                onChange={setPractitionerFilter}
+              />
             </div>
-            <DatePresets onSelect={handlePresetSelect} active={activePreset} />
+
+            <DatePresets
+              onSelect={handlePresetSelect}
+              active={activePreset}
+            />
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+
           <ModernStatCard
             label="Total Appointments"
             value={analyticsData.stats.total}
             icon={Zap}
             gradient="bg-gradient-to-br from-orange-400 via-amber-300 to-amber-400"
           />
+
           <ModernStatCard
             label="New Patients"
             value={analyticsData.stats.new}
             icon={UserPlus}
             gradient="bg-gradient-to-br from-emerald-400 via-emerald-300 to-green-400"
           />
+
           <ModernStatCard
             label="Existing Patients"
             value={analyticsData.stats.existing}
             icon={Users}
             gradient="bg-gradient-to-br from-blue-400 via-cyan-300 to-cyan-400"
           />
+
           <ModernStatCard
             label="Completed"
             value={analyticsData.stats.completed}
@@ -1224,31 +1298,41 @@ export default function PracticeAnalyticsView() {
           />
         </div>
 
-        {/* Charts Row 1 */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <ModernBarChart
             title="Appointments by Practitioner"
             subtitle="Total bookings per healthcare provider"
             data={analyticsData.docData}
           />
+
           <ModernAreaChart dailyData={analyticsData.dailyTrend} />
         </div>
 
-        {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ModernDonutChart
             title="Patient Type Distribution"
             subtitle="New vs Existing patients"
             data={[
-              { label: 'New Patients', value: analyticsData.stats.new, color: '#f97316' },
-              { label: 'Existing Patients', value: analyticsData.stats.existing, color: '#fbbf24' },
+              {
+                label: "New Patients",
+                value: analyticsData.stats.new,
+                color: "#f97316",
+              },
+              {
+                label: "Existing Patients",
+                value: analyticsData.stats.existing,
+                color: "#fbbf24",
+              },
             ]}
           />
+
           <ModernPractitionerChart
             data={analyticsData.newPatientsPractitionerData}
             selectedPractitioner={practitionerFilter}
           />
         </div>
+
       </div>
     </div>
   );

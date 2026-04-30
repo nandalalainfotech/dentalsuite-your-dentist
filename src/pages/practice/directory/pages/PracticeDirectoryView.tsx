@@ -12,10 +12,32 @@ export default function DirectoryView() {
     const dispatch = useAppDispatch();
 
     const userState = useAppSelector((state: any) => state.auth.user);
-    const authPracticeId = userState?.practiceId || userState?.user?.practiceId || userState?.id || userState?.user?.id;
+
+    const authPracticeId =
+        userState?.practiceId ||
+        userState?.user?.practiceId ||
+        userState?.id ||
+        userState?.user?.id;
+
     const permissionSubjectId = userState?.id || userState?.user?.id;
+
     const { canEdit } = usePracticePermissions(permissionSubjectId);
+
     const canEditDirectory = canEdit('directory');
+
+    // Different section uses different command
+    // This SUPER_ADMIN_VIEW command enables view only for superadmin in practice dashboard  
+    // The SUPER_ADMIN command enables view, add, edit and delete for superadmin in practice dashboard
+
+    // const isSuperAdminView =
+    //     userState?.type === "SUPER_ADMIN_VIEW" ||
+    //     userState?.user?.type === "SUPER_ADMIN_VIEW";
+    const isSuperAdminView =
+        userState?.type === "SUPER_ADMIN" ||
+        userState?.user?.type === "SUPER_ADMIN";
+
+    //  FINAL EDIT PERMISSION
+    const allowEditing = canEditDirectory && !isSuperAdminView;
 
     // 2. Get Directory Data
     const { data: directoryData, isLoading } = useAppSelector((state: any) => state.directory);
@@ -32,30 +54,41 @@ export default function DirectoryView() {
 
     // 4. Local State for Edit Mode
     const [isEditing, setIsEditing] = useState(() => {
+        if (userState?.type === "SUPER_ADMIN_VIEW" || userState?.user?.type === "SUPER_ADMIN_VIEW") {
+            return false;
+        }
+
         return localStorage.getItem('is_directory_editing') === 'true';
     });
 
     useEffect(() => {
+        if (isSuperAdminView) return;
+
         localStorage.setItem('is_directory_editing', String(isEditing));
-    }, [isEditing]);
+    }, [isEditing, isSuperAdminView]);
 
     const toggleEditMode = (mode: boolean) => {
+
+        // ⭐ Prevent Super Admin from entering edit mode
+        if (isSuperAdminView) return;
+
         setIsEditing(mode);
+
         if (!mode) localStorage.removeItem('clinic_editor_active_tab');
     };
 
     // --- RENDER GUARDS ---
 
-    // Guard 1: Missing Auth ID (User needs to relogin)
     if (!authPracticeId) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-                <p className="text-red-500">Error: No Practice ID found. Please log out and log in again.</p>
+                <p className="text-red-500">
+                    Error: No Practice ID found. Please log out and log in again.
+                </p>
             </div>
         );
     }
 
-    // Guard 2: Loading State (only show full screen loader if we have NO data to show)
     if (isLoading && !directoryData) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-gray-50">
@@ -67,8 +100,6 @@ export default function DirectoryView() {
         );
     }
 
-    // Guard 3: Data Missing (Safeguard against Blank Page crash)
-    // This happens if loading finished but we still have no data (e.g., API error or deleted account)
     if (!directoryData && !isLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-gray-50">
@@ -103,6 +134,14 @@ export default function DirectoryView() {
                 </div>
 
                 <div className="flex gap-3 w-full sm:w-auto">
+
+                    {/* SUPER ADMIN VIEW MESSAGE */}
+                    {isSuperAdminView && (
+                        <div className="text-sm text-gray-400 italic flex items-center">
+                            (View Only)
+                        </div>
+                    )}
+
                     {isEditing ? (
                         <button
                             onClick={() => toggleEditMode(false)}
@@ -112,11 +151,11 @@ export default function DirectoryView() {
                         </button>
                     ) : (
                         <button
-                            onClick={() => canEditDirectory && toggleEditMode(true)}
-                            disabled={!canEditDirectory}
-                            className={`w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 transition transform active:scale-95 ${canEditDirectory
-                                    ? 'bg-orange-600 hover:bg-orange-700'
-                                    : 'bg-gray-300 cursor-not-allowed'
+                            onClick={() => allowEditing && toggleEditMode(true)}
+                            disabled={!allowEditing}
+                            className={`w-full sm:w-auto justify-center px-5 py-2.5 rounded-xl text-white font-medium flex items-center gap-2 transition transform active:scale-95 ${allowEditing
+                                ? 'bg-orange-600 hover:bg-orange-700'
+                                : 'bg-gray-300 cursor-not-allowed'
                                 }`}
                         >
                             <Edit3 className="w-4 h-4" /> Update Directory

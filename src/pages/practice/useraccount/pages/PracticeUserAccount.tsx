@@ -11,6 +11,13 @@ const PracticeUserAccount = () => {
     const { user: currentUser, isLoading: authLoading } = useAppSelector((state: any) => state.auth);
     const practiceId = currentUser?.practiceId || currentUser?.id;
 
+    // Different section uses different command
+    // This SUPER_ADMIN_VIEW command enables view only for superadmin in practice dashboard  
+    // The SUPER_ADMIN command enables view, add, edit and delete for superadmin in practice dashboard
+
+    // const isSuperAdminView = currentUser?.type === "SUPER_ADMIN_VIEW" || currentUser?.user?.type === "SUPER_ADMIN_VIEW";
+    const isSuperAdminView = currentUser?.type === "SUPER_ADMIN" || currentUser?.user?.type === "SUPER_ADMIN";
+
     useEffect(() => {
         if (practiceId) {
             dispatch(fetchPracticeUsers(practiceId));
@@ -233,8 +240,8 @@ const PracticeUserAccount = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <button
                                                     onClick={() => openEditModal(teamUser)}
-                                                    className="text-red-600 hover:text-red-900 mr-3"
-                                                    disabled={loading || loading}
+                                                    className={`mr-3 ${isSuperAdminView ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900'}`}
+                                                    disabled={loading || isSuperAdminView}
                                                 >
                                                     Edit
                                                 </button>
@@ -244,8 +251,8 @@ const PracticeUserAccount = () => {
                                                             deleteUser(teamUser.id);
                                                         }
                                                     }}
-                                                    className="text-green-600 hover:text-green-900"
-                                                    disabled={loading}
+                                                    className={`${isSuperAdminView ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 hover:text-green-900'}`}
+                                                    disabled={loading || isSuperAdminView}
                                                 >
                                                     Delete
                                                 </button>
@@ -259,29 +266,35 @@ const PracticeUserAccount = () => {
                 </div>
 
                 {/* Invite Button */}
-                <div className="mt-6">
-                    <button
-                        onClick={openInviteModal}
-                        disabled={loading}
-                        className="bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
-                    >
-                        + Invite New User
-                    </button>
-                </div>
+                {!isSuperAdminView && (
+                    <div className="mt-6">
+                        <button
+                            onClick={openInviteModal}
+                            disabled={loading}
+                            className="bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+                        >
+                            + Invite New User
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Modals */}
-            <InviteUserModal
-                isOpen={isInviteModalOpen}
-                onClose={closeInviteModal}
-                practiceId={practiceId}
-            />
+            {!isSuperAdminView && (
+                <InviteUserModal
+                    isOpen={isInviteModalOpen}
+                    onClose={closeInviteModal}
+                    practiceId={practiceId}
+                />
+            )}
 
-            <EditUserModal
-                isOpen={isEditModalOpen}
-                onClose={closeEditModal}
-                user={selectedUser}
-            />
+            {!isSuperAdminView && (
+                <EditUserModal
+                    isOpen={isEditModalOpen}
+                    onClose={closeEditModal}
+                    user={selectedUser}
+                />
+            )}
         </div>
     );
 };

@@ -1,55 +1,72 @@
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux'; // Use standard hooks or your typed hooks
-import { Navigate, useLocation } from 'react-router-dom';
-import { setUser } from '../../features/auth/auth.slice'; // Point to NEW slice
-import type { RootState, AppDispatch } from '../../store/store'; // Point to NEW store
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, useLocation } from "react-router-dom";
+import { setUser } from "../../features/auth/auth.slice";
+import type { RootState, AppDispatch } from "../../store/store";
 
 interface PracticeProtectedRouteProps {
   children: ReactNode;
 }
 
-export default function PracticeProtectedRoute({ children }: PracticeProtectedRouteProps) {
+export default function PracticeProtectedRoute({
+  children,
+}: PracticeProtectedRouteProps) {
   const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
 
-  // Select from the NEW 'auth' slice
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
 
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // 🔹 Hydrate Redux from sessionStorage on refresh
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user');
-    const storedToken = sessionStorage.getItem('token');
+    const isImpersonating = sessionStorage.getItem("isImpersonating") === "true";
 
-    // Only hydrate if we aren't already logged in
-    if (!isAuthenticated && storedUser && storedToken) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        // Restore the user to Redux
-        dispatch(setUser(parsedUser)); 
-      } catch (err) {
-        console.error("Failed to parse stored user", err);
+    const storedUser = sessionStorage.getItem("user");
+    const storedToken = sessionStorage.getItem("token");
+
+    const impersonationUser = sessionStorage.getItem("impersonation_user");
+    const impersonationToken = sessionStorage.getItem("impersonation_token");
+
+    try {
+      // SUPER ADMIN VIEW
+      if (isImpersonating && impersonationUser && impersonationToken) {
+        const parsedUser = JSON.parse(impersonationUser);
+
+        dispatch(
+          setUser({
+            ...parsedUser,
+            type: "SUPER_ADMIN_VIEW",
+          })
+        );
       }
-    }
-    
-    setIsHydrated(true);
-  }, [dispatch, isAuthenticated]);
 
-  // Wait until hydration finishes
+      // NORMAL PRACTICE LOGIN
+      else if (storedUser && storedToken) {
+        const parsedUser = JSON.parse(storedUser);
+        dispatch(setUser(parsedUser));
+      }
+    } catch (err) {
+      console.error("Failed to parse stored user", err);
+    }
+
+    setIsHydrated(true);
+  }, [dispatch]);
+
+  // wait for hydration
   if (!isHydrated) return null;
 
-  // Auth guard
+  // block if still unauthenticated
   if (!isAuthenticated || !user) {
     return <Navigate to="/practice/signin" replace state={{ from: location }} />;
   }
 
-  // NOTE: I removed the 'role' check because the new User type 
-  // currently doesn't have a 'role' field. 
-  // Since we query 'practice_signin' table, the user is implicitly a practice.
-  
-  return <>{children}</>;
+  // allow practice admin or super admin view
+  if (user.type === "PRACTICE_ADMIN" || user.type === "SUPER_ADMIN_VIEW") {
+    return <>{children}</>;
+  }
+
+  return <Navigate to="/practice/signin" replace />;
 }
