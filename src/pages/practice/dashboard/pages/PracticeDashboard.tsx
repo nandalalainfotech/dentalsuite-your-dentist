@@ -53,6 +53,7 @@ export default function PracticeDashboard() {
 
   // Determine correct practice id
   const practiceId = authUser?.practiceId || authUser?.id || "";
+  const permissionSubjectId = authUser?.id || "";
 
   // 2. Use new Dashboard Hook for Profile Data
   const { profile, loading: profileLoading } = useDashboard(practiceId);
@@ -110,7 +111,7 @@ export default function PracticeDashboard() {
 
             {/* NAVIGATION LINKS */}
             <PracticeSidebar
-              practiceId={practiceId ?? profile?.id ?? ""}
+              permissionSubjectId={permissionSubjectId}
               isAdminView={isAdminView}
               onLogout={() => setShowLogoutModal(true)}
             />

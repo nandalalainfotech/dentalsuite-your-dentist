@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { localClient } from '../../api/apollo/localClient';
 import {
     GET_ACCOUNTS_BY_PRACTICE_QUERY,
@@ -6,6 +7,7 @@ import {
     INVITE_ACCOUNT_MUTATION
 } from '../../pages/practice/useraccount/graphql/PracticeUserAccount.query';
 import type { GraphQLAccount, UpdateUserData, InviteUserData } from './PracticeUserAccount.types';
+const API_BASE_URL = "http://localhost:3000/auth";
 
 // Service functions
 export const PracticeUserAccountService = {
@@ -35,11 +37,8 @@ export const PracticeUserAccountService = {
                 mutation: UPDATE_ACCOUNT_MUTATION,
                 variables: {
                     id: data.id,
-                    type: data.access_level, // Map access_level to type
-                    status: data.user_access ? 'ACTIVE' : 'INACTIVE', // Map user_access to status
-                    first_name: data.first_name,
-                    last_name: data.last_name,
-                    mobile: data.mobile,
+                    type: data.access_level,
+                    status: data.user_access ? 'ACTIVE' : 'INACTIVE',
                 },
             });
             return (response.data as any).update_accounts_by_pk;
@@ -62,44 +61,35 @@ export const PracticeUserAccountService = {
 
     async inviteUser(data: InviteUserData): Promise<any> {
 
-        console.log("data================>", data);
-
         try {
-            // Validate password is provided
             if (!data.password) {
                 throw new Error("Password is required");
             }
 
-            console.log("Invite user data:", {
+            const practiceData = {
                 email: data.email,
-                password: "***", // Don't log actual password in production
-                hasPassword: !!data.password,
+                password: data.password,
                 practice_id: data.practice_id,
                 type: data.type || 'Dashboard and Sidebar',
                 status: data.status || 'ACTIVE',
-                first_name: data.first_name,
-                last_name: data.last_name,
-            });
+                first_name: data.first_name || '',
+                last_name: data.last_name || '',
+                mobile: data.mobile || '',
+            };
 
-            const response = await localClient.mutate({
-                mutation: INVITE_ACCOUNT_MUTATION,
-                variables: {
-                    email: data.email,
-                    password: data.password,
-                    practice_id: data.practice_id,
-                    type: data.type || 'Dashboard and Sidebar',
-                    status: data.status || 'ACTIVE',
-                    first_name: data.first_name || '',
-                    last_name: data.last_name || '',
-                    mobile: data.mobile || '',
-                },
-            });
+            const response = await axios.post(
+                `${API_BASE_URL}/register`, practiceData
+            );
 
-            console.log("Invite response====================>", response.data);
-            return (response.data as any).insert_accounts_one;
+            return response.data;
+
         } catch (error: any) {
             console.error("Full invite user error:", error);
-            throw new Error(error.message || "Failed to invite user");
+            throw new Error(
+                error?.response?.data?.message ||
+                error.message ||
+                "Failed to invite user"
+            );
         }
     }
 };

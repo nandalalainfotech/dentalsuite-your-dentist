@@ -25,7 +25,6 @@ export const usePermissions = () => {
     const loadPracticePermissions = useCallback(
         (userId: string) => {
             if (userId) {
-                console.log("Dispatching fetchPracticePermissions for userId:", userId);
                 dispatch(fetchPracticePermissions(userId));
             }
         },
@@ -49,7 +48,6 @@ export const usePermissions = () => {
     // Toggle single permission
     const toggleModulePermission = useCallback(
         (moduleKey: string, actionKey: string) => {
-            console.log("Toggling permission:", moduleKey, actionKey);
             dispatch(togglePermission({ moduleKey, actionKey }));
         },
         [dispatch]
@@ -86,9 +84,9 @@ export const usePermissions = () => {
 };
 
 export const usePracticePermissions = (practiceId?: string) => {
-    console.log("practiceId========in the hooks file=============>", practiceId);
     const dispatch = useAppDispatch();
-    const authPermissionId = useAppSelector((state: RootState) => state.auth.user?.id);
+    const authUser = useAppSelector((state: RootState) => state.auth.user);
+    const authPermissionId = authUser?.id || (authUser as any)?.user?.id;
     const resolvedPracticeId = practiceId || authPermissionId;
     const {
         permissions,

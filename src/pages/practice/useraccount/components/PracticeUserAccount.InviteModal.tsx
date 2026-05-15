@@ -252,6 +252,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
             });
 
             return true;
+
         } catch (permError) {
             console.error("Permission setup error:", permError);
             throw new Error(`Failed to setup user permissions`);
@@ -280,21 +281,19 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                 email: formData.email,
                 password: formData.password,
                 mobile: formData.mobile,
-                type: 'Custom',
+                type: 'SUB_PRACTICE_ADMIN',
                 status: 'ACTIVE'
             };
 
             const result = await inviteUser(inviteData);
 
-            const userId = (result as any)?.payload?.id ?? (result as any)?.id;
+            const userId = (result as any).payload?.id;
 
             if (!userId) {
                 throw new Error("Failed to get user ID after invitation");
             }
 
-            if (userId) {
-                await setupUserPermissions(userId);
-            }
+            await setupUserPermissions(userId);
 
             setSuccess('User invited successfully!');
             setTimeout(() => {
@@ -367,9 +366,9 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
 
                 {/* Toast Notifications */}
                 {(generalError || success) && (
-                    <div className="mx-6 mt-4">
+                    <div className="fixed top-4 right-4 z-50">
                         {generalError && (
-                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 shadow-lg">
                                 <div className="p-1 bg-red-200/50 rounded-full shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -380,7 +379,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, prac
                             </div>
                         )}
                         {success && (
-                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl flex items-center gap-3 shadow-lg">
                                 <div className="p-1 bg-green-200/50 rounded-full shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

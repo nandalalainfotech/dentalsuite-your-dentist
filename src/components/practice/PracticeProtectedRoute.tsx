@@ -63,8 +63,12 @@ export default function PracticeProtectedRoute({
     return <Navigate to="/practice/signin" replace state={{ from: location }} />;
   }
 
-  // allow practice admin or super admin view
-  if (user.type === "PRACTICE_ADMIN" || user.type === "SUPER_ADMIN_VIEW") {
+  // allow practice dashboard users through; page-level permission checks handle module access
+  if (
+    user.type === "PRACTICE_ADMIN" ||
+    user.type === "SUPER_ADMIN_VIEW" ||
+    user.type === "SUB_PRACTICE_ADMIN"
+  ) {
     return <>{children}</>;
   }
 

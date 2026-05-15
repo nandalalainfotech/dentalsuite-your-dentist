@@ -11,11 +11,11 @@ import {
   INSERT_BREAK_MUTATION,
   UPDATE_BREAK_MUTATION
 } from "../../pages/practice/dashboard/graphql/onlinebookings.query";
-import type { 
-  OnlineBooking, 
-  Practitioner, 
-  PracticeService, 
-  PracticeOpeningHours, 
+import type {
+  OnlineBooking,
+  Practitioner,
+  PracticeService,
+  PracticeOpeningHours,
   PractitionerBreak
 } from "./online_bookings.type";
 
@@ -24,7 +24,7 @@ const getAppointments = async (practiceId: string): Promise<OnlineBooking[]> => 
   const response = await localClient.query({
     query: GET_APPOINTMENTS_QUERY,
     variables: { practice_id: practiceId },
-    fetchPolicy: "network-only",
+    fetchPolicy: "network-only", // Force network request, skip cache
   });
 
   const data = response.data as any;
@@ -32,10 +32,15 @@ const getAppointments = async (practiceId: string): Promise<OnlineBooking[]> => 
 };
 
 // --- 2. UPDATE STATUS ---
-const updateStatus = async (id: string, status: string): Promise<OnlineBooking> => {
+const updateStatus = async (id: string, status: string, disputeReason?: string,): Promise<OnlineBooking> => {
   const response = await localClient.mutate({
     mutation: UPDATE_STATUS_MUTATION,
-    variables: { id, status },
+    variables: {
+      id,
+      status,
+      dispute_reason: disputeReason || null,
+      dispute_status: "pending"
+    },
   });
 
   const data = response.data as any;
@@ -73,7 +78,7 @@ const getPractitioners = async (practiceId: string): Promise<Practitioner[]> => 
   return rawMembers.map((m: any) => ({
     id: m.id,
     first_name: m.first_name,
-    last_name:m.last_name,
+    last_name: m.last_name,
     name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Unknown',
     image: m.image && typeof m.image === 'object' ? m.image.url : m.image,
     role: m.role
@@ -85,7 +90,7 @@ const getPracticeServices = async (practiceId: string): Promise<PracticeService[
   const response = await localClient.query({
     query: GET_SERVICES,
     variables: { practiceId },
-    fetchPolicy: "cache-first", 
+    fetchPolicy: "cache-first",
   });
 
   return (response.data as any).practice_services || [];
@@ -136,7 +141,7 @@ const deleteBreak = async (id: string): Promise<string> => {
     mutation: DELETE_BREAK_MUTATION,
     variables: { id },
   });
-  return id; 
+  return id;
 };
 
 const appointmentsService = {

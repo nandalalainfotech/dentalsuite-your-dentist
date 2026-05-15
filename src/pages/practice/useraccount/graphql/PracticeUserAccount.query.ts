@@ -8,14 +8,7 @@ export const GET_ACCOUNTS_BY_PRACTICE_QUERY = gql`
             email
             type
             status
-            practice_name
-            abn_number
-            practice_type
-            practice_phone
             address
-            city
-            state
-            postcode
             first_name
             last_name
             mobile
@@ -94,9 +87,6 @@ export const UPDATE_ACCOUNT_MUTATION = gql`
         update_accounts_by_pk(pk_columns: {id: $id}, _set: {
             type: $type,
             status: $status,
-            first_name: $first_name,
-            last_name: $last_name,
-            mobile: $mobile
         }) {
             id
             email
@@ -110,17 +100,21 @@ export const UPDATE_ACCOUNT_MUTATION = gql`
     }
 `;
 
-// Mutation to delete an account
 export const DELETE_ACCOUNT_MUTATION = gql`
     mutation DeleteAccount($id: uuid!) {
+
+        delete_practice_permissions(
+            where: {
+                practice_id: {
+                    _eq: $id
+                }
+            }
+        ) {
+            affected_rows
+        }
+
         delete_accounts_by_pk(id: $id) {
             id
         }
     }
 `;
-
-// Keep old queries for backward compatibility (you can remove if not needed)
-export const GET_PRACTICE_USERS_QUERY = GET_ACCOUNTS_BY_PRACTICE_QUERY;
-export const UPDATE_USER_ACCESS_MUTATION = UPDATE_ACCOUNT_MUTATION;
-export const DELETE_USER_MUTATION = DELETE_ACCOUNT_MUTATION;
-export const INVITE_USER_MUTATION = INVITE_ACCOUNT_MUTATION;

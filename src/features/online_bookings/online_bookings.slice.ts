@@ -84,9 +84,9 @@ export const fetchOpeningHours = createAsyncThunk(
 
 export const updateBookingStatus = createAsyncThunk(
   "appointments/updateStatus",
-  async ({ id, status }: { id: string; status: string }, thunkAPI) => {
+  async ({ id, status, disputeReason }: { id: string; status: string; disputeReason?: string }, thunkAPI) => {
     try {
-      const updatedData = await appointmentsService.updateStatus(id, status);
+      const updatedData = await appointmentsService.updateStatus(id, status, disputeReason);
       return updatedData;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message || "Failed to update status");

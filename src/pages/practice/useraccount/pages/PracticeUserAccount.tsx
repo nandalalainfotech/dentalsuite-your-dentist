@@ -121,7 +121,7 @@ const PracticeUserAccount = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             />
                         </div>
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Access Level
                             </label>
@@ -135,7 +135,7 @@ const PracticeUserAccount = () => {
                                 <option>Admin</option>
                                 <option>View Only</option>
                             </select>
-                        </div>
+                        </div> */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 User Access
@@ -183,9 +183,9 @@ const PracticeUserAccount = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Name
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Access Level
-                                    </th>
+                                    </th> */}
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         User Access
                                     </th>
@@ -215,9 +215,9 @@ const PracticeUserAccount = () => {
                                                     {teamUser.name}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            {/* <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">{teamUser.access_level}</div>
-                                            </td>
+                                            </td> */}
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${teamUser.user_access
                                                     ? 'bg-green-100 text-green-800'

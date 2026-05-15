@@ -1,13 +1,15 @@
-// --- Types ---
 export type ValidStatus =
   | 'confirmed'
   | 'pending'
   | 'completed'
+  | 'dispute'
   | 'dismissed'
   | 'patient_cancelled'
   | 'cancelled';
 
-export type TabType = 'all' | 'pending' | 'upcoming' | 'completed' | 'cancelled';
+// export type TabType = 'all' | 'dispute' | 'upcoming' | 'completed' | 'cancelled';
+
+export type TabType = 'all' | 'upcoming' | 'completed' | 'cancelled';
 
 export interface EnrichedAppointment {
   id: string;
@@ -31,7 +33,7 @@ export interface EnrichedAppointment {
   is_rescheduled: boolean;
 
   status: ValidStatus;
-
+  dispute_status: string;
   mobile: string;
   dob: string;
   patient_notes: string;
@@ -49,6 +51,7 @@ export const STATUS_LABELS: Record<ValidStatus, string> = {
   confirmed: 'Confirmed',
   pending: 'Pending',
   completed: 'Completed',
+  dispute: 'Dispute',
   dismissed: 'Dismissed',
   patient_cancelled: 'Pt.Cancelled',
   cancelled: 'Cancelled',
@@ -58,6 +61,7 @@ export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot:
   confirmed: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
   completed: { bg: 'bg-blue-100', text: 'text-blue-600', dot: 'bg-blue-400' },
+  dispute: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
   dismissed: { bg: 'bg-gray-100', text: 'text-gray-500', dot: 'bg-gray-400' },
   patient_cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
   cancelled: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
@@ -65,10 +69,10 @@ export const STATUS_CONFIG: Record<ValidStatus, { bg: string; text: string; dot:
 
 export const TAB_CONFIG: Record<TabType, { label: string; activeColor: string; dotColor: string }> = {
   all: { label: 'All', activeColor: 'bg-gray-900 text-white', dotColor: 'bg-gray-500' },
-  pending: { label: 'Pending', activeColor: 'bg-amber-500 text-white', dotColor: 'bg-amber-500' },
   upcoming: { label: 'Upcoming', activeColor: 'bg-emerald-500 text-white', dotColor: 'bg-emerald-500' },
   completed: { label: 'Completed', activeColor: 'bg-blue-500 text-white', dotColor: 'bg-blue-500' },
   cancelled: { label: 'Cancelled', activeColor: 'bg-red-500 text-white', dotColor: 'bg-red-500' },
+  // dispute: { label: 'dispute', activeColor: 'bg-amber-500 text-white', dotColor: 'bg-amber-500' },
 };
 
 // --- Helpers ---
@@ -164,32 +168,55 @@ export const getDay = (dateStr: string | Date): number => new Date(dateStr).getD
 export const getMonth = (dateStr: string | Date): string => new Date(dateStr).toLocaleString('en-US', { month: 'short' });
 
 export const isTerminalState = (status: ValidStatus): boolean => {
-  return ['completed', 'patient_cancelled', 'cancelled', 'dismissed'].includes(status);
+  return ['completed', 'dispute', 'patient_cancelled', 'cancelled', 'dismissed'].includes(status);
 }
 export const isCancelledStatus = (status: ValidStatus): boolean => {
   return ['patient_cancelled', 'cancelled', 'dismissed'].includes(status);
 }
 
+export const shouldAutoComplete = (appointment: EnrichedAppointment): boolean => {
+  if (appointment.status !== 'confirmed') return false;
+
+  const appointmentDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+  const now = new Date();
+
+  return appointmentDateTime < now;
+};
+
+
+export const getAvailableActions = (status: ValidStatus, isNewPatient?: boolean) => {
+  switch (status) {
+    case 'confirmed':
+      const actions = ['complete', 'reschedule', 'cancel'];
+      if (isNewPatient) actions.push('dispute');
+      return actions;
+    case 'completed':
+      return ['dispute'];
+    default:
+      return [];
+  }
+};
+
 // --- Mapper ---
 export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
+
   const mapStatus = (apiStatus: string): ValidStatus => {
+    const normalized = apiStatus?.toLowerCase() || 'confirmed';
 
-    const normalized = apiStatus?.toLowerCase() || 'pending';
-
-    // Direct mapping or fallback
     const statusMap: Record<string, ValidStatus> = {
-      'pending': 'pending',
       'confirmed': 'confirmed',
       'completed': 'completed',
+      'dispute': 'dispute',
+      'under_review': 'dispute',
       'dismissed': 'dismissed',
       'patient_cancelled': 'patient_cancelled',
       'cancelled': 'cancelled'
     };
 
-    return statusMap[normalized] || 'pending';
+    const mappedStatus = statusMap[normalized] || 'confirmed';
+
+    return mappedStatus;
   };
-
-
 
   const time = apt.appointment_time?.substring(0, 5) || '00:00';
   const bookedAt = new Date(`${apt.appointment_date}T${time}`);
@@ -209,7 +236,7 @@ export const mapAppointmentToEnriched = (apt: any): EnrichedAppointment => {
     dentist_last_name: lName,
     dentist_image: apt.practitioner?.image || null,
     dentist_role: apt.practitioner?.role || 'General Practitioner',
-
+    dispute_status: apt.practitioner?.dispute_status || '',
     appointment_date: apt.appointment_date,
     appointment_time: time,
     bookedAt,

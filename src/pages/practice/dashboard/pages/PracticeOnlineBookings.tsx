@@ -1,37 +1,40 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import {
-  Calendar, CalendarCheck, CheckCircle, ChevronDown, Inbox, List,
-  MoreVertical, RefreshCw, Search, Sliders, X, XCircle, Clock as ClockIcon,
-  User, Loader2,
-  Clock
+  Calendar, CalendarCheck, CheckCircle, ChevronDown,
+  Clock as ClockIcon,
+  Inbox, List,
+  Loader2,
+  MoreVertical, RefreshCw, Search, Sliders,
+  User,
+  X, XCircle
 } from 'lucide-react';
-import { useState, useMemo, useEffect, useCallback } from 'react';
-
-// Redux & Hooks
-import { useAppDispatch, useAppSelector } from '../../../../store';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppointments } from '../../../../features/online_bookings/online_bookings.hooks';
-// --- ADDED: fetchOpeningHours ---
-import { fetchPractitioners, fetchPracticeServices, fetchOpeningHours } from '../../../../features/online_bookings/online_bookings.slice';
+import { fetchAppointments, fetchOpeningHours, fetchPracticeServices, fetchPractitioners } from '../../../../features/online_bookings/online_bookings.slice';
+import { usePracticePermissions } from '../../../../features/permissions/Permissions.hooks';
+import { useAppDispatch, useAppSelector } from '../../../../store';
 
-// Utils
 import {
-  type TabType,
   type EnrichedAppointment,
-  mapAppointmentToEnriched,
+  formatRelativeTime,
+  formatRelativeUpdatedAt,
+  formatShortDate,
+  formatTime,
+  getDay, getMonth,
+  getWeekday,
   isCancelledStatus,
   ITEMS_PER_PAGE,
+  mapAppointmentToEnriched,
+  shouldAutoComplete,
   TAB_CONFIG,
-  isTerminalState,
-  getWeekday, getDay, getMonth,
-  formatTime, formatShortDate,
-  formatRelativeUpdatedAt, formatRelativeTime
+  type TabType
 } from '../../../../features/online_bookings/online_bookings.utils';
 
 // Components
+import DisputeModal from '../../Invoice/components/DisputeModal';
 import { DesktopDropdown, MobileBottomSheet } from '../components/OnlineBookingsActions';
-import { RescheduleModal } from '../components/OnlineBookingsRescheduleModal';
-import { TableHeader, StatusBadge, PatientTags } from '../components/OnlineBookingsUI';
 import { ExpandedDetailsCard, ToastNotification } from '../components/OnlineBookingsComponent';
+import { RescheduleModal } from '../components/OnlineBookingsRescheduleModal';
+import { PatientTags, StatusBadge, TableHeader } from '../components/OnlineBookingsUI';
 
 interface FilterState {
   search: string;
@@ -47,6 +50,11 @@ export default function PracticeOnlineBookings() {
 
   // 1. Auth & Redux
   const { user } = useAppSelector((state: any) => state.auth);
+
+  const isSuperAdminView =
+    user?.type === "SUPER_ADMIN_VIEW" ||
+    user?.user?.type === "SUPER_ADMIN_VIEW";
+
   // --- ADDED: openingHours from Redux state ---
   const {
     practitioners: directoryPractitioners,
@@ -54,7 +62,7 @@ export default function PracticeOnlineBookings() {
     openingHours = [] // Default to empty array if not loaded yet
   } = useAppSelector((state) => state.appointments);
 
-  const practiceId = user?.practice_id || user?.id;
+  const practiceId = user?.practiceId || user?.practice_id || user?.id;
 
   // 2. Fetch Data via Hook
   const {
@@ -62,14 +70,19 @@ export default function PracticeOnlineBookings() {
     loading: isLoading,
     actionLoading,
     confirmBooking,
+    completeBooking,
+    disputeBooking,
     cancelBooking,
     onReschedule,
     refresh
   } = useAppointments(practiceId);
 
-  // Map to UI Model
+  // Add this right after your appointments mapping to see what dispute statuses exist
   const appointments: EnrichedAppointment[] = useMemo(() => {
-    return rawBookings.map(mapAppointmentToEnriched);
+    const mapped = rawBookings.map(mapAppointmentToEnriched);
+    const disputeAppointments = mapped.filter(m => m.status === 'dispute'
+    );
+    return mapped;
   }, [rawBookings]);
 
   // --- Local UI State ---
@@ -84,6 +97,7 @@ export default function PracticeOnlineBookings() {
   // Reschedule State
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [rescheduleApt, setRescheduleApt] = useState<EnrichedAppointment | null>(null);
+  const [selectedDisputeApt, setSelectedDisputeApt] = useState<EnrichedAppointment | null>(null);
   const [showToast, setShowToast] = useState(false);
 
   // Filters State
@@ -115,26 +129,76 @@ export default function PracticeOnlineBookings() {
 
   useEffect(() => setCurrentPage(1), [activeTab, filters]);
 
+  useEffect(() => {
+    const checkAndAutoComplete = () => {
+      appointments.forEach(async apt => {
+        if (shouldAutoComplete(apt)) {
+          if (apt.status === 'confirmed') {
+            await completeBooking(apt.id);
+            postMessage(`Appointment with ${apt.patient_name} auto-completed`);
+            setShowToast(true);
+          }
+        }
+      });
+    };
+
+    // Check immediately
+    checkAndAutoComplete();
+
+    // Set up interval to check every minute
+    const interval = setInterval(checkAndAutoComplete, 60000);
+
+    return () => clearInterval(interval);
+  }, [appointments, completeBooking]);
+
+
+  const { user: authPractice, isAuthenticated } = useAppSelector((state: any) => state.auth);
+  const currentPracticeId = authPractice?.practiceId || authPractice?.id;
+  const permissionSubjectId = authPractice?.id;
+  const { canEdit } = usePracticePermissions(permissionSubjectId);
+  const canEditOnlineBookings = canEdit('online_bookings');
+
+  useEffect(() => {
+    if (isAuthenticated && currentPracticeId) {
+      dispatch(fetchAppointments(currentPracticeId));
+    }
+  }, [dispatch, isAuthenticated, currentPracticeId]);
+
+
   // --- Handlers ---
   const handleStatusUpdate = useCallback((id: string, newStatus: string) => {
+
+    if (isSuperAdminView) return;
+
     if (newStatus === 'confirmed') {
       confirmBooking(id);
+      setShowToast(true);
+    } else if (newStatus === 'completed') {
+      completeBooking(id);
       setShowToast(true);
     } else if (['cancelled', 'dismissed', 'reception_cancelled', 'patient_cancelled'].includes(newStatus)) {
       cancelBooking(id);
       setShowToast(true);
     }
+
     setOpenMenuId(null);
     setExpandedRowId(null);
-  }, [confirmBooking, cancelBooking]);
+
+  }, [confirmBooking, completeBooking, disputeBooking, cancelBooking, isSuperAdminView]);
 
   const handleRescheduleClick = useCallback((apt: EnrichedAppointment) => {
+
+    if (isSuperAdminView) return;
+
     setRescheduleApt(apt);
     setShowRescheduleModal(true);
     setOpenMenuId(null);
-  }, []);
+
+  }, [isSuperAdminView]);
 
   const handleRescheduleConfirm = async (newDate: string, newTime: string, newPractitionerId: string) => {
+
+    if (isSuperAdminView) return;
     if (!rescheduleApt) return;
 
     await onReschedule(
@@ -147,6 +211,26 @@ export default function PracticeOnlineBookings() {
     setRescheduleApt(null);
     setShowToast(true);
   };
+
+  const handleDisputeClick = useCallback((apt: EnrichedAppointment) => {
+    if (isSuperAdminView) return;
+
+    setSelectedDisputeApt(apt);
+    setOpenMenuId(null);
+    setMenuAnchor(null);
+  }, [isSuperAdminView]);
+
+  const handleDisputeSubmit = useCallback(async (reason: string) => {
+    if (!selectedDisputeApt || isSuperAdminView) return;
+
+    try {
+      await disputeBooking(selectedDisputeApt.id, reason);
+      setSelectedDisputeApt(null);
+      setShowToast(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [disputeBooking, isSuperAdminView, selectedDisputeApt]);
 
   // Toggle Menu Logic
   const handleOpenMenu = useCallback((e: React.MouseEvent<HTMLButtonElement>, aptId: string) => {
@@ -173,10 +257,12 @@ export default function PracticeOnlineBookings() {
   // --- Computed Data ---
   const stats = useMemo(() => ({
     all: appointments.length,
-    pending: appointments.filter(a => a.status === 'pending').length,
+    dispute: appointments.filter(a => a.status === 'dispute'
+    ).length,
     upcoming: appointments.filter(a => {
       const aptDate = new Date(a.appointment_date);
-      return aptDate > new Date() && a.status === 'confirmed';
+      const aptDateTime = new Date(`${a.appointment_date}T${a.appointment_time}`);
+      return aptDateTime > new Date() && a.status === 'confirmed';
     }).length,
     completed: appointments.filter(a => a.status === 'completed').length,
     cancelled: appointments.filter(a => isCancelledStatus(a.status)).length,
@@ -188,8 +274,12 @@ export default function PracticeOnlineBookings() {
     return appointments.filter(apt => {
       const aptDate = new Date(apt.appointment_date);
 
-      // Tab
-      if (activeTab === 'pending' && apt.status !== 'pending') return false;
+      // Tab filtering - FIX THE DISPUTE CONDITION
+      // if (activeTab === 'dispute') {
+      //   // Check for any dispute-related status
+      //   const isDisputed = apt.status === 'dispute';
+      //   if (!isDisputed) return false;
+      // }
       if (activeTab === 'upcoming' && (aptDate <= now || apt.status !== 'confirmed')) return false;
       if (activeTab === 'completed' && apt.status !== 'completed') return false;
       if (activeTab === 'cancelled' && !isCancelledStatus(apt.status)) return false;
@@ -224,7 +314,7 @@ export default function PracticeOnlineBookings() {
   const getTabIcon = (key: TabType) => {
     switch (key) {
       case 'all': return <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
-      case 'pending': return <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
+      // case 'dispute': return <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
       case 'upcoming': return <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
       case 'completed': return <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
       case 'cancelled': return <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />;
@@ -481,14 +571,27 @@ export default function PracticeOnlineBookings() {
                           </div>
                           <div className="flex-1 text-sm text-gray-600">{formatRelativeTime(apt.created_at)}</div>
                           <div className="w-16 flex justify-end items-center gap-1 relative">
-                            {!isTerminalState(apt.status) && (
-                              <button
-                                onClick={(e) => handleOpenMenu(e, apt.id)}
-                                className={`p-1.5 rounded-lg ${openMenuId === apt.id ? "bg-gray-200 text-gray-700" : "text-gray-400 hover:bg-gray-100"}`}
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-                            )}
+                            {/* {['pending', 'confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
+                            {/* {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
+                            {['confirmed', 'completed'].includes(apt.status) &&
+                              apt.isNewPatient === true &&
+                              !isSuperAdminView && (
+                                <button
+                                  onClick={(e) => {
+                                    if (!canEditOnlineBookings) return;
+                                    handleOpenMenu(e, apt.id);
+                                  }}
+                                  disabled={!canEditOnlineBookings}
+                                  className={`p-1.5 rounded-lg ${!canEditOnlineBookings
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : openMenuId === apt.id
+                                      ? "bg-gray-200 text-gray-700"
+                                      : "text-gray-400 hover:bg-gray-100"
+                                    }`}
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                              )}
 
                             {openMenuId === apt.id && !isMobile && menuAnchor && (
                               <DesktopDropdown
@@ -496,10 +599,23 @@ export default function PracticeOnlineBookings() {
                                 anchorEl={menuAnchor}
                                 onUpdate={handleStatusUpdate}
                                 onReschedule={handleRescheduleClick}
+                                onDispute={handleDisputeClick}
                                 onClose={handleCloseMenu}
                               />
                             )}
-                            <button onClick={(e) => { e.stopPropagation(); toggleRowExpansion(apt.id); }} className={`p-1.5 transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!canEditOnlineBookings) return;
+                                toggleRowExpansion(apt.id);
+                              }}
+                              disabled={!canEditOnlineBookings}
+                              className={`p-1.5 transition-transform 
+                                ${isExpanded ? "rotate-180" : ""} 
+                                ${!canEditOnlineBookings ? "opacity-40 cursor-not-allowed" : ""}
+                              `}
+                            >
                               <ChevronDown className="w-5 h-5" />
                             </button>
                           </div>
@@ -515,15 +631,46 @@ export default function PracticeOnlineBookings() {
                         >
                           <div className="flex items-center justify-between mb-2">
                             <StatusBadge status={apt.status} size="small" is_rescheduled={apt.is_rescheduled} />
+
                             <div className="flex items-center gap-1">
-                              <PatientTags isNewPatient={apt.isNewPatient} isDependent={apt.isDependent} size="small" />
-                              {!isTerminalState(apt.status) &&
-                                <button onClick={(e) => handleOpenMenu(e, apt.id)}
-                                  className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg">
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-                              }
-                              <button className={`p-1 transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+                              <PatientTags
+                                isNewPatient={apt.isNewPatient}
+                                isDependent={apt.isDependent}
+                                size="small"
+                              />
+
+                              {/* {['pending', 'confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
+                              {/* {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
+                              {['confirmed', 'completed'].includes(apt.status) &&
+                                apt.isNewPatient === true &&
+                                !isSuperAdminView && (
+                                  <button
+                                    onClick={(e) => {
+                                      if (!canEditOnlineBookings) return;
+                                      handleOpenMenu(e, apt.id);
+                                    }}
+                                    disabled={!canEditOnlineBookings}
+                                    className={`p-1.5 rounded-lg ${!canEditOnlineBookings
+                                      ? "text-gray-300 cursor-not-allowed"
+                                      : "text-gray-400 hover:bg-gray-100"
+                                      }`}
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+                                )}
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!canEditOnlineBookings) return;
+                                  toggleRowExpansion(apt.id);
+                                }}
+                                disabled={!canEditOnlineBookings}
+                                className={`p-1 transition-transform 
+                                  ${isExpanded ? "rotate-180" : ""} 
+                                  ${!canEditOnlineBookings ? "opacity-40 cursor-not-allowed" : ""}
+                                `}
+                              >
                                 <ChevronDown className="w-4 h-4 text-gray-400" />
                               </button>
                             </div>
@@ -576,8 +723,14 @@ export default function PracticeOnlineBookings() {
         </div>
       </div>
 
-      {openMenuId && openMenuApt && isMobile &&
-        <MobileBottomSheet apt={openMenuApt} onUpdate={handleStatusUpdate} onReschedule={handleRescheduleClick} onClose={handleCloseMenu} />
+      {openMenuId && openMenuApt && isMobile && !isSuperAdminView &&
+        <MobileBottomSheet
+          apt={openMenuApt}
+          onUpdate={handleStatusUpdate}
+          onReschedule={handleRescheduleClick}
+          onDispute={handleDisputeClick}
+          onClose={handleCloseMenu}
+        />
       }
 
       {showRescheduleModal && rescheduleApt &&
@@ -595,6 +748,14 @@ export default function PracticeOnlineBookings() {
           existingBookings={appointments}
         />
       }
+
+      {selectedDisputeApt && (
+        <DisputeModal
+          appointment={selectedDisputeApt}
+          onClose={() => setSelectedDisputeApt(null)}
+          onSubmit={handleDisputeSubmit}
+        />
+      )}
 
       <ToastNotification
         message={actionLoading ? "Updating..." : "Appointment Updated!"}

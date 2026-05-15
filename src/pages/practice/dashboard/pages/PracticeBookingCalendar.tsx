@@ -3,16 +3,17 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
     ChevronLeft, ChevronRight, X, User, Trash2, Calendar as CalendarIcon,
-    Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle,
+    Check, ChevronDown, Activity, Clock, RefreshCw, AlertCircle, Archive,
 } from 'lucide-react';
-import { formatTime, mapAppointmentToEnriched } from '../../../../features/online_bookings/online_bookings.utils';
+import { formatTime, mapAppointmentToEnriched, type EnrichedAppointment } from '../../../../features/online_bookings/online_bookings.utils';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { useAppointments } from '../../../../features/online_bookings/online_bookings.hooks';
-import { createBreak, editBreak, fetchBreaks, fetchOpeningHours, fetchPracticeServices, fetchPractitioners, removeBreak, updateBookingStatus } from '../../../../features/online_bookings/online_bookings.slice';
+import { createBreak, editBreak, fetchBreaks, fetchOpeningHours, fetchPracticeServices, fetchPractitioners, removeBreak } from '../../../../features/online_bookings/online_bookings.slice';
 import { RescheduleModal } from '../components/OnlineBookingsRescheduleModal';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import toast from 'react-hot-toast';
+import DisputeModal from '../../Invoice/components/DisputeModal';
 
 // --- Types ---
 interface DragItem {
@@ -60,7 +61,7 @@ interface Appointment {
     serviceId: string;
     startTime: Date;
     endTime: Date;
-    status: 'confirmed' | 'pending' | 'completed' | 'cancelled' | 'dismissed' | 'patient_cancelled';
+    status: 'confirmed' | 'pending' | 'completed' | 'dispute' | 'cancelled' | 'dismissed' | 'patient_cancelled';
     is_rescheduled: boolean;
     notes?: string;
     type: 'appointment';
@@ -69,6 +70,7 @@ interface Appointment {
         practitionerId: string;
     };
     patientDetails: Patient;
+    rawBooking?: any;
 }
 
 interface CalendarEvent {
@@ -220,6 +222,7 @@ const StatusBadge: React.FC<{
         'confirmed': 'bg-green-100 text-green-700 border-green-200',
         'pending': 'bg-yellow-100 text-yellow-700 border-yellow-200',
         'completed': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        'dispute': 'bg-orange-100 text-orange-700 border-orange-200',
         'cancelled': 'bg-red-100 text-red-700 border-red-200',
         'dismissed': 'bg-gray-100 text-gray-700 border-gray-200',
         'patient_cancelled': 'bg-red-100 text-red-700 border-red-200',
@@ -229,6 +232,7 @@ const StatusBadge: React.FC<{
         'confirmed': 'Confirmed',
         'pending': 'Pending',
         'completed': 'Completed',
+        'dispute': 'Dispute',
         'cancelled': 'Cancelled',
         'dismissed': 'Dismissed',
         'patient_cancelled': 'Pt. Cancelled',
@@ -238,6 +242,7 @@ const StatusBadge: React.FC<{
         'confirmed': <Check size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'pending': <Activity size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'completed': <Check size={size === 'sm' ? 10 : 12} className="mr-1" />,
+        'dispute': <AlertCircle size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'cancelled': <X size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'dismissed': <X size={size === 'sm' ? 10 : 12} className="mr-1" />,
         'patient_cancelled': <X size={size === 'sm' ? 10 : 12} className="mr-1" />,
@@ -670,12 +675,15 @@ interface AppointmentDetailsModalProps {
     appointment: Appointment | null;
     practitioners: Practitioner[];
     services: Service[];
-    onUpdateStatus: (id: string, status: Appointment['status']) => void;
+    onConfirm: (appointment: Appointment) => void;
+    onComplete: (appointment: Appointment) => void;
+    onCancel: (appointment: Appointment) => void;
+    onDispute: (appointment: Appointment) => void;
     onOpenReschedule: (appointment: Appointment) => void;
     isAdminView: boolean;
 }
 
-type DropdownAction = Appointment['status'] | 'reschedule';
+type DropdownAction = 'confirmed' | 'completed' | 'dispute' | 'cancelled' | 'reschedule';
 
 const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     isOpen,
@@ -683,7 +691,10 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     appointment,
     practitioners,
     services,
-    onUpdateStatus,
+    onConfirm,
+    onComplete,
+    onCancel,
+    onDispute,
     onOpenReschedule,
     isAdminView
 }) => {
@@ -709,7 +720,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     const patient = appointment.patientDetails;
     const practitioner = practitioners.find(p => p.id === appointment.practitionerId);
     const service = services.find(s => s.id === appointment.serviceId);
-    const isFinalStatus = ['completed', 'cancelled', 'dismissed', 'patient_cancelled'].includes(appointment.status);
+    const isActionableStatus = ['confirmed', 'completed'].includes(appointment.status);
 
     const handleActionClick = (action: DropdownAction) => {
 
@@ -718,32 +729,37 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
         if (action === 'reschedule') {
             onOpenReschedule(appointment);
             onClose();
+        } else if (action === 'confirmed') {
+            onConfirm(appointment);
+        } else if (action === 'completed') {
+            onComplete(appointment);
+        } else if (action === 'cancelled') {
+            onCancel(appointment);
+        } else if (action === 'dispute') {
+            onDispute(appointment);
+            onClose();
         } else {
-            onUpdateStatus(appointment.id, action as Appointment['status']);
+            return;
         }
 
         setIsStatusDropdownOpen(false);
     };
 
     let availableActions: DropdownAction[] = [];
-    if (appointment.status === 'pending') {
-        availableActions = ['confirmed'];
-        if (!appointment.is_rescheduled) availableActions.push('reschedule');
-        availableActions.push('cancelled');
-    } else if (appointment.status === 'confirmed') {
+    if (appointment.status === 'confirmed') {
         availableActions = ['completed'];
         if (!appointment.is_rescheduled) availableActions.push('reschedule');
         availableActions.push('cancelled');
+    } else if (appointment.status === 'completed') {
+        availableActions = ['dispute'];
     }
 
     const statusConfig: Record<DropdownAction, { bg: string; icon: React.ElementType }> = {
         'reschedule': { bg: 'bg-blue-500', icon: RefreshCw },
         'confirmed': { bg: 'bg-green-500', icon: Check },
-        'pending': { bg: 'bg-amber-500', icon: Clock },
         'completed': { bg: 'bg-emerald-600', icon: Check },
+        'dispute': { bg: 'bg-amber-500', icon: Archive },
         'cancelled': { bg: 'bg-red-500', icon: X },
-        'dismissed': { bg: 'bg-gray-500', icon: X },
-        'patient_cancelled': { bg: 'bg-red-500', icon: X },
     };
 
     const CurrentStatusIcon = statusConfig[appointment.status as DropdownAction]?.icon || Clock;
@@ -805,10 +821,10 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                         <button
                                             onClick={() => {
                                                 if (isAdminView) return;
-                                                if (!isFinalStatus) setIsStatusDropdownOpen(!isStatusDropdownOpen);
+                                                if (isActionableStatus) setIsStatusDropdownOpen(!isStatusDropdownOpen);
                                             }}
-                                            disabled={isFinalStatus}
-                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${isFinalStatus ? 'cursor-default' : 'hover:shadow-md cursor-pointer'}`}
+                                            disabled={!isActionableStatus}
+                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${!isActionableStatus ? 'cursor-default' : 'hover:shadow-md cursor-pointer'}`}
                                             style={{ backgroundColor: `${service?.color || '#3B82F6'}15`, color: service?.color || '#3B82F6' }}
                                         >
                                             <StatusBadge
@@ -816,7 +832,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                 size="sm"
                                                 is_rescheduled={appointment.is_rescheduled}
                                             />
-                                            {!isFinalStatus && (
+                                            {isActionableStatus && (
                                                 <ChevronDown
                                                     size={14}
                                                     className={`transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`}
@@ -845,7 +861,9 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
                                                                     <ActionIcon size={14} className="text-white" />
                                                                 </div>
                                                                 <span className={`text-sm font-medium ${isCurrentStatus ? 'text-gray-400' : 'text-gray-700'}`}>
-                                                                    {action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ')}
+                                                                    {action === 'cancelled'
+                                                                        ? 'Cancel'
+                                                                        : action.charAt(0).toUpperCase() + action.slice(1).replace('_', ' ')}
                                                                 </span>
                                                                 {isCurrentStatus && (
                                                                     <Check size={16} className="ml-auto text-green-500" />
@@ -1341,10 +1359,17 @@ const DroppableTimeSlot: React.FC<{
 const PracticeBookingCalendar = () => {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state: any) => state.auth);
-    const practiceId = user?.practice_id || user?.id;
+    const practiceId = user?.practiceId || user?.practice_id || user?.id;
     const isAdminView = user?.type === "SUPER_ADMIN_VIEW";
 
-    const { bookings, onReschedule } = useAppointments(practiceId);
+    const {
+        bookings,
+        onReschedule,
+        confirmBooking,
+        completeBooking,
+        disputeBooking,
+        cancelBooking
+    } = useAppointments(practiceId);
     const { practitioners: dbPractitioners, services: dbServices, breaks: dbBreaks, openingHours } = useAppSelector((state: any) => state.appointments);
 
     useEffect(() => {
@@ -1372,7 +1397,7 @@ const PracticeBookingCalendar = () => {
             }
         });
         if (min === 24) return { startHour: 8, endHour: 18 };
-        return { startHour: Math.max(0, min), endHour: Math.min(23, max + 1) };
+        return { startHour: Math.max(0, min), endHour: Math.min(23, max - 1) };
     }, [openingHours]);
 
     const timeSlots = useMemo(() => generateTimeSlots(startHour, endHour), [startHour, endHour]);
@@ -1419,6 +1444,7 @@ const PracticeBookingCalendar = () => {
                 is_rescheduled: enriched.is_rescheduled,
                 notes: enriched.patient_notes,
                 type: 'appointment',
+                rawBooking: b,
                 patientDetails: {
                     id: enriched.id,
                     name: enriched.patient_name,
@@ -1486,6 +1512,7 @@ const PracticeBookingCalendar = () => {
     const [editingBreak, setEditingBreak] = useState<Partial<CalendarEvent> | null>(null);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [rescheduleAppointment, setRescheduleAppointment] = useState<Appointment | null>(null);
+    const [selectedDisputeAppointment, setSelectedDisputeAppointment] = useState<Appointment | null>(null);
     const [selectedDayForModal, setSelectedDayForModal] = useState<Date>(new Date());
     const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
@@ -1802,14 +1829,54 @@ const PracticeBookingCalendar = () => {
         }
     };
 
-    const handleUpdateAppointmentStatus = (id: string, status: Appointment['status']) => {
+    const syncAppointmentStatus = useCallback((id: string, status: Appointment['status']) => {
+        setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+        setSelectedAppointment(prev => prev?.id === id ? { ...prev, status } : prev);
+    }, []);
+
+    const handleConfirmAppointment = useCallback(async (appointment: Appointment) => {
         if (isAdminView) return;
 
-        dispatch(updateBookingStatus({ id, status }));
-        setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-        if (selectedAppointment?.id === id)
-            setSelectedAppointment(prev => prev ? { ...prev, status } : null);
-    };
+        try {
+            await confirmBooking(appointment.id);
+            syncAppointmentStatus(appointment.id, 'confirmed');
+            toast.success('Appointment confirmed');
+        } catch (error) {
+            console.error('Failed to confirm appointment:', error);
+            toast.error('Failed to confirm appointment');
+        }
+    }, [confirmBooking, isAdminView, syncAppointmentStatus]);
+
+    const handleCompleteAppointment = useCallback(async (appointment: Appointment) => {
+        if (isAdminView) return;
+
+        try {
+            await completeBooking(appointment.id);
+            syncAppointmentStatus(appointment.id, 'completed');
+            toast.success('Appointment completed');
+        } catch (error) {
+            console.error('Failed to complete appointment:', error);
+            toast.error('Failed to complete appointment');
+        }
+    }, [completeBooking, isAdminView, syncAppointmentStatus]);
+
+    const handleCancelAppointment = useCallback(async (appointment: Appointment) => {
+        if (isAdminView) return;
+
+        try {
+            await cancelBooking(appointment.id);
+            syncAppointmentStatus(appointment.id, 'cancelled');
+            toast.success('Appointment cancelled');
+        } catch (error) {
+            console.error('Failed to cancel appointment:', error);
+            toast.error('Failed to cancel appointment');
+        }
+    }, [cancelBooking, isAdminView, syncAppointmentStatus]);
+
+    const handleOpenDispute = useCallback((appointment: Appointment) => {
+        if (isAdminView) return;
+        setSelectedDisputeAppointment(appointment);
+    }, [isAdminView]);
 
     const handleOpenReschedule = (appointment: Appointment) => {
         if (isAdminView) return;
@@ -1824,6 +1891,25 @@ const PracticeBookingCalendar = () => {
         if (!rawAppt) return null;
         return mapAppointmentToEnriched(rawAppt);
     }, [rescheduleAppointment, bookings]);
+
+    const disputeModalAppointment = useMemo<EnrichedAppointment | null>(() => {
+        if (!selectedDisputeAppointment?.rawBooking) return null;
+        return mapAppointmentToEnriched(selectedDisputeAppointment.rawBooking);
+    }, [selectedDisputeAppointment]);
+
+    const handleDisputeSubmit = useCallback(async (reason: string) => {
+        if (!selectedDisputeAppointment || isAdminView) return;
+
+        try {
+            await disputeBooking(selectedDisputeAppointment.id, reason);
+            syncAppointmentStatus(selectedDisputeAppointment.id, 'dispute');
+            setSelectedDisputeAppointment(null);
+            toast.success('Appointment disputed');
+        } catch (error) {
+            console.error('Failed to dispute appointment:', error);
+            toast.error('Failed to dispute appointment');
+        }
+    }, [disputeBooking, isAdminView, selectedDisputeAppointment, syncAppointmentStatus]);
 
     const handleExternalRescheduleConfirm = async (dateStr: string, timeStr: string, practitionerId: string) => {
         if (!originalRescheduleApt) return;
@@ -2120,12 +2206,23 @@ const PracticeBookingCalendar = () => {
                     isOpen={isAppointmentModalOpen}
                     onClose={() => setIsAppointmentModalOpen(false)}
                     appointment={selectedAppointment}
-                    onUpdateStatus={handleUpdateAppointmentStatus}
+                    onConfirm={handleConfirmAppointment}
+                    onComplete={handleCompleteAppointment}
+                    onCancel={handleCancelAppointment}
+                    onDispute={handleOpenDispute}
                     onOpenReschedule={handleOpenReschedule}
                     practitioners={dynamicPractitioners}
                     services={dynamicServices}
                     isAdminView={isAdminView}
                 />
+
+                {disputeModalAppointment && (
+                    <DisputeModal
+                        appointment={disputeModalAppointment}
+                        onClose={() => setSelectedDisputeAppointment(null)}
+                        onSubmit={handleDisputeSubmit}
+                    />
+                )}
 
                 {isRescheduleModalOpen && originalRescheduleApt && (
                     <RescheduleModal

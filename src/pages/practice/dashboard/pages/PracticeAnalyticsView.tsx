@@ -55,6 +55,51 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+
+const normalizeDateOnly = (s?: string | null) =>
+  typeof s === "string" ? s.slice(0, 10) : "";
+
+const canonicalName = (s?: string | null) =>
+  String(s ?? "")
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/^dr\s+/i, "")
+    .replace(/^dr/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const getBookingPractitionerId = (b: any): string => {
+  return String(
+    b?.practitioner?.id ??
+    b?.practitioner_id ??
+    b?.practitionerId ??
+    b?.practice_team_member_id ??
+    b?.team_member_id ??
+    ""
+  ).trim();
+};
+
+const getBookingPractitionerName = (b: any): string => {
+  const p = b?.practitioner;
+
+  if (typeof p === "string") return p.trim();
+
+  const direct =
+    p?.name ??
+    b?.practitioner_name ??
+    b?.practitionerName ??
+    b?.provider_name ??
+    "";
+
+  if (direct && String(direct).trim()) return String(direct).trim();
+
+  const first = p?.first_name ?? p?.firstName ?? "";
+  const last = p?.last_name ?? p?.lastName ?? "";
+  const full = `${first} ${last}`.trim();
+
+  return full || "Unknown";
+};
+
 // --- ANIMATED NUMBER COMPONENT ---
 const AnimatedNumber = ({ value, duration = 1000 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -1021,13 +1066,30 @@ export default function PracticeAnalyticsView() {
   }, [dispatch, practiceId, practitioners.length]);
 
   // Combine practitioners
-  const practitionerList = [
-    "All",
-    ...new Set([
-      ...practitioners.map((p) => p.name),
-      ...bookings.map((b) => b.practitioner?.name).filter(Boolean) as string[],
-    ]),
-  ];
+  const practitionerList = useMemo(() => {
+    const map = new Map<string, string>();
+
+    (practitioners || []).forEach((p: any) => {
+      const label = String(p?.name ?? "").trim();
+      if (!label) return;
+      map.set(canonicalName(label), label);
+    });
+
+    (bookings || []).forEach((b: any) => {
+      const label = getBookingPractitionerName(b);
+      if (!label) return;
+      map.set(canonicalName(label), label);
+    });
+
+    const hasUnknown = (bookings || []).some((b: any) => {
+      const id = getBookingPractitionerId(b);
+      const name = getBookingPractitionerName(b);
+      return !id && canonicalName(name) === "unknown";
+    });
+    if (hasUnknown) map.set("unknown", "Unknown");
+
+    return ["All", ...Array.from(map.values()).sort((a, b) => a.localeCompare(b))];
+  }, [practitioners, bookings]);
 
   const handlePresetSelect = (preset: string) => {
     setActivePreset(preset);
@@ -1069,88 +1131,93 @@ export default function PracticeAnalyticsView() {
   };
 
   const analyticsData = useMemo(() => {
-    let filtered = bookings.filter((item) => {
-      if (!item.appointment_date) return false;
+    const start = new Date(dateRange.start);
+    start.setHours(0, 0, 0, 0);
 
-      const [year, month, day] = item.appointment_date.split("-");
-      const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
+    const end = new Date(dateRange.end);
+    end.setHours(23, 59, 59, 999);
 
-      const start = new Date(dateRange.start);
-      start.setHours(0, 0, 0, 0);
+    const startStr = formatDate(start);
+    const endStr = formatDate(end);
 
-      const end = new Date(dateRange.end);
-      end.setHours(23, 59, 59, 999);
+    const selectedCanonical = canonicalName(practitionerFilter);
 
-      return itemDate >= start && itemDate <= end;
+    const selectedPractitionerObj = (practitioners || []).find((p: any) => {
+      return canonicalName(p?.name) === selectedCanonical;
+    });
+    const selectedPractitionerId = String(selectedPractitionerObj?.id ?? "").trim();
+
+    let filtered = (bookings || []).filter((item: any) => {
+      const d = normalizeDateOnly(item?.appointment_date);
+      if (!d) return false;
+      return d >= startStr && d <= endStr;
     });
 
     if (practitionerFilter !== "All") {
-      filtered = filtered.filter(
-        (i) => (i.practitioner?.name || "Unknown") === practitionerFilter
-      );
+      if (selectedCanonical === "unknown") {
+        filtered = filtered.filter((b: any) => {
+          const id = getBookingPractitionerId(b);
+          const name = getBookingPractitionerName(b);
+          return !id && canonicalName(name) === "unknown";
+        });
+      } else if (selectedPractitionerId) {
+        filtered = filtered.filter((b: any) => {
+          const bid = getBookingPractitionerId(b);
+          return bid && bid === selectedPractitionerId;
+        });
+      } else {
+        filtered = filtered.filter((b: any) => {
+          const name = getBookingPractitionerName(b);
+          return canonicalName(name) === selectedCanonical;
+        });
+      }
     }
 
     const stats = {
       total: filtered.length,
-      new: filtered.filter((i) => i.isNewPatient).length,
-      existing: filtered.filter((i) => !i.isNewPatient).length,
-      completed: filtered.filter(
-        (i) => i.status?.toLowerCase() === "completed"
-      ).length,
+      new: filtered.filter((i: any) => !!i.isNewPatient).length,
+      existing: filtered.filter((i: any) => !i.isNewPatient).length,
+      completed: filtered.filter((i: any) => i.status?.toLowerCase() === "completed").length,
     };
 
     const practitionerMap: Record<string, number> = {};
-
-    filtered.forEach((appt) => {
-      const pName = appt.practitioner?.name || "Unknown";
+    filtered.forEach((appt: any) => {
+      const pName = getBookingPractitionerName(appt) || "Unknown";
       practitionerMap[pName] = (practitionerMap[pName] || 0) + 1;
     });
 
-    const docData = Object.entries(practitionerMap).map(([label, value]) => ({
-      label,
-      value,
-    }));
+    const docData = Object.entries(practitionerMap)
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
 
     const newPatientsByPractitioner: Record<string, number> = {};
+    filtered
+      .filter((a: any) => !!a.isNewPatient)
+      .forEach((appt: any) => {
+        const pName = getBookingPractitionerName(appt) || "Unknown";
+        newPatientsByPractitioner[pName] = (newPatientsByPractitioner[pName] || 0) + 1;
+      });
 
-    const newPatientAppts = bookings.filter((item) => {
-      if (!item.appointment_date) return false;
-
-      const [year, month, day] = item.appointment_date.split("-");
-      const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
-
-      const start = new Date(dateRange.start);
-      start.setHours(0, 0, 0, 0);
-
-      const end = new Date(dateRange.end);
-      end.setHours(23, 59, 59, 999);
-
-      return itemDate >= start && itemDate <= end && item.isNewPatient;
-    });
-
-    newPatientAppts.forEach((appt) => {
-      const pName = appt.practitioner?.name || "Unknown";
-      newPatientsByPractitioner[pName] =
-        (newPatientsByPractitioner[pName] || 0) + 1;
-    });
-
-    const newPatientsPractitionerData = Object.entries(
-      newPatientsByPractitioner
-    )
+    const newPatientsPractitionerData = Object.entries(newPatientsByPractitioner)
       .map(([label, value]) => ({
         label,
         value,
-        color:
-          PRACTITIONER_COLORS[label] || PRACTITIONER_COLORS["Default"],
+        color: PRACTITIONER_COLORS[label] || PRACTITIONER_COLORS.Default,
       }))
       .sort((a, b) => b.value - a.value);
 
-    const days = getDaysArray(dateRange.start, dateRange.end);
+    const days = getDaysArray(start, end);
+
+    const countByDate: Record<string, number> = {};
+    filtered.forEach((appt: any) => {
+      const d = normalizeDateOnly(appt?.appointment_date);
+      if (!d) return;
+      countByDate[d] = (countByDate[d] || 0) + 1;
+    });
 
     const dailyTrend = days.map((day) => {
       const dStr = formatDate(day);
-      const count = filtered.filter((i) => i.appointment_date === dStr).length;
-      return { date: dStr, count };
+      return { date: dStr, count: countByDate[dStr] || 0 };
     });
 
     const sparklineData = dailyTrend.slice(-7).map((d) => d.count);
@@ -1163,7 +1230,7 @@ export default function PracticeAnalyticsView() {
       newPatientsPractitionerData,
       sparklineData,
     };
-  }, [bookings, dateRange, practitionerFilter]);
+  }, [bookings, practitioners, dateRange.start, dateRange.end, practitionerFilter]);
 
   return (
     <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-6 font-sans">

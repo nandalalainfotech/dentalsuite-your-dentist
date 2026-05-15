@@ -14,9 +14,9 @@ export const useAppointments = (practiceId?: string) => {
   // Select data from the updated slice structure with strict typing
   const {
     list,
-    practitioners, 
-    services,      
-    openingHours,  
+    practitioners,
+    services,
+    openingHours,
     isLoading,
     isUpdating,
     error,
@@ -37,11 +37,19 @@ export const useAppointments = (practiceId?: string) => {
   // 2. Action Wrappers (Mapping UI actions to Redux Thunks)
 
   const confirmBooking = useCallback((id: string) => {
-    dispatch(updateBookingStatus({ id, status: 'confirmed' }));
+    return dispatch(updateBookingStatus({ id, status: 'confirmed' })).unwrap();
+  }, [dispatch]);
+
+  const completeBooking = useCallback((id: string) => {
+    return dispatch(updateBookingStatus({ id, status: 'completed' })).unwrap();
+  }, [dispatch]);
+
+  const disputeBooking = useCallback((id: string, disputeReason: string) => {
+    return dispatch(updateBookingStatus({ id, status: 'dispute', disputeReason })).unwrap();
   }, [dispatch]);
 
   const cancelBooking = useCallback((id: string) => {
-    dispatch(updateBookingStatus({ id, status: 'cancelled' }));
+    return dispatch(updateBookingStatus({ id, status: 'cancelled' })).unwrap();
   }, [dispatch]);
 
   const onReschedule = useCallback((id: string, date: string, time: string, practitionerId: string) => {
@@ -68,6 +76,8 @@ export const useAppointments = (practiceId?: string) => {
     // Actions
     refresh,
     confirmBooking,
+    completeBooking,
+    disputeBooking,
     cancelBooking,
     onReschedule,
     clearAlerts
