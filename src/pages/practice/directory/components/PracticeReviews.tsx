@@ -15,7 +15,7 @@ interface ReviewItem {
 }
 
 export default function PracticeReviews({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
-    
+
     const [reviews, setReviews] = useState<ReviewItem[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -25,12 +25,12 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Di
             // Note: Since there is no testimonials table in the DB schema provided,
             // we safely default to an empty array. If you add a testimonials table later, 
             // you can map it here just like we did for practice_services!
-            const rawData: any[] = (clinicData as any).testimonials || []; 
+            const rawData: any[] = (clinicData as any).testimonials || [];
 
             const formattedReviews = rawData.map((r: any, index: number) => ({
                 id: r.id || index.toString(),
                 patientName: r.name || "Anonymous",
-                rating: r.rating || 5, 
+                rating: r.rating || 5,
                 comment: r.message || r.content || "No review text.",
                 date: r.date || "Recently",
                 image: r.profile_image
@@ -44,7 +44,6 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Di
         setIsSaving(true);
         // This tab is read-only. We just simulate a quick save and move to the next tab.
         setTimeout(() => {
-            console.log('Reviews acknowledged');
             setIsSaving(false);
             onNext();
         }, 500);
@@ -98,7 +97,7 @@ export default function PracticeReviews({ clinicData, onNext }: { clinicData: Di
                                                 <User className="w-5 h-5 opacity-60" />
                                             )}
                                         </div>
-                                        
+
                                         <div>
                                             <h4 className="font-bold text-gray-900 text-sm leading-tight">
                                                 {review.patientName}

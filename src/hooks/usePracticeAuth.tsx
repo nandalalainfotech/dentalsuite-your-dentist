@@ -10,7 +10,7 @@ import type { Practice } from '../types/auth';
 
 const AUTH_CONSTANTS = {
   // IMPORTANT: Changed storage key to avoid conflict with patient login
-  STORAGE_KEY: 'practiceUser', 
+  STORAGE_KEY: 'practiceUser',
 
   MESSAGES: {
     LOGIN_SUCCESS: 'Login successful',
@@ -119,18 +119,18 @@ const mapClinicToPractice = (clinic: Clinic, role: 'practice' | 'superadmin'): P
   return {
     id: clinic.id,
     role: role, // <--- DYNAMIC ROLE
-    
+
     // Append (Admin) to name if it's an admin login, for clarity in dashboard
     practiceName: role === 'superadmin' ? `${clinic.name}` : clinic.name,
-    
+
     abnNumber: '00000000000',
-    
+
     // Use the email that corresponds to the role
     email: role === 'superadmin' && clinic.admin ? clinic.admin.email : (clinic.email ?? ''),
-    
+
     // Don't expose password in state
-    password: '', 
-    
+    password: '',
+
     firstName: role === 'superadmin' ? 'Super' : 'Practice',
     lastName: 'Admin',
     practiceLogo: clinic.logo ?? '',
@@ -151,7 +151,7 @@ const validateClinicCredentials = (emailOrMobile: string, password: string): Pra
   const normalizedPhone = normalizePhone(emailOrMobile);
 
   for (const clinic of clinics) {
-    
+
     // --- CHECK 1: Standard Clinic Profile Login ---
     const isProfileEmail = clinic.email && normalizeEmail(clinic.email) === normalizedInput;
     // Simple phone check: matches if phone is provided and matches input
@@ -165,7 +165,7 @@ const validateClinicCredentials = (emailOrMobile: string, password: string): Pra
     if (clinic.admin) {
       const isAdminEmail = normalizeEmail(clinic.admin.email) === normalizedInput;
       // You can add admin phone check here if you add a phone field to the admin object
-      
+
       if (isAdminEmail && clinic.admin.password === password) {
         return mapClinicToPractice(clinic, 'superadmin');
       }
@@ -277,7 +277,6 @@ export const PracticeAuthProvider: React.FC<PracticeAuthProviderProps> = ({ chil
 
       return { success: true, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_SUCCESS };
     } catch (error) {
-      console.log("Signup Error:", error);
       return { success: false, message: AUTH_CONSTANTS.MESSAGES.SIGNUP_ERROR };
     }
   };

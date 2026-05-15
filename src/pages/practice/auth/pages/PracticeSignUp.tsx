@@ -131,7 +131,6 @@ export default function PracticeSignUp() {
 
     if (result.success) {
       const practiceId = result.user?.id;
-      console.log("Practice ID from signup:", practiceId);
 
       if (practiceId) {
         try {
@@ -160,7 +159,6 @@ export default function PracticeSignUp() {
                 defaultPermission: defaultPermissions
               }
             });
-            console.log("Permissions setup completed successfully");
           }
         } catch (permError) {
           console.error("Permission setup error:", permError);

@@ -74,7 +74,7 @@ export const PracticeUserAccountService = {
                 status: data.status || 'ACTIVE',
                 first_name: data.first_name || '',
                 last_name: data.last_name || '',
-                mobile: data.mobile || '',
+                practice_phone: data.mobile || '',
             };
 
             const response = await axios.post(

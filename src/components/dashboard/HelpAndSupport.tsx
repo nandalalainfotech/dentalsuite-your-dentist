@@ -136,8 +136,6 @@ export const HelpAndSupport: React.FC<HelpAndSupportProps> = ({
         timestamp: new Date().toISOString()
       };
 
-      console.log('Feedback submitted:', feedbackData);
-
       // Call parent handler
       onSubmitFeedback();
 
@@ -374,8 +372,8 @@ export const HelpAndSupport: React.FC<HelpAndSupportProps> = ({
                     >
                       <svg
                         className={`w-6 h-6 sm:w-7 sm:h-7 ${star <= (hoverRating || feedbackRating)
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-gray-300 fill-gray-100"
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300 fill-gray-100"
                           }`}
                         stroke="currentColor"
                         strokeWidth={star <= (hoverRating || feedbackRating) ? 0 : 1.5}

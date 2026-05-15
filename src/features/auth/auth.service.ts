@@ -103,7 +103,6 @@ const signup = async (payload: SignupPayload): Promise<{ message: string; user: 
       practiceData
     );
 
-    console.log("Signup response:", response.data);
 
     // Normalize the user data
     const userData = response.data.user;

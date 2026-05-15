@@ -106,7 +106,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return { success: true, message: 'Account created successfully' };
     } catch (error) {
-      console.log("The error is", error)
       return { success: false, message: 'An error occurred during signup' };
     }
   };
@@ -187,7 +186,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return { success: true, message: 'Practice account created successfully' };
     } catch (error) {
-      console.log("The error is", error)
       return { success: false, message: 'An error occurred during signup' };
     }
   };

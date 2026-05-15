@@ -126,33 +126,6 @@ const ProductBreakdownSection: React.FC<{
 
 const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceName }) => {
     const { user } = useAppSelector((state: any) => state.auth);
-    console.log("this is called=======vishwa current billing=======>");
-    console.log("user=======vishwa current billing=======>", user.user);
-
-    const vishwa = useAppSelector((state: any) => state.dashboard);
-    console.log("thiis is consta vishwa ===> ", vishwa.dashboard);
-
-
-    const { users } = useAppSelector((state: any) => state.auth);
-    console.log("user======checkkkk=>", users);
-
-    // Correctly access dashboard state
-    const { profile } = useAppSelector((state: any) => state.dashboard);
-    console.log("dashboard profile ========checkkkk==> ", profile);
-    // console.log("dashboard loading ===> ", isLoading);
-    // console.log("dashboard error ===> ", error);
-
-
-    const per = useAppSelector((state: any) => state.permissions)
-    console.log("permisssssssionsssssssssssssssssss=============>", per.permissions);
-    console.log("idddddddddddsss=============>", per.loadedPracticeId);
-
-
-    const invoice = useAppSelector((state: any) => state.invoiceHistory)
-    console.log("invoice= fispsdops============>", invoice.disputes);
-    console.log("totalCount===================>", invoice.totalCount);
-
-
 
     const practiceId = user?.practiceId || user?.practice_id || user?.id;
     const { completedBookings, approvedDisputeBookings, cancelledBookings, dispute, loading, error } = useNewPatientBookings(practiceId, true);
