@@ -1,9 +1,8 @@
 // src/features/directory/directory.types.ts
 
-// ============================================================================
+// ==========================================================
 // DIRECTORY DATABASE INTERFACES (1:N Relationships)
-// Strictly typed to match Hasura local DB columns (snake_case)
-// ============================================================================
+// ==========================================================
 
 export interface PracticeOpeningHour {
   id: string;
@@ -23,6 +22,7 @@ export interface PracticeFacility {
 export interface AllService {
   id: string;
   service_name: string;
+  created_at:string;
 }
 
 export interface PracticeService {

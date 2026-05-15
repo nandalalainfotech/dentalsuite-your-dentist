@@ -34,3 +34,11 @@ export const UPDATE_PRACTICE_STATUS = gql`
     }
   }
 `;
+
+export const DELETE_CLIENT = gql`
+  mutation DeleteClient($id: uuid!) {
+    delete_accounts_by_pk(id: $id) {
+      id
+    }
+  }
+`;

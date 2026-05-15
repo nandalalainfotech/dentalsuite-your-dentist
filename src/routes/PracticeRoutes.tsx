@@ -16,9 +16,9 @@ import PractiveViewProfile from '../pages/practice/dashboard/pages/PractiveViewP
 import PracticeAppointmentType from '../pages/practice/dashboard/pages/PracticeAppointmentType';
 import PracticeBookingCalendar from '../pages/practice/dashboard/pages/PracticeBookingCalendar';
 import PracticeAnalyticsView from '../pages/practice/dashboard/pages/PracticeAnalyticsView';
-import PracticeInvoiceHistoryView from '../pages/practice/PracticeInvoiceHistoryView';
+import PracticeInvoiceHistoryView from '../pages/practice/Invoice/pages/PracticeInvoiceHistoryView';
 import PracticeOnlineBookings from '../pages/practice/dashboard/pages/PracticeOnlineBookings';
-import PracticeSupport from '../pages/practice/support/components/PracticeSupport';
+import PracticeSupport from '../pages/practice/dashboard/pages/PracticeSupport';
 import PracticeUserAccount from '../pages/practice/useraccount/pages/PracticeUserAccount';
 
 

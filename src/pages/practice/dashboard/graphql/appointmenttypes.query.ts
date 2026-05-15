@@ -10,11 +10,9 @@ export const GET_DATA = gql`
       name
       existing_enabled
       existing_duration
-      existing_link
       existing_future_booking_limit
       new_enabled
       new_duration
-      new_link
       new_future_booking_limit
       new_terms_enabled
       online_enabled

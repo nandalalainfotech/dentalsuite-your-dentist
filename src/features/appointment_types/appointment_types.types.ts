@@ -3,11 +3,9 @@ export interface AppointmentType {
   name: string;
   existingEnabled: boolean;
   existingDuration: number;
-  existingLink: string;
   existingFutureBookingLimit: number;
   newEnabled: boolean;
   newDuration: number;
-  newLink: string;
   newFutureBookingLimit: number;
   newTermsEnabled: boolean;
   onlineEnabled: boolean;
