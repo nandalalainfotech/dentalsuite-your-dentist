@@ -33,11 +33,11 @@ export default function SuperAdminDashboard() {
 
                     {/* --- LEFT SIDEBAR COLUMN --- */}
                     <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-24">
-                        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
 
                             {/* PROFILE HEADER SECTION */}
                             <div className="flex items-center gap-4 p-8 border-b border-gray-50">
-                                <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-md bg-orange-50 text-[#f47521]">
+                                <div className="w-16 h-14 rounded-full flex items-center justify-center shadow-md bg-orange-50 text-[#f47521]">
                                     <Shield size={28} />
                                 </div>
                                 <div className="min-w-0">
@@ -54,9 +54,8 @@ export default function SuperAdminDashboard() {
 
                     {/* --- MAIN CONTENT AREA --- */}
                     <main className="flex-1 w-full min-w-0">
-                        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 min-h-[700px] flex flex-col overflow-hidden">
-
-                            <div className="p-8 lg:p-10 flex-1">
+                        <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 min-h-[600px] flex flex-col overflow-hidden">
+                            <div className="p-4 lg:p-6 flex-1">
                                 <Outlet />
                             </div>
                         </div>

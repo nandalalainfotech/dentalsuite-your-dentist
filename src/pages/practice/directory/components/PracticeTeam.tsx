@@ -484,8 +484,8 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
     if (editingId && formData) {
         const score = calculateScore(formData);
         return (
-            <div className="font-sans text-gray-800 pt-4 bg-white">
-                <div className="px-6 py-4 bg-white sticky top-0 z-20 flex items-center justify-between">
+            <div className="font-sans text-gray-800 pt-2 bg-white">
+                <div className="px-4 py-2 bg-white sticky top-0 z-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={handleMainBack}
                             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors">

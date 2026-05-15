@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, ChevronLeft, HelpCircle, ChevronsUpDown } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronsUpDown } from 'lucide-react';
 
 // Redux Imports
 import { fetchAppointmentData, saveAppointmentData, deleteAppointmentType } from '../../../../features/appointment_types/appointment_types.slice';
@@ -24,10 +24,9 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
     id: `temp-${Date.now()}`,
     name: '', existingEnabled: false,
     existingDuration: 30,
-    existingLink: '',
     existingFutureBookingLimit: 90,
-    newEnabled: false, newDuration: 30,
-    newLink: '', newFutureBookingLimit: 90,
+    newEnabled: false, newDuration: 30, 
+    newFutureBookingLimit: 90,
     newTermsEnabled: false,
     onlineEnabled: true,
     askReason: false,
@@ -68,8 +67,6 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
           <span className="text-gray-500 font-base text-2xl">|</span>
           <h1 className="text-xl font-bold text-gray-800">{initialData && !initialData.id.startsWith('temp-') ? 'Edit Appointment Type' : 'New Appointment Type'}</h1>
         </div>
-        <button className="text-gray-600 border border-gray-300 px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 hover:bg-gray-50">
-          <HelpCircle size={16} /> Need Help?</button>
       </div>
 
       <div className="max-w-6xl mx-auto mt-6 space-y-6">
@@ -87,6 +84,33 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
                   className="w-full px-3 py-2 border border-blue-400 rounded-sm focus:ring-1 focus:ring-blue-500 outline-none"
                   placeholder="e.g. Checkup"
                 />
+
+                {/* Cancellations */}
+                <div className="flex py-4 text-sm text-gray-700">
+                  <p>Accept Cancellations Online</p>
+                </div>
+                <div className="flex items-center justify-left gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="cancellation_group"
+                      checked={formData.cancellationEnabled === true}
+                      onChange={() => setFormData({ ...formData, cancellationEnabled: true })}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Yes</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="cancellation_group"
+                      checked={formData.cancellationEnabled === false}
+                      onChange={() => setFormData({ ...formData, cancellationEnabled: false })}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">No</span>
+                  </label>
+                </div>
               </div>
               <div className="space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -103,13 +127,13 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
                   />
                   <span className="text-sm text-gray-700">Ask patients to enter the reason</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                {/* <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.addMessage}
                     onChange={(e) => setFormData({ ...formData, addMessage: e.target.checked })}
                     className="w-4 h-4 text-blue-600 rounded"
                   />
                   <span className="text-sm text-gray-700">Add a message to appear</span>
-                </label>
+                </label> */}
                 <div className="mt-4 pt-2 border-t border-gray-100">
                   <p className="text-xs text-gray-600 mb-2 font-medium">When patients cannot book:</p>
                   <div className="space-y-2 ml-1">
@@ -200,7 +224,7 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm">
+        {/* <div className="bg-white border border-gray-200 rounded-sm shadow-sm">
           <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
             <h2 className="font-bold text-gray-700 text-sm">Link to Core Practice Appointment Type</h2>
           </div>
@@ -235,35 +259,8 @@ const AppointmentTypeEditor: React.FC<AppointmentTypeEditorProps> = ({
                 </select>
               </div>
             </div>
-
-            {/* RADIO GROUP 2: Cancellations */}
-            <div className="flex py-4 text-sm text-gray-700">
-              <p>Accept Cancellations Online</p>
-            </div>
-            <div className="flex items-center justify-left gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="cancellation_group"
-                  checked={formData.cancellationEnabled === true}
-                  onChange={() => setFormData({ ...formData, cancellationEnabled: true })}
-                  className="text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">Yes</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="cancellation_group"
-                  checked={formData.cancellationEnabled === false}
-                  onChange={() => setFormData({ ...formData, cancellationEnabled: false })}
-                  className="text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">No</span>
-              </label>
-            </div>
           </div>
-        </div>
+        </div> */}
 
         {/* SECTION 4: Practitioner Checkboxes */}
         <div className="bg-white border border-gray-200 rounded-sm shadow-sm">

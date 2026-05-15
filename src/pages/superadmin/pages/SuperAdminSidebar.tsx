@@ -1,5 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import {
+    Briefcase,
+    FileText,
+    Settings,
     Users,
     X
 } from 'lucide-react';
@@ -49,7 +52,30 @@ export default function SuperAdminSidebar({
                     </>
                 )}
             </NavLink>
-
+            <NavLink to="/superadmin/support" className={getLinkClass} onClick={onClose}>
+                {({ isActive }) => (
+                    <>
+                        <div className={getIconClass(isActive)}><Settings size={18} /></div>
+                        <span>Support</span>
+                    </>
+                )}
+            </NavLink>
+            <NavLink to="/superadmin/allservices" className={getLinkClass} onClick={onClose}>
+                {({ isActive }) => (
+                    <>
+                        <div className={getIconClass(isActive)}><Briefcase size={18} /></div>
+                        <span>All Services</span>
+                    </>
+                )}
+            </NavLink>
+            <NavLink to="/superadmin/invoice-dispute" className={getLinkClass} onClick={onClose}>
+                {({ isActive }) => (
+                    <>
+                        <div className={getIconClass(isActive)}><FileText size={18} /></div>
+                        <span>Invoice Dispute</span>
+                    </>
+                )}
+            </NavLink>
         </nav>
     );
 }

@@ -16,7 +16,7 @@ export const ToastNotification = ({ message, show, onClose }: { message: string;
   }, [show, onClose]);
   if (!show) return null;
   return ReactDOM.createPortal(
-    <div className="fixed bottom-4 right-4 z-[10000] animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div className="fixed top-4 right-4 z-[10000] animate-in slide-in-from-bottom-5 fade-in duration-300">
       <div className="bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shrink-0">
           <Check className="w-4 h-4 text-white" />
@@ -30,8 +30,8 @@ export const ToastNotification = ({ message, show, onClose }: { message: string;
 
 export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
   return (
-    <div className="px-2 pb-2 md:px-4 md:pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
-      <div className="bg-gray-50/30 rounded-xl p-4 border border-gray-100 mt-4 shadow-sm">
+    <div className="px-2 pb-2 md:px-4 md:pb-4 pt-4 bg-white cursor-default" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           
           {/* 1. Contact Info */}
@@ -58,7 +58,7 @@ export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Practitioner</h5>
             <div className="flex items-center gap-3">
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-gray-900">{apt.dentist_name}</span>
+                <span className="text-sm font-semibold text-gray-800">{apt.dentist_name}</span>
                 <span className="text-xs text-gray-500">{apt.dentist_role}</span>
               </div>
             </div>
@@ -74,12 +74,12 @@ export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
               </div>
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span>Booked: {formatExactCreatedAt(apt.created_at)}</span>
+                <span>Booked at: {formatExactCreatedAt(apt.created_at)}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <RefreshCw className="w-4 h-4 text-gray-400" />
                 <div className="flex flex-col leading-tight">
-                  <span className="font-medium text-gray-600">Updated {formatRelativeUpdatedAt(apt.updated_at)}</span>
+                  <span className="text-gray-600">Updated on {formatRelativeUpdatedAt(apt.updated_at)}</span>
                 </div>
               </div>
             </div>
@@ -88,7 +88,7 @@ export const ExpandedDetailsCard = ({ apt }: { apt: EnrichedAppointment }) => {
           {/* 4. Notes */}
           <div>
             <h5 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Patient Notes</h5>
-            <div className="bg-gray-50 p-2 rounded-lg border border-gray-200 text-xs text-gray-600 min-h-[70px]">
+            <div className="bg-white p-2 rounded-lg border border-gray-200 text-xs text-gray-700 min-h-[70px]">
               {apt.patient_notes || "No notes provided."}
             </div>
           </div>
