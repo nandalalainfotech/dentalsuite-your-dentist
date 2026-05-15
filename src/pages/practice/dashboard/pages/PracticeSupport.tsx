@@ -500,8 +500,8 @@ export default function PracticeSupportForm() {
                                                     {msg.attachments?.length > 0 && (
                                                         <div
                                                             className={`grid gap-2 p-2 ${msg.attachments.length === 1
-                                                                    ? 'grid-cols-1'
-                                                                    : 'grid-cols-2'
+                                                                ? 'grid-cols-1'
+                                                                : 'grid-cols-2'
                                                                 }`}
                                                         >
                                                             {msg.attachments.map((file: any, idx: number) => {

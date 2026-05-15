@@ -15,9 +15,6 @@ const DisputeModal = ({
     const [reason, setReason] = useState("");
     const [otherText, setOtherText] = useState("");
 
-    console.log("otherText------------vv>", otherText);
-    console.log("setOtherText------------vv>", setOtherText);
-
 
     const handleSubmit = () => {
         const finalReason = reason === "Other" ? otherText.trim() : reason;

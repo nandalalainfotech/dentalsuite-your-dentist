@@ -109,7 +109,6 @@ const SecuritySettings: React.FC<SecuritySettingsProps> = ({
       return;
     }
 
-    console.log('Password change requested:', formData);
     setLastPasswordChange(new Date());
     onChangePassword();
 

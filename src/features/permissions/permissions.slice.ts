@@ -144,7 +144,6 @@ const permissionsSlice = createSlice({
             .addCase(updatePracticePermissions.fulfilled, (state, action) => {
                 state.isSaving = false;
                 state.successMessage = action.payload;
-                console.log("Permissions updated successfully:", action.payload);
             })
             .addCase(updatePracticePermissions.rejected, (state, action) => {
                 state.isSaving = false;

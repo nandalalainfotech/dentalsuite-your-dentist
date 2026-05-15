@@ -316,7 +316,6 @@ const InvoiceHistoryView = () => {
           if (apt.status === 'confirmed') {
             try {
               await completeBooking(apt.id);
-              console.log(`Appointment with ${apt.patient_name} auto-completed`);
               setShowToast(true);
               // Refresh both the bookings list and disputes list
               await refreshBookings();

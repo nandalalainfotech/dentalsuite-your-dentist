@@ -58,7 +58,6 @@ export const deleteUser = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             await PracticeUserAccountService.deleteUser(id);
-            console.log("id====return from the delete user acc========>", id);
             return id;
         } catch (error: any) {
             return rejectWithValue(error.message);

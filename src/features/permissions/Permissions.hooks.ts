@@ -39,7 +39,6 @@ export const usePermissions = () => {
     // Save permissions
     const savePermissions = useCallback(
         (userId: string) => {
-            console.log("Saving permissions for userId:", userId, permissions);
             dispatch(updatePracticePermissions({ userId, permissions }));
         },
         [dispatch, permissions]
