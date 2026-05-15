@@ -7,7 +7,7 @@ import { usePracticePermissions } from '../../../../features/permissions/Permiss
 interface PracticeSidebarProps {
   onLogout?: () => void;
   onClose?: () => void;
-  practiceId: string;
+  permissionSubjectId: string;
   isAdminView?: boolean;
 }
 
@@ -69,8 +69,8 @@ const NAVIGATION_ITEMS = {
   }
 };
 
-export default function PracticeSidebar({ onClose, practiceId }: PracticeSidebarProps) {
-  const { isLoading, isReady, hasPermission } = usePracticePermissions(practiceId);
+export default function PracticeSidebar({ onClose, permissionSubjectId }: PracticeSidebarProps) {
+  const { isLoading, isReady, hasPermission } = usePracticePermissions(permissionSubjectId);
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     `w-full flex items-center gap-4 px-6 py-4 transition-all duration-200 border-l-4 group hover:bg-gray-50 ${isActive

@@ -352,9 +352,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user }) 
 
                 {/* Toast Notifications */}
                 {(generalError || successMessage) && (
-                    <div className="mx-6 mt-4">
+                    <div className="fixed top-4 right-4 z-50">
                         {generalError && (
-                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 shadow-lg">
                                 <div className="p-1 bg-red-200/50 rounded-full shrink-0">
                                     <X className="h-4 w-4" />
                                 </div>
@@ -365,7 +365,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user }) 
                             </div>
                         )}
                         {successMessage && (
-                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl flex items-center gap-3 shadow-lg">
                                 <div className="p-1 bg-green-200/50 rounded-full shrink-0">
                                     <Check className="h-4 w-4" />
                                 </div>

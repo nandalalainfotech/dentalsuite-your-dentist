@@ -62,7 +62,7 @@ export const GET_SERVICES = gql`
     }
   `;
 
- export const GET_HOURS = gql`
+export const GET_HOURS = gql`
       query GetOpeningHours($practiceId: uuid!) {
         practice_opening_hours(where: { practice_id: { _eq: $practiceId } }) {
           id
@@ -74,13 +74,15 @@ export const GET_SERVICES = gql`
     `;
 
 export const UPDATE_STATUS_MUTATION = gql`
-  mutation UpdateStatus($id: uuid!, $status: String!) {
+  mutation UpdateStatus($id: uuid!, $status: String!, $dispute_reason: String, $dispute_status: String) {
     update_online_bookings_by_pk(
       pk_columns: { id: $id }, 
-      _set: { status: $status, updated_at: "now()" }
+      _set: { status: $status, dispute_reason: $dispute_reason, dispute_status: $dispute_status, updated_at: "now()" }
     ) {
       id
       status
+      dispute_reason
+      dispute_status
       updated_at
     }
   }
@@ -107,7 +109,8 @@ export const RESCHEDULE_MUTATION = gql`
       updated_at
       practitioner {
         id
-        name
+        first_name
+        last_name
         role
       }
     }

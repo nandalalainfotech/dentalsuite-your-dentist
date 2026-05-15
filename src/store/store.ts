@@ -6,6 +6,7 @@ import directoryReducer from "../features/directory/directory.slice";
 import appointmentTypesReducer from "../features/appointment_types/appointment_types.slice";
 import permissionsReducer from "../features/permissions/permissions.slice";
 import practiceUsersReducer from "../features/PracticeUserAccount/PracticeUserAccount.slice";
+import invoiceHistoryReducer from "../features/practice_invoice_history/invoiceHistory.slice";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     appointmentTypes: appointmentTypesReducer,
     permissions: permissionsReducer,
     practiceUsers: practiceUsersReducer,
+    invoiceHistory: invoiceHistoryReducer,
   },
 });
 

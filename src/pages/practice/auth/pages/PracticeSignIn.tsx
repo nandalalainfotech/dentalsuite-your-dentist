@@ -3,7 +3,7 @@ import SignInForm from "../components/SignInForm";
 import loginimg from "../../../../assets/login.png";
 import { useAuth } from "../../../../features/auth/auth.hooks";
 
-type UserType = "SUPER_ADMIN" | "PRACTICE_ADMIN" | "PRACTITIONER";
+type UserType = "SUPER_ADMIN" | "PRACTICE_ADMIN" | "PRACTITIONER" | 'SUB_PRACTICE_ADMIN';
 
 export default function PracticeSignInPage() {
   const navigate = useNavigate();
@@ -21,6 +21,8 @@ export default function PracticeSignInPage() {
         navigate("/practice/dashboard");
       } else if (userType === "PRACTITIONER") {
         navigate("/practice/practitioner-dashboard");
+      } else if (userType === "SUB_PRACTICE_ADMIN") {
+        navigate("/practice/dashboard");
       } else {
         navigate("/practice/dashboard"); // default fallback
       }
