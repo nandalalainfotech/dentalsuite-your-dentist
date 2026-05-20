@@ -52,7 +52,7 @@ export function createApolloClient({
           : {}),
 
         ...(useAdminSecret
-          ? { "x-hasura-admin-secret": "myadminsecret" }
+          ? { "x-hasura-admin-secret": "PF2P4l8kY2JYGHBruMkuP6U1bSXyns1Fv9nreqWt0qIfozfQhAo54CDyD1l7w8tW" }
           : {}),
       },
     };
@@ -94,7 +94,7 @@ export function createApolloClient({
         const token = localStorage.getItem("accessToken");
 
         return useAdminSecret
-          ? { headers: { "x-hasura-admin-secret": "myadminsecret" } }
+          ? { headers: { "x-hasura-admin-secret": "PF2P4l8kY2JYGHBruMkuP6U1bSXyns1Fv9nreqWt0qIfozfQhAo54CDyD1l7w8tW" } }
           : token
             ? { headers: { Authorization: `Bearer ${token}` } }
             : {};

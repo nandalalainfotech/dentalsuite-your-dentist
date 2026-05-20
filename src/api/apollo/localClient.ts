@@ -1,6 +1,6 @@
 import { createApolloClient } from "../apolloClient";
 
 export const localClient = createApolloClient({
-  httpUrl: "http://localhost:8080/v1/graphql",
+  httpUrl: "https://leading-hen-46.hasura.app/v1/graphql",
   useAdminSecret: true,
 });
