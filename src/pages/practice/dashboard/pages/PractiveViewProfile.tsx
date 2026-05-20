@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { updatePracticeProfile } from '../../../../features/dashboard/dashboard.slice';
-import { User, Mail, Phone, MapPin, Building, FileText, Settings } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Building, FileText, Settings, X } from 'lucide-react';
 
 // --- Reusable UI Components ---
 const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
@@ -35,23 +35,66 @@ const Input = ({ icon, textarea = false, className = "", id, disabled = false, .
     );
 };
 
+// --- Top Right Snackbar Component ---
+const TopSnackbar = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => {
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onClose();
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    return (
+        <div className="fixed top-4 right-4 z-50">
+            <div className={`rounded-lg shadow-lg p-4 min-w-[300px] max-w-md ${type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                }`}>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        {type === 'success' ? (
+                            <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        )}
+                        <p className={`text-sm font-medium ${type === 'success' ? 'text-green-800' : 'text-red-800'
+                            }`}>
+                            {message}
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className={`flex-shrink-0 ${type === 'success' ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600'
+                            }`}
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- Main Component ---
 const PractiveViewProfile = () => {
     const dispatch = useAppDispatch();
 
     const { profile, isLoading } = useAppSelector((state) => state.dashboard);
 
-    // Different section uses different command
-    // This isImpersonating command enables view only for superadmin in practice dashboard  
-    // The SUPER_ADMIN_VIEW command enables view, add, edit and delete for superadmin in practice dashboard
-
-    // const isImpersonating = sessionStorage.getItem("isImpersonating") === "true";
-    // const isReadOnly = isImpersonating;
     const user = JSON.parse(sessionStorage.getItem("user") || "{}");
     const isReadOnly = user?.type === "SUPER_ADMIN_VIEW";
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [snackbar, setSnackbar] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+        show: false,
+        message: '',
+        type: 'success'
+    });
 
     const [form, setForm] = useState({
         businessName: '',
@@ -68,10 +111,19 @@ const PractiveViewProfile = () => {
         postCode: '',
     });
 
+    const [initialForm, setInitialForm] = useState({ ...form });
+
+    // Check if form has changes
+    const checkForChanges = (currentForm: any, initialFormData: any, currentLogo: string | null, initialLogo: string | null) => {
+        const formChanged = JSON.stringify(currentForm) !== JSON.stringify(initialFormData);
+        const logoChanged = currentLogo !== initialLogo;
+        return formChanged || logoChanged;
+    };
+
     // Sync Form with DB Data
     useEffect(() => {
         if (profile) {
-            setForm({
+            const newForm = {
                 businessName: profile.practiceName || '',
                 abnAcn: profile.abnNumber || '',
                 businessType: profile.practiceType || '',
@@ -84,18 +136,29 @@ const PractiveViewProfile = () => {
                 city: profile.city || '',
                 state: profile.state || '',
                 postCode: profile.postcode || '',
-            });
+            };
 
-            if (profile.logo) {
-                setLogoPreview(profile.logo);
-            }
+            setForm(newForm);
+            setInitialForm(newForm);
+
+            const newLogo = profile.logo || null;
+            setLogoPreview(newLogo);
+
+            // Reset changes flag when profile loads
+            setHasChanges(false);
         }
     }, [profile]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (isReadOnly) return;
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+
+        const updatedForm = { ...form, [name]: value };
+        setForm(updatedForm);
+
+        // Check if any changes were made
+        const hasAnyChanges = checkForChanges(updatedForm, initialForm, logoPreview, profile?.logo || null);
+        setHasChanges(hasAnyChanges);
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,11 +171,20 @@ const PractiveViewProfile = () => {
 
         reader.onload = (evt) => {
             if (evt.target?.result && typeof evt.target.result === 'string') {
-                setLogoPreview(evt.target.result);
+                const newLogoPreview = evt.target.result;
+                setLogoPreview(newLogoPreview);
+
+                // Check if logo changed
+                const hasAnyChanges = checkForChanges(form, initialForm, newLogoPreview, profile?.logo || null);
+                setHasChanges(hasAnyChanges);
             }
         };
 
         reader.readAsDataURL(file);
+    };
+
+    const showSnackbar = (message: string, type: 'success' | 'error') => {
+        setSnackbar({ show: true, message, type });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -120,6 +192,7 @@ const PractiveViewProfile = () => {
 
         if (isReadOnly) return;
         if (!profile?.id) return;
+        if (!hasChanges) return;
 
         setIsSubmitting(true);
 
@@ -143,19 +216,46 @@ const PractiveViewProfile = () => {
                 }
             })).unwrap();
 
-            alert('Profile updated successfully!');
+            // Update initial form after successful save
+            setInitialForm({ ...form });
+
+            showSnackbar('Profile updated successfully!', 'success');
+            setHasChanges(false);
         } catch (error) {
             console.error(error);
-            alert('Failed to update profile.');
+            showSnackbar('Failed to update profile. Please try again.', 'error');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleCancel = () => {
+        // Reset form to initial values
+        setForm({ ...initialForm });
+        setLogoPreview(profile?.logo || null);
+        setHasChanges(false);
     };
 
     if (isLoading && !profile) return <div className="p-8 text-center text-gray-500">Loading Profile...</div>;
 
     return (
         <div className="max-w-5xl mx-auto">
+            {/* Add custom CSS for animation */}
+            <style>{`
+                @keyframes slideDown {
+                    from {
+                        transform: translate(-50%, -100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translate(-50%, 0);
+                        opacity: 1;
+                    }
+                }
+                .animate-slide-down {
+                    animation: slideDown 0.3s ease-out;
+                }
+            `}</style>
 
             {/* 🔔 Admin View Banner */}
             {isReadOnly && (
@@ -287,17 +387,38 @@ const PractiveViewProfile = () => {
                 {/* Actions */}
                 {!isReadOnly && (
                     <div className="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
-                        <button type="button" onClick={() => window.location.reload()} className="text-sm font-medium text-gray-700 hover:text-gray-900 px-4 py-2" disabled={isSubmitting}>
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="text-sm font-medium text-gray-700 hover:text-gray-900 px-4 py-2 transition-colors"
+                            disabled={isSubmitting || !hasChanges}
+                        >
                             Cancel
                         </button>
 
-                        <button type="submit" disabled={isSubmitting} className="rounded-lg bg-orange-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-70 transition-all">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting || !hasChanges}
+                            className={`rounded-lg px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all ${hasChanges && !isSubmitting
+                                ? 'bg-orange-600 hover:bg-orange-500 cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed opacity-70'
+                                }`}
+                        >
                             {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
                         </button>
                     </div>
                 )}
 
             </form>
+
+            {/* Top Snackbar */}
+            {snackbar.show && (
+                <TopSnackbar
+                    message={snackbar.message}
+                    type={snackbar.type}
+                    onClose={() => setSnackbar({ show: false, message: '', type: 'success' })}
+                />
+            )}
         </div>
     );
 };

@@ -1,7 +1,7 @@
 import { AlertTriangle, Calendar, CheckCircle, ChevronDown, Eye, Info, Mail, Phone, Search, Stethoscope, UserRound, X, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { formatRelativeUpdatedAt, formatShortDate, formatTime, useInvoiceHistory } from "../../../../features/practice_invoice_history/invoiceHistory.hooks";
-import type { EnrichedDisputedAppointment } from "../../../../features/practice_invoice_history/invoiceHistory.type";
+import type { DisputeStatus, EnrichedDisputedAppointment } from "../../../../features/practice_invoice_history/invoiceHistory.type";
 import { useAppDispatch, useAppSelector } from "../../../../store";
 import PracticeDisputeBillingView from "../components/PracticeDisputeBillingView";
 import CurrentMonthBillingView from "../components/CurrentMonthBillingView";
@@ -269,6 +269,11 @@ const InvoiceHistoryView = () => {
   const { user } = useAppSelector((state: any) => state.auth);
   const practiceId = user?.practiceId || user?.practice_id || user?.id;
 
+  const savedStatus = localStorage.getItem('disputeStatusFilter');
+
+  const initialStatus =
+    (savedStatus as DisputeStatus | 'all') || 'pending';
+
   // Get the complete bookings (for auto-complete)
   const {
     bookings: rawBookings,
@@ -284,7 +289,7 @@ const InvoiceHistoryView = () => {
     filters,
     updateStatus,
     stats
-  } = useInvoiceHistory(practiceId, true);
+  } = useInvoiceHistory(practiceId, true, initialStatus);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
@@ -401,6 +406,12 @@ const InvoiceHistoryView = () => {
 
   const toggleRowExpansion = useCallback((id: string) => { setOpenMenuId(null); setExpandedRowId(prev => prev === id ? null : id); }, []);
 
+  // THIS IS THE KEY FUNCTION - Handle status filter changes with persistence
+  const handleStatusFilterChange = (status: DisputeStatus) => {
+    changeStatusFilter(status);
+    localStorage.setItem('disputeStatusFilter', status);
+  };
+
   const ToastNotification = ({ message, show, onClose }: { message: string; show: boolean; onClose: () => void }) => {
     useEffect(() => {
       if (show) {
@@ -445,7 +456,7 @@ const InvoiceHistoryView = () => {
         <div className="flex gap-6">
           <button
             onClick={() => {
-              changeStatusFilter('pending');
+              handleStatusFilterChange('pending');
               setExpandedRowId(null);
             }}
             className={`pb-3 text-sm font-medium transition-all flex items-center gap-2 ${filters.status === 'pending' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-slate-400'
@@ -459,7 +470,7 @@ const InvoiceHistoryView = () => {
 
           <button
             onClick={() => {
-              changeStatusFilter('approve');
+              handleStatusFilterChange('approve');
               setExpandedRowId(null);
             }}
             className={`pb-3 text-sm font-medium transition-all flex items-center gap-2 ${filters.status === 'approve' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-slate-400'
@@ -473,7 +484,7 @@ const InvoiceHistoryView = () => {
 
           <button
             onClick={() => {
-              changeStatusFilter('rejected');
+              handleStatusFilterChange('rejected');
               setExpandedRowId(null);
             }}
             className={`pb-3 text-sm font-medium transition-all flex items-center gap-2 ${filters.status === 'rejected' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-slate-400'

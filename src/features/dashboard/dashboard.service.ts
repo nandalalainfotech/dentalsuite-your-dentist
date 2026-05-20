@@ -71,7 +71,12 @@ const getProfile = async (userId: string): Promise<PracticeProfile> => {
   };
 };
 
-const updateProfile = async (id: string, payload: UpdateProfilePayload): Promise<PracticeProfile> => {
+const updateProfile = async (
+  id: string,
+  payload: UpdateProfilePayload
+): Promise<PracticeProfile> => {
+
+  // practice_info table changes
   const dbChanges = {
     practice_name: payload.practiceName,
     abn_number: payload.abnNumber,
@@ -85,12 +90,32 @@ const updateProfile = async (id: string, payload: UpdateProfilePayload): Promise
     first_name: payload.firstName,
     last_name: payload.lastName,
     mobile: payload.mobile,
-    ...(payload.logo ? { logo: payload.logo } : {}), 
+    ...(payload.logo ? { logo: payload.logo } : {}),
+  };
+
+  // accounts table changes
+  const accountChanges = {
+    practice_name: payload.practiceName,
+    abn_number: payload.abnNumber,
+    practice_type: payload.practiceType,
+    email: payload.email,
+    practice_phone: payload.phone,
+    address: payload.address,
+    city: payload.city,
+    state: payload.state,
+    postcode: payload.postcode,
+    first_name: payload.firstName,
+    last_name: payload.lastName,
+    mobile: payload.mobile,
   };
 
   const { data } = await localClient.mutate<UpdateProfileMutationResponse>({
     mutation: UPDATE_PRACTICE_PROFILE_MUTATION,
-    variables: { id: id, changes: dbChanges },
+    variables: {
+      id,
+      changes: dbChanges,
+      accountChanges,
+    },
   });
 
   const updated = data?.update_practice_info_by_pk;

@@ -91,7 +91,7 @@ const enrichDispute = (dispute: DisputedAppointment): EnrichedDisputedAppointmen
 // HOOK
 // ============================================
 
-export const useInvoiceHistory = (practiceId?: string, autoFetch: boolean = true) => {
+export const useInvoiceHistory = (practiceId?: string, autoFetch: boolean = true, initialStatus?: DisputeStatus | 'all') => {
     const dispatch = useAppDispatch();
 
     // Select state
@@ -104,6 +104,12 @@ export const useInvoiceHistory = (practiceId?: string, autoFetch: boolean = true
         totalCount,
         filters
     } = useAppSelector((state: any) => state.invoiceHistory);
+
+    useEffect(() => {
+        if (initialStatus) {
+            dispatch(setStatusFilter(initialStatus));
+        }
+    }, []);
 
     // Enriched disputes
     const enrichedDisputes = useMemo(() =>
