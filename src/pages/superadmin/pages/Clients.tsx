@@ -12,11 +12,12 @@ import {
     MoreVertical,
     Filter,
     ChevronDown,
-    Search
+    Search,
+    X
 } from "lucide-react";
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef } from '@mui/x-data-grid';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Divider } from '@mui/material';
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import { DELETE_CLIENT, GET_CLIENTS, UPDATE_PRACTICE_STATUS } from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
@@ -30,16 +31,178 @@ interface Client {
     practice_name?: string;
     address?: string;
     practice_phone?: string;
+    abn_number?: string;
+    practice_type?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    first_name?: string;
+    last_name?: string;
+    mobile?: string;
+    type?: string;
 }
 
 interface ClientsResponse {
     accounts: Client[];
 }
 
-export default function Clients() {
+// View Details Dialog Component
 
+function ViewDetailsDialog({ open, onClose, client }: { open: boolean; onClose: () => void; client: Client | null }) {
+    if (!client) return null;
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('en-AU', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-[24px] shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                {/* Sticky Header */}
+                <div className="p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-[24px] z-10">
+                    <h2 className="text-2xl font-black text-[#1a2b3c] pr-8">Practice Details</h2>
+                    <button
+                        onClick={onClose}
+                        className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-all"
+                        aria-label="Close"
+                    >
+                        <X size={20} className="text-gray-500" />
+                    </button>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Practice Information Section */}
+                    <div>
+                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
+                            Practice Information
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Name</p>
+                                <p className="text-[#1a2b3c] font-bold">{client.practice_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Email</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">ABN Number</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.abn_number || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Type</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.practice_type || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Phone</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.practice_phone || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Address Information Section */}
+                    <div>
+                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
+                            Address Information
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Address</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.address || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">City</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.city || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">State</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.state || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Postcode</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.postcode || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Primary Contact Section */}
+                    <div>
+                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
+                            Primary Contact
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">First Name</p>
+                                <p className="text-[#1a2b3c] font-bold">{client.first_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Last Name</p>
+                                <p className="text-[#1a2b3c] font-bold">{client.last_name || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Mobile</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.mobile || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Account Information Section */}
+                    <div>
+                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
+                            Account Information
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Status</p>
+                                <div className={`inline-flex items-center gap-1 px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wider 
+                                    ${client.status === 'ACTIVE' ? 'bg-green-50 text-green-600 border-green-100' :
+                                        client.status === 'VERIFIED' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                            client.status === 'PENDING' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                'bg-red-50 text-red-600 border-red-100'}`}>
+                                    {client.status}
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Created At</p>
+                                <p className="text-[#1a2b3c] font-medium">{formatDate(client.created_at)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Account Type</p>
+                                <p className="text-[#1a2b3c] font-medium">{client.type || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sticky Footer with Buttons */}
+                <div className="p-6 border-t border-gray-100 flex justify-end gap-4 sticky bottom-0 bg-white rounded-b-[24px]">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 rounded-full font-bold text-white hover:bg-orange-700 transition-all bg-orange-600"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+export default function Clients() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [, setIsProcessing] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [viewDetailsClient, setViewDetailsClient] = useState<Client | null>(null);
 
     const { data, loading, error, refetch } = useQuery<ClientsResponse>(GET_CLIENTS, {
         client: localClient
@@ -52,12 +215,6 @@ export default function Clients() {
     const [deleteClient] = useMutation(DELETE_CLIENT, {
         client: localClient
     });
-
-    const [deleteId, setDeleteId] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState('ALL');
 
     // ---------------- ACTIONS ----------------
 
@@ -100,25 +257,13 @@ export default function Clients() {
     };
 
     const handleDelete = async (id: string) => {
-
-        setIsProcessing(id);
-
-        try {
-            await deleteClient({ variables: { id } });
-
-            await refetch(); // refresh grid
-        } catch (error) {
-            console.error("Delete error:", error);
-        } finally {
-            setIsProcessing(null);
-        }
+        setDeleteId(id);
     };
 
     const confirmDelete = async () => {
         if (!deleteId) return;
 
         setIsDeleting(true);
-
         try {
             await deleteClient({ variables: { id: deleteId } });
             await refetch();
@@ -129,7 +274,6 @@ export default function Clients() {
             setIsDeleting(false);
         }
     };
-
 
     // ---------------- COLUMNS ----------------
 
@@ -192,6 +336,7 @@ export default function Clients() {
                     handleStatusUpdate={handleStatusUpdate}
                     handleAdminView={handleAdminView}
                     handleDelete={handleDelete}
+                    handleViewDetails={(client: Client) => setViewDetailsClient(client)}
                 />
             )
         }
@@ -199,9 +344,8 @@ export default function Clients() {
 
     // ---------------- ACTIONS BUTTONS ----------------
 
-    const ActionsCell = ({ row, handleStatusUpdate, handleAdminView, handleDelete }: any) => {
+    function ActionsCell({ row, handleStatusUpdate, handleAdminView, handleDelete, handleViewDetails }: any) {
         const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
         const open = Boolean(anchorEl);
 
         const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -237,7 +381,6 @@ export default function Clients() {
                         }
                     }}
                 >
-
                     {/* ACTIVE */}
                     {status === "ACTIVE" && (
                         <>
@@ -262,6 +405,15 @@ export default function Clients() {
                     {/* VERIFIED */}
                     {status === "VERIFIED" && (
                         <>
+                            {/* View Details for VERIFIED - opens popup */}
+                            <MenuItem
+                                onClick={() => { handleViewDetails(row); handleClose(); }}
+                                sx={{ gap: 1.5 }}
+                            >
+                                <ArrowRight size={16} className="text-blue-500" />
+                                <span className="font-medium text-gray-700">View Details</span>
+                            </MenuItem>
+
                             <MenuItem
                                 onClick={() => { handleStatusUpdate(row.id, 'ACTIVE'); handleClose(); }}
                                 sx={{ gap: 1.5 }}
@@ -283,6 +435,15 @@ export default function Clients() {
                     {/* PENDING */}
                     {status === "PENDING" && (
                         <>
+                            {/* View Details for PENDING - opens popup */}
+                            <MenuItem
+                                onClick={() => { handleViewDetails(row); handleClose(); }}
+                                sx={{ gap: 1.5 }}
+                            >
+                                <ArrowRight size={16} className="text-blue-500" />
+                                <span className="font-medium text-gray-700">View Details</span>
+                            </MenuItem>
+
                             <MenuItem
                                 onClick={() => { handleStatusUpdate(row.id, 'DECLINED'); handleClose(); }}
                                 sx={{ gap: 1.5 }}
@@ -367,7 +528,6 @@ export default function Clients() {
 
     return (
         <div className="w-full max-w-7xl mx-auto">
-
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -377,14 +537,14 @@ export default function Clients() {
 
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 bg-orange-500 text-white px-5 py-2 rounded-lg"
+                    className="flex items-center gap-2 bg-orange-500 text-white px-5 py-2 rounded-lg hover:bg-orange-600 transition"
                 >
                     <Plus size={18} />
                     Add Practice
                 </button>
             </div>
 
-            {/* Modal */}
+            {/* Add Practice Modal */}
             {isModalOpen && (
                 <AddPracticeForm
                     onClose={() => setIsModalOpen(false)}
@@ -395,13 +555,11 @@ export default function Clients() {
                 />
             )}
 
+            {/* Filters */}
             <div className="flex flex-col md:flex-row gap-8 mb-6">
-
                 {/* Search */}
                 <div className="flex items-center w-full md:w-[400px] bg-gray-100 rounded-full px-4 py-2 border border-gray-200 focus-within:ring-2 focus-within:ring-orange-500 transition">
-
                     <Search className="w-4 h-4 text-gray-400" />
-
                     <input
                         type="text"
                         placeholder="Search by Practice Name, Email, Location.."
@@ -411,13 +569,10 @@ export default function Clients() {
                     />
                 </div>
 
+                {/* Status Filter */}
                 <div className="relative w-[220px]">
                     <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-full px-4 py-2.5 hover:border-gray-300 focus-within:ring-2 focus-within:ring-orange-500 transition">
-
-                        {/* Icon */}
                         <Filter className="w-4 h-4 text-gray-500" />
-
-                        {/* Select */}
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -430,8 +585,6 @@ export default function Clients() {
                             <option value="INACTIVE">Inactive</option>
                             <option value="DECLINED">Declined</option>
                         </select>
-
-                        {/* Custom Arrow */}
                         <ChevronDown className="w-4 h-4 text-gray-400 pointer-events-none" />
                     </div>
                 </div>
@@ -447,9 +600,26 @@ export default function Clients() {
                         pagination: { paginationModel: { pageSize: 5 } }
                     }}
                     disableRowSelectionOnClick
+                    sx={{
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid #f0f0f0',
+                        },
+                        '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: '#fafafa',
+                            fontWeight: 'bold',
+                        }
+                    }}
                 />
             </Box>
 
+            {/* View Details Dialog */}
+            <ViewDetailsDialog
+                open={Boolean(viewDetailsClient)}
+                onClose={() => setViewDetailsClient(null)}
+                client={viewDetailsClient}
+            />
+
+            {/* Delete Confirmation Dialog */}
             <Dialog
                 open={Boolean(deleteId)}
                 onClose={() => setDeleteId(null)}

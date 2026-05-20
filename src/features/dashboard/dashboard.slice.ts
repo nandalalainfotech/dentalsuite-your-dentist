@@ -21,11 +21,16 @@ export const fetchProfile = createAsyncThunk(
 
 export const updatePracticeProfile = createAsyncThunk(
   "dashboard/updateProfile",
-  async ({ id, data }: { id: string; data: UpdateProfilePayload }, thunkAPI) => {
+  async (
+    { id, data }: { id: string; data: UpdateProfilePayload },
+    thunkAPI
+  ) => {
     try {
       return await dashboardService.updateProfile(id, data);
     } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(
+        error?.message || "Failed to update profile"
+      );
     }
   }
 );

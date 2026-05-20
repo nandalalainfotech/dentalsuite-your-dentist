@@ -22,8 +22,16 @@ export const GET_PRACTICE_PROFILE_QUERY = gql`
 `;
 
 export const UPDATE_PRACTICE_PROFILE_MUTATION = gql`
-  mutation UpdatePracticeProfile($id: uuid!, $changes: practice_info_set_input!) {
-    update_practice_info_by_pk(pk_columns: { id: $id }, _set: $changes) {
+  mutation UpdatePracticeProfile(
+    $id: uuid!
+    $changes: practice_info_set_input!
+    $accountChanges: accounts_set_input!
+  ) {
+
+    update_practice_info_by_pk(
+      pk_columns: { id: $id }
+      _set: $changes
+    ) {
       id
       practice_name
       practice_type
@@ -38,6 +46,13 @@ export const UPDATE_PRACTICE_PROFILE_MUTATION = gql`
       last_name
       mobile
       logo
+    }
+
+    update_accounts(
+      where: { id: { _eq: $id } }
+      _set: $accountChanges
+    ) {
+      affected_rows
     }
   }
 `;
