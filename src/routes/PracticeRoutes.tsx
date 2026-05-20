@@ -20,6 +20,7 @@ import PracticeInvoiceHistoryView from '../pages/practice/Invoice/pages/Practice
 import PracticeOnlineBookings from '../pages/practice/dashboard/pages/PracticeOnlineBookings';
 import PracticeSupport from '../pages/practice/dashboard/pages/PracticeSupport';
 import PracticeUserAccount from '../pages/practice/useraccount/pages/PracticeUserAccount';
+import PracticeSubscription from '../pages/practice/dashboard/pages/PracticeSubscription';
 
 
 function DashboardLayout() {
@@ -63,7 +64,8 @@ function PracticeRoutes() {
             <Route path="invoice-history" element={<PracticePermissionRoute module="invoice"><PracticeInvoiceHistoryView /></PracticePermissionRoute>} />
             <Route path="support" element={<PracticePermissionRoute module="support"><PracticeSupport /></PracticePermissionRoute>} />
             <Route path="user-accounts" element={<PracticePermissionRoute module="user_accounts"><PracticeUserAccount /></PracticePermissionRoute>} />
-
+            <Route path="subscription" element={<PracticeSubscription />}
+            />
             {/* Fallback for unknown dashboard routes */}
             <Route path="*" element={<Navigate to="view-profile" replace />} />
           </Route>

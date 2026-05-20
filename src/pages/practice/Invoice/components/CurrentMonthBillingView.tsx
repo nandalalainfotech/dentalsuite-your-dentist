@@ -1,7 +1,8 @@
 import { ChevronDown, ChevronUp, Info, Loader2, Receipt } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNewPatientBookings } from '../../../../features/practice_invoice_history/useNewPatientBookings';
-import { useAppSelector } from '../../../../store';
+import { useAppDispatch, useAppSelector } from '../../../../store';
+import { fetchPracticeSubscription } from '../../../../features/subscription/subscription.slice';
 
 // Helper functions
 const formatCurrency = (amount: number) =>
@@ -126,11 +127,28 @@ const ProductBreakdownSection: React.FC<{
 
 const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceName }) => {
     const { user } = useAppSelector((state: any) => state.auth);
+    const dispatch = useAppDispatch();
+
+    const {
+        subscription
+    } = useAppSelector(
+        (state: any) => state.subscription
+    );
 
     const practiceId = user?.practiceId || user?.practice_id || user?.id;
-    const { completedBookings, approvedDisputeBookings, cancelledBookings, dispute, loading, error } = useNewPatientBookings(practiceId, true);
 
-    const NEW_PATIENT_RATE = 10.00;
+    React.useEffect(() => {
+
+        if (!practiceId) return;
+
+        dispatch(
+            fetchPracticeSubscription(practiceId)
+        );
+
+    }, [dispatch, practiceId]);
+
+    const { completedBookings, approvedDisputeBookings, cancelledBookings, dispute, loading } = useNewPatientBookings(practiceId, true);
+
     const GST_RATE = 0.10;
 
     // Get current month's start and end dates
@@ -162,16 +180,60 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
         return date >= currentMonthStart && date <= currentMonthEnd;
     });
 
-    // Calculate current month metrics
-    const chargedCount = currentMonthCompleted.length + currentMonthDispute.length;
-    const cancelledCount = currentMonthCancelled.length;
-    const creditsCount = currentMonthApprovedDisputes.length; // Now using current month approved disputes
+    // ========================================
+    // BILLING COUNTS
+    // ========================================
 
-    const grossTotal = chargedCount * NEW_PATIENT_RATE;
-    const creditsAmount = creditsCount * NEW_PATIENT_RATE;
-    const netTotal = Math.max(0, grossTotal - creditsAmount);
-    const gstAmount = Number((netTotal * GST_RATE).toFixed(2));
-    const finalTotal = Number((netTotal + gstAmount).toFixed(2));
+    const chargedCount =
+        currentMonthCompleted.length +
+        currentMonthDispute.length;
+
+    const cancelledCount =
+        currentMonthCancelled.length;
+
+    const creditsCount =
+        currentMonthApprovedDisputes.length;
+
+    // ========================================
+    // SUBSCRIPTION
+    // ========================================
+
+    const currentPaymentType =
+        subscription?.current_payment_type;
+
+    const currentPrice =
+        Number(subscription?.current_price || 0);
+
+    // ========================================
+    // PATIENT RATE
+    // ========================================
+
+    const patientRate =
+        currentPaymentType === 'PAY_PER_PATIENT'
+            ? currentPrice
+            : 90;
+
+    // ========================================
+    // TOTALS
+    // ========================================
+
+    const patientCharges =
+        chargedCount * patientRate;
+
+    const grossTotal =
+        patientCharges;
+
+    const creditsAmount =
+        creditsCount * patientRate;
+
+    const netTotal =
+        Math.max(0, grossTotal - creditsAmount);
+
+    const gstAmount =
+        Number((netTotal * GST_RATE).toFixed(2));
+
+    const finalTotal =
+        Number((netTotal + gstAmount).toFixed(2));
 
     // Create product entries for display
     const productEntries = [
@@ -181,7 +243,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             patientName: b.patient_name,
             outcome: 'Charged' as const,
             type: 'New patient' as const,
-            amount: NEW_PATIENT_RATE
+            amount: patientRate
         })),
         ...currentMonthDispute.map((b: { id: { toString: () => any; }; appointment_date: any; patient_name: any; dispute_status: any; }) => ({
             id: b.id.toString(),
@@ -190,7 +252,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             outcome: 'Charged' as const,
             type: 'Dispute' as const,
             disputeStatus: b.dispute_status,
-            amount: NEW_PATIENT_RATE
+            amount: patientRate
         })),
         ...currentMonthCancelled.map((b: { id: { toString: () => any; }; appointment_date: any; patient_name: any; }) => ({
             id: b.id.toString(),
@@ -207,7 +269,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             patientName: b.patient_name,
             outcome: 'Refund' as const,
             type: 'Credit (Dispute Approved)' as const,
-            amount: -NEW_PATIENT_RATE,
+            amount: -patientRate,
             originalAppointmentDate: b.appointment_date // Keep for reference
         }))
     ];
@@ -216,13 +278,13 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
         {
             label: 'Total appointments',
             count: currentMonthCompleted.length + currentMonthDispute.length + currentMonthCancelled.length,
-            amount: (currentMonthCompleted.length + currentMonthDispute.length + currentMonthCancelled.length) * NEW_PATIENT_RATE,
+            amount: (currentMonthCompleted.length + currentMonthDispute.length + currentMonthCancelled.length) * patientRate,
             type: 'neutral' as const
         },
         {
             label: 'Cancellations',
             count: cancelledCount,
-            amount: -(cancelledCount * NEW_PATIENT_RATE),
+            amount: -(cancelledCount * patientRate),
             type: 'error' as const
         },
         {
@@ -246,7 +308,6 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     ];
 
     const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-    const invoiceNumber = `CUR-${now.getFullYear()}${now.toLocaleString('default', { month: 'short' }).toUpperCase()}-001`;
 
     if (loading) {
         return (
@@ -271,16 +332,31 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                             {monthName} - Real-time billing summary (updated until {currentMonthEnd.toLocaleDateString('en-ZA')})
                         </p>
                     </div>
+                    {currentPaymentType === 'PAY_PER_MONTH' && (
+                        <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200">
+
+                            <p className="text-xs text-blue-600 font-semibold">
+                                Monthly Subscription
+                            </p>
+
+                            <p className="text-sm text-blue-800 font-bold">
+                                Base Plan: {formatCurrency(currentPrice)}
+                            </p>
+
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-12">
+                <div className="space-y-6">
+
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
                         <span className="text-sm text-green-700 font-semibold">
                             Billing Period: {currentMonthStart.toLocaleDateString('en-ZA')} - {currentMonthEnd.toLocaleDateString('en-ZA')}
                         </span>
                     </div>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-12">
-                <div className="space-y-8">
                     <div className="bg-gray-50 border border-gray-100 rounded-lg p-5 text-xs text-gray-500 leading-relaxed">
                         Current month billing information for {practiceName}. This includes all appointments, cancellations, and credits from disputes approved in the current month.
                     </div>
@@ -306,7 +382,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                                 </div>
                             </div>
                         ))}
-                        <div className="flex items-center justify-between py-5 border-t border-gray-200 mt-2">
+                        <div className="flex items-center justify-between py-5 border-t border-gray-400 ">
                             <span className="text-sm font-bold text-gray-600">Total (including GST)</span>
                             <div className="flex gap-12">
                                 <span className="text-sm font-bold w-8 text-right"></span>

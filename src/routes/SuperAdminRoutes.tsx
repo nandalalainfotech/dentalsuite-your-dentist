@@ -6,6 +6,7 @@ import Usersettings from "../pages/superadmin/pages/Usersettings";
 import SuperAdminSupport from "../pages/superadmin/pages/SuperAdminSupport";
 import AllServices from "../pages/superadmin/pages/AllServices";
 import SuperadminInvoiceDispute from "../pages/superadmin/pages/SuperadminInvoiceDispute";
+import PaymentSettings from "../pages/superadmin/pages/PaymentSettings";
 
 export default function SuperAdminRoutes() {
   return (
@@ -26,6 +27,7 @@ export default function SuperAdminRoutes() {
         <Route path="support" element={<SuperAdminSupport />} />
         <Route path="allservices" element={<AllServices />} />
         <Route path="invoice-dispute" element={<SuperadminInvoiceDispute />} />
+        <Route path="payment-settings" element={<PaymentSettings />} />
       </Route>
     </Routes>
   );

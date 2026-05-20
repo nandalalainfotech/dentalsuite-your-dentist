@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
     Briefcase,
     FileText,
+    Receipt,
     Settings,
     Users,
     X
@@ -73,6 +74,14 @@ export default function SuperAdminSidebar({
                     <>
                         <div className={getIconClass(isActive)}><FileText size={18} /></div>
                         <span>Invoice Dispute</span>
+                    </>
+                )}
+            </NavLink>
+            <NavLink to="/superadmin/payment-settings" className={getLinkClass} onClick={onClose}>
+                {({ isActive }) => (
+                    <>
+                        <div className={getIconClass(isActive)}><Receipt size={18} /></div>
+                        <span>Payment Settings</span>
                     </>
                 )}
             </NavLink>
