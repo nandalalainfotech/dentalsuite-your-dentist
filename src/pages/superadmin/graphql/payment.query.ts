@@ -71,4 +71,73 @@ export const UPDATE_PAYMENT_SETTINGS = gql`
     }
   }
 `;
+export const GET_COUPONS = gql`
+    query GetCoupons {
+        coupons(order_by: { created_at: desc }) {
+            id
+            code
+            description
+            discount_type
+            discount_value
+            free_months
+            duration_months
+            is_active
+            valid_from
+            valid_until
+            max_uses
+            used_count
+            created_at
+        }
+    }
+`;
 
+export const CREATE_COUPON = gql`
+    mutation CreateCoupon(
+        $code: String!
+        $description: String
+        $discount_type: String!
+        $discount_value: numeric
+        $free_months: Int
+        $duration_months: Int
+        $is_active: Boolean
+        $valid_from: date
+        $valid_until: date
+        $max_uses: Int
+    ) {
+        insert_coupons_one(
+            object: {
+                code: $code
+                description: $description
+                discount_type: $discount_type
+                discount_value: $discount_value
+                free_months: $free_months
+                duration_months: $duration_months
+                is_active: $is_active
+                valid_from: $valid_from
+                valid_until: $valid_until
+                max_uses: $max_uses
+                practice_usage_json: "{}"
+            }
+        ) {
+            id
+            code
+        }
+    }
+`;
+
+export const UPDATE_COUPON = gql`
+    mutation UpdateCoupon($id: uuid!, $input: coupons_set_input!) {
+        update_coupons_by_pk(pk_columns: { id: $id }, _set: $input) {
+            id
+            code
+        }
+    }
+`;
+
+export const DELETE_COUPON = gql`
+    mutation DeleteCoupon($id: uuid!) {
+        delete_coupons_by_pk(id: $id) {
+            id
+        }
+    }
+`;
