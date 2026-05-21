@@ -75,3 +75,100 @@ export const UPSERT_PRACTICE_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const GET_ALL_COUPONS = gql`
+  query GetAllCoupons {
+    coupons(where: { is_active: { _eq: true } }, order_by: { created_at: desc }) {
+      id
+      code
+      description
+      discount_type
+      discount_value
+      free_months
+      duration_months
+      is_active
+      valid_from
+      valid_until
+      max_uses
+      used_count
+      practice_usage_json
+    }
+  }
+`;
+
+export const ASSIGN_COUPON_TO_PRACTICE = gql`
+  mutation AssignCouponToPractice(
+    $id: uuid!
+    $used_count: Int!
+    $practice_usage_json: jsonb!
+  ) {
+    update_coupons_by_pk(
+      pk_columns: { id: $id }
+      _set: { 
+        used_count: $used_count, 
+        practice_usage_json: $practice_usage_json 
+      }
+    ) {
+      id
+      used_count
+      practice_usage_json
+    }
+  }
+`;
+
+export const REMOVE_COUPON_FROM_PRACTICE = gql`
+  mutation RemoveCouponFromPractice(
+    $id: uuid!
+    $used_count: Int!
+    $practice_usage_json: jsonb!
+  ) {
+    update_coupons_by_pk(
+      pk_columns: { id: $id }
+      _set: { 
+        used_count: $used_count, 
+        practice_usage_json: $practice_usage_json 
+      }
+    ) {
+      id
+      used_count
+      practice_usage_json
+    }
+  }
+`;
+
+
+export const VALIDATE_COUPON_BY_CODE = gql`
+  query ValidateCouponByCode($code: String!) {
+    coupons(where: { code: { _eq: $code }, is_active: { _eq: true } }) {
+      id
+      code
+      description
+      discount_type
+      discount_value
+      free_months
+      duration_months
+      is_active
+      valid_from
+      valid_until
+      max_uses
+      used_count
+      practice_usage_json
+    }
+  }
+`;
+
+
+export const GET_PRACTICE_COUPONS = gql`
+  query GetPracticeCoupons {
+    coupons(where: { is_active: { _eq: true } }) {
+      id
+      code
+      description
+      discount_type
+      discount_value
+      free_months
+      duration_months
+      practice_usage_json
+    }
+  }
+`;

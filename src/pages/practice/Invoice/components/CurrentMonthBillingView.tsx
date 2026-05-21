@@ -1,14 +1,35 @@
-import { ChevronDown, ChevronUp, Info, Loader2, Receipt } from 'lucide-react';
-import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Info, Loader2, Receipt, Tag } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import { useNewPatientBookings } from '../../../../features/practice_invoice_history/useNewPatientBookings';
 import { useAppDispatch, useAppSelector } from '../../../../store';
 import { fetchPracticeSubscription } from '../../../../features/subscription/subscription.slice';
+import { useQuery } from '@apollo/client/react';
+import { localClient } from '../../../../api/apollo/localClient';
+import { GET_PRACTICE_COUPONS } from '../../dashboard/graphql/subscription.query';
+
+interface Coupon {
+    id: string;
+    code: string;
+    description: string | null;
+    discount_type: 'percentage' | 'fixed' | 'free_months';
+    discount_value: number | null;
+    free_months: number | null;
+    duration_months: number | null;
+    practice_usage_json: Record<string, any>;
+}
 
 // Helper functions
-const formatCurrency = (amount: number) =>
-    amount < 0
-        ? `-$${Math.abs(amount).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`
-        : `$${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`;
+const formatCurrency = (amount: number) => {
+    const value = Number(amount || 0);
+
+    const formatted = value
+        .toFixed(2)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    return value < 0
+        ? `-$${formatted.replace('-', '')}`
+        : `$${formatted}`;
+};
 
 const formatDate = (dateStr: string) => {
     if (dateStr === 'Pending' || dateStr === 'Voided') return dateStr;
@@ -29,7 +50,7 @@ const ProductBreakdownSection: React.FC<{
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    const filteredDetails = details.filter(item =>
+    const filteredDetails = details.filter((item: { patientName: string }) =>
         item.patientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -79,7 +100,7 @@ const ProductBreakdownSection: React.FC<{
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {paginatedDetails.map((item) => (
+                                    {paginatedDetails.map((item: { id: string; date: string; patientName: string; outcome: string }) => (
                                         <tr key={item.id} className="hover:bg-gray-50/50">
                                             <td className="px-6 py-4 text-gray-600">{formatDate(item.date)}</td>
                                             <td className="px-6 py-4 text-gray-900 font-medium">{item.patientName}</td>
@@ -149,6 +170,51 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
 
     const { completedBookings, approvedDisputeBookings, cancelledBookings, dispute, loading } = useNewPatientBookings(practiceId, true);
 
+    // =========================
+    // FETCH ALL COUPONS
+    // =========================
+    const { data: couponsData } = useQuery<{ coupons: Coupon[] }>(GET_PRACTICE_COUPONS, {
+        client: localClient,
+        fetchPolicy: 'network-only',
+    });
+
+    const allCoupons = couponsData?.coupons || [];
+
+    // =========================
+    // FIND ACTIVE COUPON FOR THIS PRACTICE
+    // =========================
+    const activeCoupon = useMemo(() => {
+        if (!allCoupons.length || !practiceId) return null;
+
+        const now = new Date();
+        const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+        for (const coupon of allCoupons) {
+            const practiceData = coupon.practice_usage_json?.[practiceId];
+            if (!practiceData) continue;
+
+            // Check if coupon has expired for this practice
+            if (practiceData.expiresAt) {
+                const expiresAt = new Date(practiceData.expiresAt);
+                if (expiresAt < now) continue; // Expired, skip
+            }
+
+            // Check if this month is in the periods array (for non-expiry coupons)
+            if (!practiceData.expiresAt && !practiceData.periods?.includes(currentMonthKey)) {
+                continue;
+            }
+
+            // Valid coupon found!
+            return {
+                ...coupon,
+                appliedAt: practiceData.appliedAt,
+                expiresAt: practiceData.expiresAt,
+            };
+        }
+
+        return null;
+    }, [allCoupons, practiceId]);
+
     const GST_RATE = 0.10;
 
     // Get current month's start and end dates
@@ -207,33 +273,73 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     // ========================================
     // PATIENT RATE
     // ========================================
+    const patientRate = currentPaymentType === 'PAY_PER_PATIENT' ? currentPrice : 90;
 
-    const patientRate =
-        currentPaymentType === 'PAY_PER_PATIENT'
+    // ========================================
+    // TOTALS (BEFORE COUPON)
+    // ========================================
+
+    const patientCharges = chargedCount * patientRate;
+    const creditsAmount = creditsCount * patientRate;
+    const patientNetTotal = Math.max(0, patientCharges - creditsAmount);
+    // const netTotalBeforeCoupon = Math.max(0, grossTotal - creditsAmount);
+    const netTotalBeforeCoupon = patientNetTotal;
+    // const netTotalBeforeCoupon = currentPaymentType === 'PAY_PER_MONTH'
+    //     ? currentPrice  // Fixed monthly fee
+    //     : Math.max(0, patientCharges - creditsAmount);  // Per-patient calculation
+
+    // ========================================
+    // COUPON DISCOUNT CALCULATION
+    // ========================================
+    const { discountAmount, discountDescription } = useMemo(() => {
+        if (!activeCoupon) {
+            return { discountAmount: 0, discountDescription: '' };
+        }
+
+        // For PAY_PER_MONTH: discount applies to currentPrice (shown in badge)
+        // For PAY_PER_PATIENT: discount applies to patient calculations (shown in breakdown)
+        const discountBase = currentPaymentType === 'PAY_PER_MONTH'
             ? currentPrice
-            : 90;
+            : patientNetTotal;
+
+        let discount = 0;
+        let description = '';
+
+        switch (activeCoupon.discount_type) {
+            case 'percentage':
+                discount = discountBase * ((activeCoupon.discount_value || 0) / 100);
+                description = `${activeCoupon.discount_value}% off`;
+                break;
+            case 'fixed':
+                discount = Math.min(discountBase, activeCoupon.discount_value || 0);
+                description = `$${activeCoupon.discount_value} off`;
+                break;
+            case 'free_months':
+                discount = discountBase;
+                description = `${activeCoupon.free_months} months free`;
+                break;
+        }
+
+        discount = Math.min(discount, discountBase);
+
+        return {
+            discountAmount: Number(discount.toFixed(2)),
+            discountDescription: description
+        };
+    }, [activeCoupon, patientNetTotal, currentPaymentType, currentPrice]);
 
     // ========================================
-    // TOTALS
+    // FINAL TOTALS (AFTER COUPON)
     // ========================================
+    const netTotal = currentPaymentType === 'PAY_PER_MONTH'
+        ? patientNetTotal  // ← FIX: Always use patientNetTotal for breakdown
+        : Number((patientNetTotal - discountAmount).toFixed(2));
 
-    const patientCharges =
-        chargedCount * patientRate;
+    // Monthly subscription discounted price (only for badge)
+    const monthlyDiscountedPrice = Number((currentPrice - discountAmount).toFixed(2));
 
-    const grossTotal =
-        patientCharges;
-
-    const creditsAmount =
-        creditsCount * patientRate;
-
-    const netTotal =
-        Math.max(0, grossTotal - creditsAmount);
-
-    const gstAmount =
-        Number((netTotal * GST_RATE).toFixed(2));
-
-    const finalTotal =
-        Number((netTotal + gstAmount).toFixed(2));
+    const gstAmount = Number((netTotal * GST_RATE).toFixed(2));
+    const finalTotal = Number((netTotal + gstAmount).toFixed(2));
 
     // Create product entries for display
     const productEntries = [
@@ -293,6 +399,16 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             amount: -creditsAmount,
             type: 'success' as const
         },
+        // Only show coupon line for PAY_PER_PATIENT
+        ...(activeCoupon && currentPaymentType !== 'PAY_PER_MONTH' ? [{
+            label: `Discount (${activeCoupon.code})`,
+            count: 0,
+            amount: -discountAmount,
+            type: 'success' as const,
+            isCoupon: true,
+            originalAmount: patientNetTotal,
+            discountedAmount: netTotal,
+        }] : []),
         {
             label: 'Total (before GST)',
             count: 0,
@@ -332,25 +448,53 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                             {monthName} - Real-time billing summary (updated until {currentMonthEnd.toLocaleDateString('en-ZA')})
                         </p>
                     </div>
-                    {currentPaymentType === 'PAY_PER_MONTH' && (
-                        <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200">
-
-                            <p className="text-xs text-blue-600 font-semibold">
-                                Monthly Subscription
-                            </p>
-
-                            <p className="text-sm text-blue-800 font-bold">
-                                Base Plan: {formatCurrency(currentPrice)}
-                            </p>
-
-                        </div>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {/* Active Coupon Badge */}
+                        {activeCoupon && (
+                            <div className="px-4 py-2 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-2">
+                                <Tag size={14} className="text-purple-600" />
+                                <div>
+                                    <p className="text-xs text-purple-600 font-semibold">
+                                        {activeCoupon.code} Active
+                                    </p>
+                                    <p className="text-[10px] text-purple-500">
+                                        {discountDescription}
+                                        {activeCoupon.expiresAt && (
+                                            <> — Expires: {new Date(activeCoupon.expiresAt).toLocaleDateString('en-ZA', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: '2-digit'
+                                            })}</>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {currentPaymentType === 'PAY_PER_MONTH' && (
+                            <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200">
+                                <p className="text-xs text-blue-600 font-semibold">Monthly Subscription</p>
+                                {activeCoupon ? (
+                                    <div>
+                                        <p className="text-xs text-blue-400 line-through">
+                                            Base Plan: {formatCurrency(currentPrice)}
+                                        </p>
+                                        <p className="text-sm text-blue-800 font-bold">
+                                            {formatCurrency(monthlyDiscountedPrice)} <span className="text-[10px] text-purple-500">({discountDescription})</span>
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-blue-800 font-bold">
+                                        Base Plan: {formatCurrency(currentPrice)}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-20 gap-y-12">
-                <div className="space-y-6">
-
+                <div className="space-y-4">
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
                         <span className="text-sm text-green-700 font-semibold">
                             Billing Period: {currentMonthStart.toLocaleDateString('en-ZA')} - {currentMonthEnd.toLocaleDateString('en-ZA')}
@@ -360,6 +504,32 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                     <div className="bg-gray-50 border border-gray-100 rounded-lg p-5 text-xs text-gray-500 leading-relaxed">
                         Current month billing information for {practiceName}. This includes all appointments, cancellations, and credits from disputes approved in the current month.
                     </div>
+
+                    {/* Active Coupon Info */}
+                    {activeCoupon && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Tag size={16} className="text-purple-600" />
+                                <span className="text-sm font-semibold text-purple-800">
+                                    Active Discount: {activeCoupon.code}
+                                </span>
+                            </div>
+                            {/* <p className="text-xs text-purple-600">
+                                {discountDescription}
+                                {activeCoupon.description && ` — ${activeCoupon.description}`}
+                            </p> */}
+                            {activeCoupon.expiresAt && (
+                                <p className="text-xs text-purple-500 mt-1">
+                                    Expires: {new Date(activeCoupon.expiresAt).toLocaleDateString('en-ZA', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: '2-digit'
+                                    })}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-[140px_1fr] gap-y-6 text-sm">
                         <div className="text-gray-500 font-medium">Practice name</div>
                         <div className="text-gray-900 font-semibold">{practiceName}</div>
@@ -371,18 +541,33 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                 <div>
                     <h3 className="text-lg text-gray-900 mb-2 font-medium">Current Month Summary</h3>
                     <div className="bg-white">
-                        {breakdownItems.map((item, index) => (
+                        {breakdownItems.map((item: any, index) => (
                             <div key={index} className="flex items-center justify-between py-4 border-b border-gray-100 text-sm">
-                                <span className="text-gray-600 font-medium">{item.label}</span>
+                                <span className={`font-medium ${item.isCoupon ? 'text-purple-600' : 'text-gray-600'}`}>
+                                    {item.label}
+                                </span>
                                 <div className="flex gap-12">
-                                    <span>{item.label.includes('GST') || item.label.includes('Total (before GST)') ? '' : item.count}</span>
-                                    <span className={`w-24 text-right font-medium ${item.amount < 0 ? 'text-red-500' : item.amount > 0 ? 'text-emerald-600' : ''}`}>
-                                        {formatCurrency(item.amount)}
+                                    <span>
+                                        {item.label.includes('GST') || item.label.includes('Total (before GST)') || item.isCoupon ? '' : item.count}
                                     </span>
+                                    {item.isCoupon ? (
+                                        <div className="w-24 text-right">
+                                            <span className="line-through text-gray-400 mr-1 text-xs">
+                                                {formatCurrency(item.originalAmount)}
+                                            </span>
+                                            <span className="font-semibold text-purple-600">
+                                                {formatCurrency(item.discountedAmount)}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className={`w-24 text-right font-medium ${item.amount < 0 ? 'text-red-500' : item.amount > 0 ? 'text-emerald-600' : ''}`}>
+                                            {formatCurrency(item.amount)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         ))}
-                        <div className="flex items-center justify-between py-5 border-t border-gray-400 ">
+                        <div className="flex items-center justify-between py-5 border-t border-gray-400">
                             <span className="text-sm font-bold text-gray-600">Total (including GST)</span>
                             <div className="flex gap-12">
                                 <span className="text-sm font-bold w-8 text-right"></span>
