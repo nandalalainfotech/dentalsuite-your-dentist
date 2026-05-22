@@ -12,16 +12,18 @@ import {
     MoreVertical,
     Filter,
     ChevronDown,
-    Search,
-    X
-} from "lucide-react";
+    Search} from "lucide-react";
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef } from '@mui/x-data-grid';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Divider } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { Menu, MenuItem, IconButton } from "@mui/material";
-import { DELETE_CLIENT, GET_CLIENTS, UPDATE_PRACTICE_STATUS } from "../graphql/clients.query";
+import {
+    DELETE_CLIENT,
+    GET_CLIENTS,
+    UPDATE_PRACTICE_STATUS} from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
 import AddPracticeForm from '../components/AddPracticeForm';
+import PracticeDetailsDialog from '../components/PracticeDetailsDialog';
 
 interface Client {
     id: string;
@@ -46,155 +48,6 @@ interface ClientsResponse {
     accounts: Client[];
 }
 
-// View Details Dialog Component
-
-function ViewDetailsDialog({ open, onClose, client }: { open: boolean; onClose: () => void; client: Client | null }) {
-    if (!client) return null;
-
-    const formatDate = (dateStr: string) => {
-        if (!dateStr) return 'N/A';
-        return new Date(dateStr).toLocaleDateString('en-AU', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-[24px] shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-                {/* Sticky Header */}
-                <div className="p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-[24px] z-10">
-                    <h2 className="text-2xl font-black text-[#1a2b3c] pr-8">Practice Details</h2>
-                    <button
-                        onClick={onClose}
-                        className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-all"
-                        aria-label="Close"
-                    >
-                        <X size={20} className="text-gray-500" />
-                    </button>
-                </div>
-
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Practice Information Section */}
-                    <div>
-                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
-                            Practice Information
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Name</p>
-                                <p className="text-[#1a2b3c] font-bold">{client.practice_name || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Email</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.email || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">ABN Number</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.abn_number || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Type</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.practice_type || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Practice Phone</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.practice_phone || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Address Information Section */}
-                    <div>
-                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
-                            Address Information
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Address</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.address || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">City</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.city || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">State</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.state || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Postcode</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.postcode || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Primary Contact Section */}
-                    <div>
-                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
-                            Primary Contact
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">First Name</p>
-                                <p className="text-[#1a2b3c] font-bold">{client.first_name || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Last Name</p>
-                                <p className="text-[#1a2b3c] font-bold">{client.last_name || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Mobile</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.mobile || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Account Information Section */}
-                    <div>
-                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
-                            Account Information
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Status</p>
-                                <div className={`inline-flex items-center gap-1 px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-wider 
-                                    ${client.status === 'ACTIVE' ? 'bg-green-50 text-green-600 border-green-100' :
-                                        client.status === 'VERIFIED' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                            client.status === 'PENDING' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                'bg-red-50 text-red-600 border-red-100'}`}>
-                                    {client.status}
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Created At</p>
-                                <p className="text-[#1a2b3c] font-medium">{formatDate(client.created_at)}</p>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase font-bold mb-1">Account Type</p>
-                                <p className="text-[#1a2b3c] font-medium">{client.type || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sticky Footer with Buttons */}
-                <div className="p-6 border-t border-gray-100 flex justify-end gap-4 sticky bottom-0 bg-white rounded-b-[24px]">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-3 rounded-full font-bold text-white hover:bg-orange-700 transition-all bg-orange-600"
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 export default function Clients() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [, setIsProcessing] = useState<string | null>(null);
@@ -202,7 +55,7 @@ export default function Clients() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [viewDetailsClient, setViewDetailsClient] = useState<Client | null>(null);
+    const [PracticeDetailsClient, setPracticeDetailsClient] = useState<Client | null>(null);
 
     const { data, loading, error, refetch } = useQuery<ClientsResponse>(GET_CLIENTS, {
         client: localClient
@@ -336,7 +189,7 @@ export default function Clients() {
                     handleStatusUpdate={handleStatusUpdate}
                     handleAdminView={handleAdminView}
                     handleDelete={handleDelete}
-                    handleViewDetails={(client: Client) => setViewDetailsClient(client)}
+                    handleViewDetails={(client: Client) => setPracticeDetailsClient(client)}
                 />
             )
         }
@@ -411,7 +264,7 @@ export default function Clients() {
                                 sx={{ gap: 1.5 }}
                             >
                                 <ArrowRight size={16} className="text-blue-500" />
-                                <span className="font-medium text-gray-700">View Details</span>
+                                <span className="font-medium text-gray-700">Practice Details</span>
                             </MenuItem>
 
                             <MenuItem
@@ -441,7 +294,7 @@ export default function Clients() {
                                 sx={{ gap: 1.5 }}
                             >
                                 <ArrowRight size={16} className="text-blue-500" />
-                                <span className="font-medium text-gray-700">View Details</span>
+                                <span className="font-medium text-gray-700">Practice Details</span>
                             </MenuItem>
 
                             <MenuItem
@@ -613,10 +466,9 @@ export default function Clients() {
             </Box>
 
             {/* View Details Dialog */}
-            <ViewDetailsDialog
-                open={Boolean(viewDetailsClient)}
-                onClose={() => setViewDetailsClient(null)}
-                client={viewDetailsClient}
+            <PracticeDetailsDialog
+                onClose={() => setPracticeDetailsClient(null)}
+                client={PracticeDetailsClient}
             />
 
             {/* Delete Confirmation Dialog */}

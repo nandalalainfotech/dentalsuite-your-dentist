@@ -85,7 +85,7 @@ export default function PracticeSubscription() {
     // =========================
     // FETCH COUPONS
     // =========================
-    const { data: couponsData, loading: couponsLoading } = useQuery<{ coupons: Coupon[] }>(GET_ALL_COUPONS, {
+    const { data: couponsData } = useQuery<{ coupons: Coupon[] }>(GET_ALL_COUPONS, {
         client: localClient,
         fetchPolicy: 'network-only',
     });
@@ -141,29 +141,18 @@ export default function PracticeSubscription() {
         return null;
     }, [coupons, practiceId]);
 
-    // =========================
-    // FILTER AVAILABLE COUPONS (not assigned to this practice)
-    // =========================
-    const availableCoupons = useMemo(() => {
-        return coupons.filter(coupon => {
-            // Not already assigned to this practice
-            const practiceData = coupon.practice_usage_json?.[practiceId];
-            if (practiceData?.expiresAt) {
-                const expiresAt = new Date(practiceData.expiresAt);
-                if (expiresAt > new Date()) return false; // Still active
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return 'N/A';
+
+        return new Date(dateStr).toLocaleDateString(
+            'en-AU',
+            {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
             }
-
-            // Check max uses
-            if (coupon.max_uses && coupon.used_count >= coupon.max_uses) return false;
-
-            // Check valid dates
-            const today = new Date().toISOString().split('T')[0];
-            if (coupon.valid_until && coupon.valid_until < today) return false;
-            if (coupon.valid_from && coupon.valid_from > today) return false;
-
-            return true;
-        });
-    }, [coupons, practiceId]);
+        );
+    };
 
     /* =========================================
         STATES
@@ -191,8 +180,24 @@ export default function PracticeSubscription() {
     }, [subscription]);
 
     /* =========================================
-        EXPIRY
+        START & EXPIRY & PENDING START ADN END
     ========================================= */
+
+    const startDate = useMemo(() => {
+
+        if (subscription?.subscription_start_date) {
+            return new Date(
+                subscription.subscription_start_date
+            );
+        }
+
+        const start = new Date();
+
+        start.setDate(start.getDate() + 30);
+
+        return start;
+
+    }, [subscription]);
 
     const expiryDate = useMemo(() => {
         if (subscription?.subscription_end_date) {
@@ -203,6 +208,30 @@ export default function PracticeSubscription() {
         expiry.setDate(now.getDate() + 30);
         return expiry;
     }, [subscription]);
+
+    const pendingStartDate = useMemo(() => {
+
+        if (subscription?.pending_start_date) {
+            return new Date(
+                subscription.pending_start_date
+            );
+        }
+
+        return null;
+
+    }, [subscription]);
+
+    const pendingExpiryDate = useMemo(() => {
+
+        if (!pendingStartDate) return null;
+
+        const expiry = new Date(pendingStartDate);
+
+        expiry.setDate(expiry.getDate() + 30);
+
+        return expiry;
+
+    }, [pendingStartDate]);
 
     /* =========================================
         REMAINING DAYS
@@ -237,10 +266,6 @@ export default function PracticeSubscription() {
             toast.error('Failed to save subscription');
         }
     };
-
-    /* =========================================
-        ASSIGN COUPON
-    ========================================= */
 
     /* =========================================
     VALIDATE COUPON CODE
@@ -531,15 +556,87 @@ export default function PracticeSubscription() {
                                 <h3 className="text-lg font-semibold">Pay Per Patient</h3>
                                 <p className="text-sm text-gray-500">Billing based on patients</p>
                                 {isSelected('PAY_PER_PATIENT') && (
+
                                     <div className="mt-4 space-y-2">
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <CalendarDays className="w-4 h-4 text-orange-500" />
-                                            <span>Expiry: {expiryDate?.toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-green-600">
-                                            <Clock3 className="w-4 h-4" />
-                                            <span>{remainingDays} days remaining</span>
-                                        </div>
+
+                                        {isActivated('PAY_PER_PATIENT') && (
+
+                                            <>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-orange-500" />
+
+                                                    <span>
+
+                                                        {formatDate(
+                                                            startDate.toISOString()
+                                                        )} to{' '}
+
+                                                        {formatDate(
+                                                            expiryDate.toISOString()
+                                                        )}
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-sm text-green-600">
+
+                                                    <Clock3 className="w-4 h-4" />
+
+                                                    <span>
+                                                        {remainingDays} days remaining
+                                                    </span>
+
+                                                </div>
+
+                                            </>
+                                        )}
+
+                                        {hasPendingChange('PAY_PER_PATIENT') && (
+
+                                            <>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+
+                                                    <span>
+
+                                                        Starts:{' '}
+
+                                                        {pendingStartDate
+                                                            ? formatDate(
+                                                                pendingStartDate.toISOString()
+                                                            )
+                                                            : 'N/A'}
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+
+                                                    <span>
+
+                                                        Expires:{' '}
+
+                                                        {pendingExpiryDate
+                                                            ? formatDate(
+                                                                pendingExpiryDate.toISOString()
+                                                            )
+                                                            : 'N/A'}
+
+                                                    </span>
+
+                                                </div>
+
+                                            </>
+                                        )}
+
                                     </div>
                                 )}
                             </button>
@@ -572,15 +669,87 @@ export default function PracticeSubscription() {
                                 <h3 className="text-lg font-semibold">Pay Per Month</h3>
                                 <p className="text-sm text-gray-500">30 days subscription</p>
                                 {isSelected('PAY_PER_MONTH') && (
+
                                     <div className="mt-4 space-y-2">
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <CalendarDays className="w-4 h-4 text-blue-500" />
-                                            <span>Expiry: {expiryDate?.toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-orange-600">
-                                            <Clock3 className="w-4 h-4" />
-                                            <span>{remainingDays} days remaining</span>
-                                        </div>
+
+                                        {isActivated('PAY_PER_MONTH') && (
+
+                                            <>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-blue-500" />
+
+                                                    <span>
+
+                                                        {formatDate(
+                                                            startDate.toISOString()
+                                                        )} to{' '}
+
+                                                        {formatDate(
+                                                            expiryDate.toISOString()
+                                                        )}
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-sm text-orange-600">
+
+                                                    <Clock3 className="w-4 h-4" />
+
+                                                    <span>
+                                                        {remainingDays} days remaining
+                                                    </span>
+
+                                                </div>
+
+                                            </>
+                                        )}
+
+                                        {hasPendingChange('PAY_PER_MONTH') && (
+
+                                            <>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+
+                                                    <span>
+
+                                                        Starts:{' '}
+
+                                                        {pendingStartDate
+                                                            ? formatDate(
+                                                                pendingStartDate.toISOString()
+                                                            )
+                                                            : 'N/A'}
+
+                                                    </span>
+
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-sm">
+
+                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+
+                                                    <span>
+
+                                                        Expires:{' '}
+
+                                                        {pendingExpiryDate
+                                                            ? formatDate(
+                                                                pendingExpiryDate.toISOString()
+                                                            )
+                                                            : 'N/A'}
+
+                                                    </span>
+
+                                                </div>
+
+                                            </>
+                                        )}
+
                                     </div>
                                 )}
                             </button>
