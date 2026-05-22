@@ -239,12 +239,54 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     });
 
     // NEW LOGIC: Get approved disputes that were approved in CURRENT month (based on updated_at)
-    const currentMonthApprovedDisputes = approvedDisputeBookings.filter((booking: { updated_at: string | number | Date; appointment_date: string | number | Date; }) => {
+    // const currentMonthApprovedDisputes = approvedDisputeBookings.filter((booking: { updated_at: string | number | Date; appointment_date: string | number | Date; }) => {
+    //     // Use updated_at date when superadmin approved the dispute
+    //     const approvalDate = booking.updated_at || booking.appointment_date;
+    //     const date = new Date(approvalDate);
+    //     return date >= currentMonthStart && date <= currentMonthEnd;
+    // });
+
+    // NEW LOGIC: Get approved disputes that were approved in CURRENT month (based on updated_at)
+    // EXCEPT: If appointment date is ALSO in current month, defer to next month
+    const currentMonthApprovedDisputes = approvedDisputeBookings.filter((booking: {
+        updated_at: string | number | Date;
+        appointment_date: string | number | Date;
+    }) => {
         // Use updated_at date when superadmin approved the dispute
         const approvalDate = booking.updated_at || booking.appointment_date;
-        const date = new Date(approvalDate);
-        return date >= currentMonthStart && date <= currentMonthEnd;
+        const approvalDateObj = new Date(approvalDate);
+        const appointmentDateObj = new Date(booking.appointment_date);
+
+        // Check if approval happened in current month
+        const isApprovedInCurrentMonth = approvalDateObj >= currentMonthStart && approvalDateObj <= currentMonthEnd;
+
+        if (!isApprovedInCurrentMonth) return false;
+
+        // Check if appointment date is ALSO in current month
+        const isAppointmentInCurrentMonth = appointmentDateObj >= currentMonthStart && appointmentDateObj <= currentMonthEnd;
+
+        // If appointment is in current month AND approved in current month -> defer to next month (exclude from current)
+        // If appointment is from previous months (Feb, Mar, Apr) -> include in current month
+        return !isAppointmentInCurrentMonth;
     });
+
+    // Track deferred credits (appointment in current month, approved in current month)
+    const deferredToNextMonthDisputes = approvedDisputeBookings.filter((booking: {
+        updated_at: string | number | Date;
+        appointment_date: string | number | Date;
+    }) => {
+        const approvalDate = booking.updated_at || booking.appointment_date;
+        const approvalDateObj = new Date(approvalDate);
+        const appointmentDateObj = new Date(booking.appointment_date);
+
+        const isApprovedInCurrentMonth = approvalDateObj >= currentMonthStart && approvalDateObj <= currentMonthEnd;
+        const isAppointmentInCurrentMonth = appointmentDateObj >= currentMonthStart && appointmentDateObj <= currentMonthEnd;
+
+        return isApprovedInCurrentMonth && isAppointmentInCurrentMonth;
+    });
+
+    const deferredCreditsCount = deferredToNextMonthDisputes.length;
+    // const deferredCreditsAmount = deferredCreditsCount * patientRate;
 
     // ========================================
     // BILLING COUNTS
