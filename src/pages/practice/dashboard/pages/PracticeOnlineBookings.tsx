@@ -573,25 +573,21 @@ export default function PracticeOnlineBookings() {
                           <div className="w-16 flex justify-end items-center gap-1 relative">
                             {/* {['pending', 'confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
                             {/* {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
-                            {['confirmed', 'completed'].includes(apt.status) &&
-                              apt.isNewPatient === true &&
-                              !isSuperAdminView && (
-                                <button
-                                  onClick={(e) => {
-                                    if (!canEditOnlineBookings) return;
-                                    handleOpenMenu(e, apt.id);
-                                  }}
-                                  disabled={!canEditOnlineBookings}
-                                  className={`p-1.5 rounded-lg ${!canEditOnlineBookings
-                                    ? "text-gray-300 cursor-not-allowed"
-                                    : openMenuId === apt.id
-                                      ? "bg-gray-200 text-gray-700"
-                                      : "text-gray-400 hover:bg-gray-100"
-                                    }`}
-                                >
-                                  <MoreVertical className="w-5 h-5" />
-                                </button>
-                              )}
+                            {['confirmed', 'completed'].includes(apt.status) && apt.isNewPatient === true && !isSuperAdminView && (
+                              <button
+                                onClick={(e) => {
+                                  if (!canEditOnlineBookings) return;
+                                  handleOpenMenu(e, apt.id);
+                                }}
+                                disabled={!canEditOnlineBookings}
+                                className={`p-1.5 rounded-lg ${!canEditOnlineBookings
+                                  ? "text-gray-300 cursor-not-allowed"
+                                  : "text-gray-400 hover:bg-gray-100"
+                                  }`}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            )}
 
                             {openMenuId === apt.id && !isMobile && menuAnchor && (
                               <DesktopDropdown
@@ -641,23 +637,23 @@ export default function PracticeOnlineBookings() {
 
                               {/* {['pending', 'confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
                               {/* {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
-                              {['confirmed', 'completed'].includes(apt.status) &&
-                                apt.isNewPatient === true &&
-                                !isSuperAdminView && (
-                                  <button
-                                    onClick={(e) => {
-                                      if (!canEditOnlineBookings) return;
-                                      handleOpenMenu(e, apt.id);
-                                    }}
-                                    disabled={!canEditOnlineBookings}
-                                    className={`p-1.5 rounded-lg ${!canEditOnlineBookings
-                                      ? "text-gray-300 cursor-not-allowed"
+                              {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && (
+                                <button
+                                  onClick={(e) => {
+                                    if (!canEditOnlineBookings) return;
+                                    handleOpenMenu(e, apt.id);
+                                  }}
+                                  disabled={!canEditOnlineBookings}
+                                  className={`p-1.5 rounded-lg ${!canEditOnlineBookings
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : openMenuId === apt.id
+                                      ? "bg-gray-200 text-gray-700"
                                       : "text-gray-400 hover:bg-gray-100"
-                                      }`}
-                                  >
-                                    <MoreVertical className="w-4 h-4" />
-                                  </button>
-                                )}
+                                    }`}
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                              )}
 
                               <button
                                 onClick={(e) => {
