@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@apollo/client/react";
-import { X, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, CalendarDays, CreditCard } from "lucide-react";
 import { CREATE_PRACTICE_PERMISSIONS, GET_PERMISSION_MODULES_MASTER } from "../graphql/permissions.queries";
 import { localClient } from "../../../api/apollo/localClient";
 import toast from "react-hot-toast";
 import authService from "../../../features/auth/auth.service";
+import { CREATE_PRACTICE_INFO, CREATE_PRACTICE_SUBSCRIPTION, GET_PAYMENT_SETTINGS } from "../graphql/clients.query";
 
 interface Props {
     onClose: () => void;
     onSuccess: () => void;
 }
+
+type PaymentType =
+    | "PAY_PER_PATIENT"
+    | "PAY_PER_MONTH";
 
 export default function AddPracticeForm({ onClose, onSuccess }: Props) {
     const navigate = useNavigate();
@@ -24,6 +29,14 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
     const [updatePermissions] = useMutation(CREATE_PRACTICE_PERMISSIONS, {
         client: localClient
     });
+
+    const [createPracticeInfo] =
+        useMutation(
+            CREATE_PRACTICE_INFO,
+            {
+                client: localClient
+            }
+        );
 
     const [formData, setFormData] = useState({
         practice_name: "",
@@ -44,6 +57,9 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
         logo: "",
         termsAccepted: false
     });
+
+    const [selectedPaymentType, setSelectedPaymentType] =
+        useState<PaymentType>("PAY_PER_PATIENT");
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -148,42 +164,172 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
             const result = await authService.signup(signupPayload);
 
             if (result.success) {
+
                 const practiceId = result.user?.id;
 
                 if (practiceId) {
+
+                    /* =========================
+                        CREATE PRACTICE INFO
+                    ========================= */
+
+                    await createPracticeInfo({
+
+                        variables: {
+
+                            object: {
+
+                                id: practiceId,
+
+                                practice_name:
+                                    formData.practice_name,
+
+                                abn_number:
+                                    formData.abn_number,
+
+                                practice_type:
+                                    formData.practice_type,
+
+                                practice_phone:
+                                    formData.practice_phone,
+
+                                address:
+                                    formData.address,
+
+                                city:
+                                    formData.city,
+
+                                state:
+                                    formData.state,
+
+                                postcode:
+                                    formData.postcode
+                            }
+
+                        }
+
+                    });
+
+                    /* =========================
+                        CREATE SUBSCRIPTION
+                    ========================= */
+
+                    const startDate = new Date();
+
+                    const endDate = new Date();
+
+                    endDate.setDate(
+                        endDate.getDate() + 30
+                    );
+
+                    await localClient.mutate({
+
+                        mutation: CREATE_PRACTICE_SUBSCRIPTION,
+
+                        variables: {
+
+                            object: {
+
+                                practice_id: practiceId,
+
+                                current_payment_type:
+                                    selectedPaymentType,
+
+                                current_price:
+                                    latestPrice,
+
+                                pending_payment_type: null,
+
+                                pending_price: null,
+
+                                subscription_start_date:
+                                    startDate.toISOString(),
+
+                                subscription_end_date:
+                                    endDate.toISOString(),
+
+                                pending_start_date: null,
+
+                                is_active: true
+                            }
+
+                        }
+
+                    });
+
+                    /* =========================
+                        CREATE PERMISSIONS
+                    ========================= */
+
                     try {
+
                         const modules =
-                            (modulesData as any)?.practice_permission_modules_master ?? [];
+                            (modulesData as any)
+                                ?.practice_permission_modules_master ?? [];
 
                         if (modules.length > 0) {
-                            const allPermissions = modules.map((module: any) => ({
-                                module: module.module_key,
-                                path: module.path,
-                                actions: [...module.actions]
-                            }));
+
+                            const allPermissions =
+                                modules.map((module: any) => ({
+
+                                    module:
+                                        module.module_key,
+
+                                    path:
+                                        module.path,
+
+                                    actions: [
+                                        ...module.actions
+                                    ]
+
+                                }));
 
                             await updatePermissions({
+
                                 variables: {
+
                                     practiceId,
-                                    permissions: allPermissions,
-                                    defaultPermission: allPermissions
+
+                                    permissions:
+                                        allPermissions,
+
+                                    defaultPermission:
+                                        allPermissions
                                 }
+
                             });
+
                         }
+
                     } catch (permError) {
-                        console.error("Permission setup error:", permError);
+
+                        console.error(
+                            "Permission setup error:",
+                            permError
+                        );
+
                     }
+
                 }
 
-                toast.success("New practice account is created");
+                toast.success(
+                    "New practice account is created"
+                );
 
                 setTimeout(() => {
+
                     onSuccess();
+
                     navigate("/superadmin/clients");
+
                 }, 1500);
 
             } else {
-                setError(result.message as string);
+
+                setError(
+                    result.message as string
+                );
+
             }
 
         } catch (err: any) {
@@ -193,6 +339,26 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
             setIsLoading(false);
         }
     };
+
+    const {
+        data: paymentSettingsData
+    } = useQuery(
+        GET_PAYMENT_SETTINGS,
+        {
+            client: localClient
+        }
+    );
+
+    const paymentSettingsDataAny =
+        paymentSettingsData as any;
+
+    const paymentSettings =
+        paymentSettingsDataAny?.payment_settings?.[0];
+
+    const latestPrice =
+        selectedPaymentType === "PAY_PER_MONTH"
+            ? paymentSettings?.pay_per_month_amount || 0
+            : paymentSettings?.pay_per_patient_amount || 0;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1a2b3c]/60 backdrop-blur-sm">
@@ -336,6 +502,114 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
                                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Subscription Information */}
+
+                        <div>
+
+                            <h3 className="text-lg font-bold text-[#1a2b3c] mb-6">
+                                Subscription Information
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                                {/* PAY PER PATIENT */}
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedPaymentType(
+                                            "PAY_PER_PATIENT"
+                                        )
+                                    }
+                                    className={`border rounded-2xl p-5 text-left transition-all ${selectedPaymentType === "PAY_PER_PATIENT"
+                                        ? "border-orange-500 bg-orange-50 ring-2 ring-orange-100"
+                                        : "border-gray-200 bg-white hover:border-orange-300"
+                                        }`}
+                                >
+
+                                    <div className="flex items-center justify-between mb-4">
+
+                                        <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                                            <CreditCard className="w-6 h-6 text-orange-500" />
+                                        </div>
+
+                                        <span className="px-3 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
+                                            ACTIVE
+                                        </span>
+
+                                    </div>
+
+                                    <h3 className="text-lg font-semibold">
+                                        Pay Per Patient
+                                    </h3>
+
+                                    <p className="text-sm text-gray-500">
+                                        Billing based on patients
+                                    </p>
+
+                                    <div className="mt-4 flex items-center gap-2 text-sm">
+
+                                        <CalendarDays className="w-4 h-4 text-orange-500" />
+
+                                        <span>
+                                            Current Price: ${paymentSettings?.pay_per_patient_amount || 0}
+                                        </span>
+
+                                    </div>
+
+                                </button>
+
+                                {/* PAY PER MONTH */}
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedPaymentType(
+                                            "PAY_PER_MONTH"
+                                        )
+                                    }
+                                    className={`border rounded-2xl p-5 text-left transition-all ${selectedPaymentType === "PAY_PER_MONTH"
+                                        ? "border-orange-500 bg-orange-50 ring-2 ring-orange-100"
+                                        : "border-gray-200 bg-white hover:border-orange-300"
+                                        }`}
+                                >
+
+                                    <div className="flex items-center justify-between mb-4">
+
+                                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                                            <CalendarDays className="w-6 h-6 text-blue-500" />
+                                        </div>
+
+                                        <span className="px-3 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
+                                            ACTIVE
+                                        </span>
+
+                                    </div>
+
+                                    <h3 className="text-lg font-semibold">
+                                        Pay Per Month
+                                    </h3>
+
+                                    <p className="text-sm text-gray-500">
+                                        Monthly subscription
+                                    </p>
+
+                                    <div className="mt-4 flex items-center gap-2 text-sm">
+
+                                        <CalendarDays className="w-4 h-4 text-blue-500" />
+
+                                        <span>
+                                            Current Price: ${paymentSettings?.pay_per_month_amount || 0}
+                                        </span>
+
+                                    </div>
+
+                                </button>
+
+                            </div>
+
                         </div>
 
                         {/* Terms */}

@@ -466,7 +466,7 @@ export default function SuperadminInvoiceDispute() {
                                                 }}
                                             />
                                         ) : null}
-                                        <div className={`w-12 h-12 bg-gradient-to-br from-[#f47521] to-[#ff9966] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-md ${practice.practice_logo ? 'hidden' : ''}`}>
+                                        <div className={`w-12 h-12 bg-gradient-to-br from-[#f47521] via-[#f47521] to-[#ff9966] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-md ${practice.practice_logo ? 'hidden' : ''}`}>
                                             <Building2 size={24} />
                                         </div>
                                         <div>

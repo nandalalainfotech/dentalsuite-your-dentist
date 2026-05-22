@@ -85,32 +85,55 @@ export const subscriptionService = {
                 : settings.pay_per_patient_amount;
 
         /* =========================
-            CASE 1: MID CYCLE → STORE PENDING
+            CASE 1: MID CYCLE
         ========================= */
 
         if (isActive) {
 
             return await localClient.mutate<any>({
+
                 mutation: UPSERT_PRACTICE_SUBSCRIPTION,
 
                 variables: {
                     object: {
+
                         practice_id: practiceId,
 
-                        // KEEP CURRENT AS IS (IMPORTANT)
-                        current_payment_type: current.current_payment_type,
-                        current_price: current.current_price,
-                        subscription_start_date: current.subscription_start_date,
-                        subscription_end_date: current.subscription_end_date,
+                        current_payment_type:
+                            current.current_payment_type,
 
-                        // ONLY SET PENDING
-                        pending_payment_type: paymentType,
-                        pending_price: latestPrice,
-                        pending_start_date: current.subscription_end_date,
+                        current_price:
+                            current.current_price,
+
+                        subscription_start_date:
+                            current.subscription_start_date,
+
+                        subscription_end_date:
+                            current.subscription_end_date,
+
+                        pending_payment_type:
+                            paymentType,
+
+                        pending_price:
+                            latestPrice,
+
+                        pending_start_date:
+                            current.subscription_end_date,
 
                         is_active: true
                     }
-                }
+                },
+
+                refetchQueries: [
+                    {
+                        query: GET_PRACTICE_SUBSCRIPTION,
+                        variables: {
+                            practiceId
+                        }
+                    }
+                ],
+
+                awaitRefetchQueries: true
             });
         }
 
@@ -124,25 +147,46 @@ export const subscriptionService = {
         expiry.setDate(now.getDate() + 30);
 
         return await localClient.mutate<any>({
+
             mutation: UPSERT_PRACTICE_SUBSCRIPTION,
 
             variables: {
                 object: {
+
                     practice_id: practiceId,
 
-                    current_payment_type: paymentType,
-                    current_price: latestPrice,
+                    current_payment_type:
+                        paymentType,
 
-                    subscription_start_date: nowTs,
-                    subscription_end_date: expiry.toISOString(),
+                    current_price:
+                        latestPrice,
+
+                    subscription_start_date:
+                        nowTs,
+
+                    subscription_end_date:
+                        expiry.toISOString(),
 
                     pending_payment_type: null,
+
                     pending_price: null,
+
                     pending_start_date: null,
 
                     is_active: true
                 }
-            }
+            },
+
+            refetchQueries: [
+                {
+                    query: GET_PRACTICE_SUBSCRIPTION,
+                    variables: {
+                        practiceId
+                    }
+                }
+            ],
+
+            awaitRefetchQueries: true
         });
     }
 };
