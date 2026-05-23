@@ -152,9 +152,9 @@ export default function PracticeDetailsDialog({
         const now = new Date();
 
         const subscriptionEndDate =
-            subscription.subscription_end_date
+            subscription?.subscription_end_date
                 ? new Date(
-                    subscription.subscription_end_date
+                    subscription?.subscription_end_date
                 )
                 : null;
 
@@ -222,9 +222,19 @@ export default function PracticeDetailsDialog({
     const expiryDate = useMemo(() => {
 
         if (subscription?.subscription_end_date) {
-            return new Date(
-                subscription.subscription_end_date
+
+            const expiry = new Date(
+                subscription?.subscription_end_date
             );
+
+            expiry.setHours(
+                23,
+                59,
+                59,
+                999
+            );
+
+            return expiry;
         }
 
         const expiry = new Date();
@@ -233,7 +243,12 @@ export default function PracticeDetailsDialog({
             expiry.getDate() + 30
         );
 
-        expiry.setHours(23, 59, 59, 999);
+        expiry.setHours(
+            23,
+            59,
+            59,
+            999
+        );
 
         return expiry;
 
@@ -242,9 +257,19 @@ export default function PracticeDetailsDialog({
     const pendingStartDate = useMemo(() => {
 
         if (subscription?.pending_start_date) {
-            return new Date(
+
+            const pending = new Date(
                 subscription.pending_start_date
             );
+
+            pending.setHours(
+                0,
+                0,
+                0,
+                0
+            );
+
+            return pending;
         }
 
         return null;
@@ -255,9 +280,20 @@ export default function PracticeDetailsDialog({
 
         if (!pendingStartDate) return null;
 
-        const expiry = new Date(pendingStartDate);
+        const expiry = new Date(
+            pendingStartDate
+        );
 
-        expiry.setDate(expiry.getDate() + 30);
+        expiry.setDate(
+            expiry.getDate() + 29
+        );
+
+        expiry.setHours(
+            23,
+            59,
+            59,
+            999
+        );
 
         return expiry;
 
@@ -267,11 +303,21 @@ export default function PracticeDetailsDialog({
 
         const today = new Date();
 
-        today.setHours(0, 0, 0, 0);
+        today.setHours(
+            0,
+            0,
+            0,
+            0
+        );
 
         const expiry = new Date(expiryDate);
 
-        expiry.setHours(23, 59, 59, 999);
+        expiry.setHours(
+            23,
+            59,
+            59,
+            999
+        );
 
         const diff =
             expiry.getTime() -
@@ -279,10 +325,18 @@ export default function PracticeDetailsDialog({
 
         return Math.max(
             0,
-            Math.floor(diff / (1000 * 60 * 60 * 24))
+            Math.floor(
+                diff / (1000 * 60 * 60 * 24)
+            )
         );
 
     }, [expiryDate]);
+
+    const nextStartDate = new Date(subscription?.subscription_end_date);
+
+    nextStartDate.setDate(nextStartDate.getDate() + 1);
+
+    nextStartDate.setHours(0, 0, 0, 0);
 
     const isSelected = (type: PaymentType) =>
         selectedPaymentType === type;
@@ -293,15 +347,54 @@ export default function PracticeDetailsDialog({
     const hasPendingChange = (type: PaymentType) =>
         subscription?.pending_payment_type === type;
 
-    const futureStartDate = subscription?.subscription_end_date
-        ? new Date(subscription.subscription_end_date)
-        : new Date();
+    const futureStartDate = useMemo(() => {
 
-    const futureEndDate = new Date(futureStartDate);
+        if (!subscription?.subscription_end_date) {
 
-    futureEndDate.setDate(
-        futureEndDate.getDate() + 30
-    );
+            const today = new Date();
+
+            today.setHours(0, 0, 0, 0);
+
+            return today;
+        }
+
+        const next = new Date(
+            subscription?.subscription_end_date
+        );
+
+        next.setDate(
+            next.getDate() + 1
+        );
+
+        next.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+        return next;
+
+    }, [subscription]);
+
+    const futureEndDate = useMemo(() => {
+
+        const end = new Date(futureStartDate);
+
+        end.setDate(
+            end.getDate() + 29
+        );
+
+        end.setHours(
+            23,
+            59,
+            59,
+            999
+        );
+
+        return end;
+
+    }, [futureStartDate]);
 
     const originalPrice =
         selectedPaymentType === 'PAY_PER_MONTH'
@@ -495,11 +588,6 @@ export default function PracticeDetailsDialog({
 
             if (!subscription) {
 
-                const expiryDate = new Date();
-
-                expiryDate.setDate(
-                    expiryDate.getDate() + 30
-                );
 
                 // Apply coupon if exists
                 let couponInfo = null;
@@ -554,7 +642,7 @@ export default function PracticeDetailsDialog({
             const subscriptionEndDate =
                 subscription?.subscription_end_date
                     ? new Date(
-                        subscription.subscription_end_date
+                        subscription?.subscription_end_date
                     )
                     : null;
 
@@ -592,8 +680,7 @@ export default function PracticeDetailsDialog({
                         pending_price:
                             finalPrice,
 
-                        pending_start_date:
-                            subscription.subscription_end_date
+                        pending_start_date: nextStartDate.toISOString()
                     }
 
                 });
@@ -1032,12 +1119,12 @@ export default function PracticeDetailsDialog({
                                                 </span>
                                             </div>
 
-                                            {/* <div className="flex items-center justify-between text-sm">
+                                            <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Current Price</span>
                                                 <span className="font-semibold">
                                                     ${subscription?.current_price || 0}
                                                 </span>
-                                            </div> */}
+                                            </div>
 
                                         </div>
 
