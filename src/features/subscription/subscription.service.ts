@@ -22,11 +22,136 @@ export const subscriptionService = {
                 fetchPolicy: 'no-cache'
             });
 
-        return (
+        let subscription =
             response.data
                 ?.practice_subscription?.[0] ||
-            null
-        );
+            null;
+
+        /* =========================
+            NO SUBSCRIPTION
+        ========================= */
+
+        if (!subscription) {
+            return null;
+        }
+
+        /* =========================
+            CHECK EXPIRY
+        ========================= */
+
+        const now = new Date();
+
+        const endDate =
+            subscription.subscription_end_date
+                ? new Date(
+                    subscription.subscription_end_date
+                )
+                : null;
+
+        const isExpired =
+            endDate
+                ? endDate.getTime() <= now.getTime()
+                : false;
+
+        /* =========================
+            EXPIRED + NO PENDING
+            AUTO FALLBACK
+        ========================= */
+
+        if (
+            isExpired &&
+            !subscription.pending_payment_type
+        ) {
+
+            /* =========================
+                GET PAYMENT SETTINGS
+            ========================= */
+
+            const settingsResponse =
+                await localClient.query<any>({
+                    query: GET_PAYMENT_SETTINGS,
+                    fetchPolicy: 'no-cache'
+                });
+
+            const settings =
+                settingsResponse.data
+                    ?.payment_settings?.[0];
+
+            if (!settings) {
+                throw new Error(
+                    'Payment setting not found'
+                );
+            }
+
+            /* =========================
+                AUTO ACTIVATE
+                PAY_PER_PATIENT
+            ========================= */
+
+            const startDate = new Date();
+
+            const expiryDate = new Date();
+
+            expiryDate.setDate(
+                expiryDate.getDate() + 30
+            );
+
+            await localClient.mutate<any>({
+
+                mutation:
+                    UPSERT_PRACTICE_SUBSCRIPTION,
+
+                variables: {
+
+                    object: {
+
+                        practice_id: practiceId,
+
+                        current_payment_type:
+                            'PAY_PER_PATIENT',
+
+                        current_price:
+                            settings.pay_per_patient_amount,
+
+                        subscription_start_date:
+                            startDate.toISOString(),
+
+                        subscription_end_date:
+                            expiryDate.toISOString(),
+
+                        pending_payment_type: null,
+
+                        pending_price: null,
+
+                        pending_start_date: null,
+
+                        is_active: true
+                    }
+                }
+            });
+
+            /* =========================
+                REFETCH UPDATED DATA
+            ========================= */
+
+            const refreshed =
+                await localClient.query<any>({
+                    query:
+                        GET_PRACTICE_SUBSCRIPTION,
+
+                    variables: {
+                        practiceId
+                    },
+
+                    fetchPolicy: 'no-cache'
+                });
+
+            subscription =
+                refreshed.data
+                    ?.practice_subscription?.[0];
+        }
+
+        return subscription;
     },
 
     async saveSubscription({

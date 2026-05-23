@@ -133,7 +133,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                     {/* Logo & Name */}
                                     <h1 className="flex flex-row items-center justify-start gap-3 text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-orange-600 mb-2">
                                         <img
-                                            src={clinicData.logo || ""}
+                                            src={clinicData.logo }
                                             alt={clinicData.practice_name || clinicData.practice_name}
                                             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-orange-100 flex-shrink-0 bg-white"
                                             onError={(e) => (e.currentTarget.src = "")}
@@ -250,7 +250,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                         <div className="relative w-28 h-28 mb-5 flex-shrink-0">
                                             <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-50 shadow-inner transition-colors duration-300 bg-gray-100 flex items-center justify-center">
                                                 <img
-                                                    src={member.image || ""}
+                                                    src={member.image }
                                                     alt={member.first_name}
                                                     className="w-full h-full object-cover object-center"
                                                     onError={(e) => (e.currentTarget.style.display = "none")}

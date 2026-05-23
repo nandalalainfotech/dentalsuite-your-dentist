@@ -234,6 +234,56 @@ export default function PracticeSubscription() {
     }, [pendingStartDate]);
 
     /* =========================================
+        CHECK EXPIRED WITHOUT PENDING PLAN
+    ========================================= */
+
+    const isExpiredWithoutPending = useMemo(() => {
+
+        if (!subscription) return false;
+
+        const now = new Date();
+
+        const expiry =
+            subscription.subscription_end_date
+                ? new Date(subscription.subscription_end_date)
+                : null;
+
+        const isExpired =
+            expiry ? expiry.getTime() < now.getTime() : false;
+
+        return (
+            isExpired &&
+            !subscription.pending_payment_type
+        );
+
+    }, [subscription]);
+
+    /* =========================================
+        SYNC FROM DB
+    ========================================= */
+
+    useEffect(() => {
+        if (!subscription) return;
+
+        if (isExpiredWithoutPending) {
+
+            setSelectedPaymentType(
+                'PAY_PER_PATIENT'
+            );
+
+            return;
+        }
+
+        setSelectedPaymentType(
+            subscription.current_payment_type
+        );
+    }, [
+        subscription,
+        isExpiredWithoutPending
+    ]);
+
+
+    /* =========================================
         REMAINING DAYS
     ========================================= */
 

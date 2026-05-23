@@ -55,7 +55,7 @@ export interface PracticeTeamMember {
   
   practitioner_practice_services: PractitionerPracticeService[];
   
-  image: string | null;
+  image: string ;
   is_visible_online: boolean | null;
   allow_multiple_bookings: boolean | null;
   booking_time_limit: number | null;
@@ -110,7 +110,7 @@ export interface PracticeException {
 export interface DirectoryProfile {
   id: string;
   practice_name: string;      
-  logo: string | null;        
+  logo: string ;        
   abn_number: string;
   practice_type: string;
   practice_phone: string;
