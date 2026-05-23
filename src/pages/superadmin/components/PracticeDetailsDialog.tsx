@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery } from '@apollo/client/react';
+import { useMutation, useQuery, useLazyQuery } from '@apollo/client/react';
 import {
     Loader2,
     X,
     CalendarDays,
-    CreditCard
+    CreditCard,
+    Ticket,
+    Check,
+    AlertCircle
 } from 'lucide-react';
 
 import {
@@ -16,6 +19,7 @@ import {
     GET_PAYMENT_SETTINGS
 } from '../graphql/clients.query';
 
+import { ASSIGN_COUPON_TO_PRACTICE, VALIDATE_COUPON_BY_CODE } from '../../practice/dashboard/graphql/subscription.query';
 import { localClient } from '../../../api/apollo/localClient';
 import toast from 'react-hot-toast';
 
@@ -91,6 +95,15 @@ export default function PracticeDetailsDialog({
             }
         );
 
+    const [assignCoupon] = useMutation(ASSIGN_COUPON_TO_PRACTICE, {
+        client: localClient
+    });
+
+    const [validateCoupon] = useLazyQuery(VALIDATE_COUPON_BY_CODE, {
+        client: localClient,
+        fetchPolicy: "network-only"
+    });
+
     const subscriptionDataAny =
         subscriptionData as any;
 
@@ -109,6 +122,13 @@ export default function PracticeDetailsDialog({
 
     const [savingSubscription, setSavingSubscription] =
         useState(false);
+
+    // Coupon related state
+    const [couponCodeInput, setCouponCodeInput] = useState("");
+    const [validatedCoupon, setValidatedCoupon] = useState<any>(null);
+    const [couponValidationError, setCouponValidationError] = useState("");
+    const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+    const [isAssigningCoupon, setIsAssigningCoupon] = useState(false);
 
     useEffect(() => {
 
@@ -283,10 +303,185 @@ export default function PracticeDetailsDialog({
         futureEndDate.getDate() + 30
     );
 
-    const latestPrice =
+    const originalPrice =
         selectedPaymentType === 'PAY_PER_MONTH'
             ? paymentSettings?.pay_per_month_amount || 0
             : paymentSettings?.pay_per_patient_amount || 0;
+
+    const calculateDiscountedPrice = (price: number): number => {
+        if (!validatedCoupon) return price;
+
+        let discountedPrice = price;
+
+        if (validatedCoupon.discount_type === "PERCENTAGE") {
+            discountedPrice = price * (1 - validatedCoupon.discount_value / 100);
+        } else if (validatedCoupon.discount_type === "FIXED") {
+            discountedPrice = Math.max(0, price - validatedCoupon.discount_value);
+        }
+
+        return Math.round(discountedPrice * 100) / 100;
+    };
+
+    const latestPrice = calculateDiscountedPrice(originalPrice);
+
+    const isCouponApplicable = validatedCoupon && (
+        validatedCoupon.applicable_payment_type === "BOTH" ||
+        validatedCoupon.applicable_payment_type === selectedPaymentType
+    );
+
+    const handleValidateCoupon = async () => {
+        if (!couponCodeInput.trim()) {
+            toast.error("Please enter a coupon code");
+            return;
+        }
+
+        setIsValidatingCoupon(true);
+        setCouponValidationError("");
+
+        try {
+            const result = await validateCoupon({
+                variables: {
+                    code: couponCodeInput.toUpperCase().trim()
+                }
+            });
+
+            const coupons = (result as any).data?.coupons || [];
+            const coupon = coupons[0];
+
+            if (!coupon) {
+                setCouponValidationError("Invalid coupon code");
+                setValidatedCoupon(null);
+                return;
+            }
+
+            // Check if coupon is valid based on date range
+            const now = new Date();
+            const validFrom = coupon.valid_from ? new Date(coupon.valid_from) : null;
+            const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
+
+            if (validFrom && now < validFrom) {
+                setCouponValidationError(`Coupon is not valid until ${validFrom.toLocaleDateString()}`);
+                setValidatedCoupon(null);
+                return;
+            }
+
+            if (validUntil && now > validUntil) {
+                setCouponValidationError("This coupon has expired");
+                setValidatedCoupon(null);
+                return;
+            }
+
+            // Check usage limit
+            if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+                setCouponValidationError("This coupon has reached its maximum usage limit");
+                setValidatedCoupon(null);
+                return;
+            }
+
+            // Normalize discount type
+            let discountType = coupon.discount_type;
+            let discountValue = coupon.discount_value;
+
+            if (discountType === "%" || discountType === "percent" || discountType === "percentage") {
+                discountType = "PERCENTAGE";
+            } else if (discountType === "$" || discountType === "fixed" || discountType === "amount") {
+                discountType = "FIXED";
+            }
+
+            const applicablePaymentType = coupon.applicable_payment_type || "BOTH";
+
+            const validatedCouponData = {
+                id: coupon.id,
+                code: coupon.code,
+                discount_type: discountType,
+                discount_value: discountValue,
+                duration_months: coupon.duration_months || 0,
+                max_uses: coupon.max_uses,
+                used_count: coupon.used_count,
+                expiry_date: coupon.valid_until,
+                applicable_payment_type: applicablePaymentType,
+                is_valid: true,
+                message: "Coupon is valid",
+                practice_usage_json: coupon.practice_usage_json || {}
+            };
+
+            setValidatedCoupon(validatedCouponData);
+
+            const discountText = discountType === "PERCENTAGE"
+                ? `${discountValue}% off`
+                : `$${discountValue} off`;
+            toast.success(`Coupon "${coupon.code}" is valid! (${discountText})`);
+
+            // Auto-select payment type if coupon is specific to one type
+            if (applicablePaymentType && applicablePaymentType !== "BOTH") {
+                const paymentType = applicablePaymentType === "PAY_PER_MONTH"
+                    ? "PAY_PER_MONTH"
+                    : "PAY_PER_PATIENT";
+                setSelectedPaymentType(paymentType);
+            }
+
+        } catch (error: any) {
+            console.error("Coupon validation error:", error);
+            setCouponValidationError(error?.message || "Failed to validate coupon");
+            setValidatedCoupon(null);
+        } finally {
+            setIsValidatingCoupon(false);
+        }
+    };
+
+    const assignCouponToPractice = async (practiceId: string) => {
+        if (!validatedCoupon) return null;
+
+        setIsAssigningCoupon(true);
+
+        try {
+            const now = new Date();
+            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+            let expiresAt: string | null = null;
+            if (validatedCoupon.duration_months) {
+                const expiryDate = new Date(now);
+                expiryDate.setMonth(expiryDate.getMonth() + validatedCoupon.duration_months);
+                expiresAt = expiryDate.toISOString();
+            }
+
+            const practiceUsage = { ...(validatedCoupon.practice_usage_json || {}) };
+            delete practiceUsage["0"];
+            delete practiceUsage["1"];
+
+            practiceUsage[practiceId] = {
+                count: (practiceUsage[practiceId]?.count || 0) + 1,
+                periods: [...(practiceUsage[practiceId]?.periods || []), currentMonthKey],
+                appliedAt: now.toISOString(),
+                expiresAt: expiresAt,
+            };
+
+            await assignCoupon({
+                variables: {
+                    id: validatedCoupon.id,
+                    used_count: (validatedCoupon.used_count || 0) + 1,
+                    practice_usage_json: practiceUsage,
+                },
+            });
+
+            toast.success(`Coupon "${validatedCoupon.code}" applied successfully!`);
+
+            return {
+                couponId: validatedCoupon.id,
+                discountType: validatedCoupon.discount_type,
+                discountValue: validatedCoupon.discount_value,
+                originalPrice: originalPrice,
+                discountedPrice: latestPrice
+            };
+
+        } catch (error: any) {
+            console.error('ASSIGN COUPON ERROR:', error);
+            toast.error(error?.message || 'Failed to assign coupon');
+            return null;
+        } finally {
+            setIsAssigningCoupon(false);
+        }
+    };
 
     const handleSaveSubscription = async () => {
 
@@ -306,6 +501,14 @@ export default function PracticeDetailsDialog({
                     expiryDate.getDate() + 30
                 );
 
+                // Apply coupon if exists
+                let couponInfo = null;
+                if (validatedCoupon && client?.id) {
+                    couponInfo = await assignCouponToPractice(client.id);
+                }
+
+                const finalPrice = couponInfo ? couponInfo.discountedPrice : latestPrice;
+
                 await createPracticeSubscription({
 
                     variables: {
@@ -319,7 +522,7 @@ export default function PracticeDetailsDialog({
 
                             pending_payment_type: null,
 
-                            current_price: latestPrice,
+                            current_price: finalPrice,
 
                             subscription_start_date:
                                 today.toISOString(),
@@ -339,6 +542,9 @@ export default function PracticeDetailsDialog({
                 await refetch();
 
                 toast.success('Subscription created successfully');
+                if (validatedCoupon) {
+                    toast.success(`Coupon ${validatedCoupon.code} applied!`);
+                }
 
                 return;
             }
@@ -355,6 +561,14 @@ export default function PracticeDetailsDialog({
             const isSubscriptionActive =
                 subscriptionEndDate &&
                 subscriptionEndDate > today;
+
+            // Apply coupon if exists and subscription is active (for renewal)
+            let couponInfo = null;
+            if (validatedCoupon && client?.id && !isSubscriptionActive) {
+                couponInfo = await assignCouponToPractice(client.id);
+            }
+
+            const finalPrice = couponInfo ? couponInfo.discountedPrice : latestPrice;
 
             // ACTIVE SUBSCRIPTION
 
@@ -376,7 +590,7 @@ export default function PracticeDetailsDialog({
                             selectedPaymentType,
 
                         pending_price:
-                            latestPrice,
+                            finalPrice,
 
                         pending_start_date:
                             subscription.subscription_end_date
@@ -400,7 +614,7 @@ export default function PracticeDetailsDialog({
                             selectedPaymentType,
 
                         current_price:
-                            latestPrice,
+                            finalPrice,
 
                         pending_payment_type: null,
 
@@ -527,6 +741,89 @@ export default function PracticeDetailsDialog({
                         </div>
                     </div>
 
+                    {/* Coupon Section */}
+                    <div>
+                        <h3 className="text-lg font-bold text-[#1a2b3c] mb-4 flex items-center gap-2">
+                            <Ticket size={22} />
+                            Apply Coupon
+                        </h3>
+
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200">
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    value={couponCodeInput}
+                                    onChange={(e) => {
+                                        setCouponCodeInput(e.target.value.toUpperCase());
+                                        setCouponValidationError("");
+                                    }}
+                                    placeholder="Enter coupon code"
+                                    className="flex-1 px-4 py-3 border-2 border-purple-200 rounded-lg focus:border-purple-500 focus:ring-purple-500"
+                                    disabled={!!validatedCoupon}
+                                />
+
+                                {!validatedCoupon ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleValidateCoupon}
+                                        disabled={isValidatingCoupon || !couponCodeInput.trim()}
+                                        className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                                    >
+                                        {isValidatingCoupon ? (
+                                            <>
+                                                <Loader2 size={18} className="animate-spin" />
+                                                Validating...
+                                            </>
+                                        ) : (
+                                            "Apply Coupon"
+                                        )}
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setValidatedCoupon(null);
+                                            setCouponCodeInput("");
+                                            setCouponValidationError("");
+                                        }}
+                                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+
+                            {couponValidationError && (
+                                <div className="mt-3 text-sm text-red-600 flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    {couponValidationError}
+                                </div>
+                            )}
+
+                            {validatedCoupon && (
+                                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex items-center gap-2 text-green-700 mb-2">
+                                        <Check size={18} />
+                                        <span className="font-semibold">Coupon Applied!</span>
+                                    </div>
+                                    <div className="text-sm space-y-1">
+                                        <p><strong>Code:</strong> {validatedCoupon.code}</p>
+                                        <p><strong>Discount:</strong> {validatedCoupon.discount_type === "PERCENTAGE"
+                                            ? `${validatedCoupon.discount_value}% OFF`
+                                            : `$${validatedCoupon.discount_value} OFF`}
+                                        </p>
+                                        {validatedCoupon.duration_months > 0 && (
+                                            <p><strong>Valid for:</strong> {validatedCoupon.duration_months} months</p>
+                                        )}
+                                        {validatedCoupon.applicable_payment_type && validatedCoupon.applicable_payment_type !== "BOTH" && (
+                                            <p><strong>Applicable to:</strong> {validatedCoupon.applicable_payment_type === "PAY_PER_MONTH" ? "Pay Per Month" : "Pay Per Patient"}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Subscription Information */}
 
                     <div>
@@ -562,6 +859,13 @@ export default function PracticeDetailsDialog({
                             </div>
                         )}
 
+                        {validatedCoupon && !isCouponApplicable && (
+                            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+                                <AlertCircle size={16} className="inline mr-2" />
+                                This coupon is only applicable to {validatedCoupon.applicable_payment_type === "PAY_PER_MONTH" ? "Pay Per Month" : "Pay Per Patient"} subscription.
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             {/* PAY PER PATIENT */}
@@ -572,9 +876,13 @@ export default function PracticeDetailsDialog({
                                         'PAY_PER_PATIENT'
                                     )
                                 }
+                                disabled={validatedCoupon && validatedCoupon.applicable_payment_type === "PAY_PER_MONTH"}
                                 className={`border rounded-2xl p-5 text-left transition-all ${isSelected('PAY_PER_PATIENT')
                                     ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-100'
                                     : 'border-gray-200 bg-white hover:border-orange-300'
+                                    } ${validatedCoupon && validatedCoupon.applicable_payment_type === "PAY_PER_MONTH"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : ""
                                     }`}
                             >
 
@@ -610,19 +918,38 @@ export default function PracticeDetailsDialog({
                                     Billing based on patients
                                 </p>
 
-
                                 {/* DEFAULT DETAILS */}
                                 <div className="mt-2 rounded-xl border border-gray-200 bg-white p-2 ">
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-500">
-                                            Current Price
+                                            {validatedCoupon && isCouponApplicable ? "Original Price" : "Current Price"}
                                         </span>
 
-                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                        <span className={`text-lg font-semibold ${validatedCoupon && isCouponApplicable ? "line-through text-gray-400" : "text-[#1a2b3c]"}`}>
                                             $
                                             {paymentSettings?.pay_per_patient_amount || 0}
                                         </span>
                                     </div>
+
+                                    {validatedCoupon && isCouponApplicable && (
+                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-green-600 font-medium">
+                                                    Month-end Bill Discount
+                                                </span>
+
+                                                <span className="text-lg font-semibold text-green-600">
+                                                    {validatedCoupon.discount_type === "PERCENTAGE"
+                                                        ? `${validatedCoupon.discount_value}% OFF`
+                                                        : `$${validatedCoupon.discount_value} OFF`}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Discount will be applied to the month-end patient bill.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {!isActivated('PAY_PER_PATIENT') &&
@@ -705,12 +1032,12 @@ export default function PracticeDetailsDialog({
                                                 </span>
                                             </div>
 
-                                            <div className="flex items-center justify-between text-sm">
+                                            {/* <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Current Price</span>
                                                 <span className="font-semibold">
                                                     ${subscription?.current_price || 0}
                                                 </span>
-                                            </div>
+                                            </div> */}
 
                                         </div>
 
@@ -800,9 +1127,13 @@ export default function PracticeDetailsDialog({
                                         'PAY_PER_MONTH'
                                     )
                                 }
+                                disabled={validatedCoupon && validatedCoupon.applicable_payment_type === "PAY_PER_PATIENT"}
                                 className={`border rounded-2xl p-5 text-left transition-all ${isSelected('PAY_PER_MONTH')
                                     ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-100'
                                     : 'border-gray-200 bg-white hover:border-orange-300'
+                                    } ${validatedCoupon && validatedCoupon.applicable_payment_type === "PAY_PER_PATIENT"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : ""
                                     }`}
                             >
 
@@ -843,14 +1174,25 @@ export default function PracticeDetailsDialog({
 
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-500">
-                                            Current Price
+                                            {validatedCoupon && isCouponApplicable ? "Original Price" : "Current Price"}
                                         </span>
 
-                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                        <span className={`text-lg font-semibold ${validatedCoupon && isCouponApplicable ? "line-through text-gray-400" : "text-[#1a2b3c]"}`}>
                                             $
                                             {paymentSettings?.pay_per_month_amount || 0}
                                         </span>
                                     </div>
+
+                                    {validatedCoupon && isCouponApplicable && (
+                                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+                                            <span className="text-sm text-green-600 font-medium">
+                                                Discounted Price
+                                            </span>
+                                            <span className="text-lg font-semibold text-green-600">
+                                                ${calculateDiscountedPrice(paymentSettings?.pay_per_month_amount || 0)}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {!isActivated('PAY_PER_MONTH') &&
@@ -1029,24 +1371,35 @@ export default function PracticeDetailsDialog({
 
                 {/* Footer */}
 
-                <div className="p-6 border-t border-gray-100 flex justify-end sticky bottom-0 bg-white rounded-b-[24px]">
+                <div className="p-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white rounded-b-[24px]">
+
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 rounded-full font-bold text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 transition-all"
+                    >
+                        Cancel
+                    </button>
 
                     <button
                         onClick={handleSaveSubscription}
-                        disabled={savingSubscription}
-                        className={`px-6 py-3 rounded-full font-bold text-white transition-all flex items-center gap-2 ${savingSubscription
+                        disabled={savingSubscription || isValidatingCoupon || isAssigningCoupon}
+                        className={`px-6 py-3 rounded-full font-bold text-white transition-all flex items-center gap-2 ${savingSubscription || isValidatingCoupon || isAssigningCoupon
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-[#1a2b3c] hover:bg-[#2d4258]'
                             }`}
                     >
 
-                        {savingSubscription && (
+                        {(savingSubscription || isValidatingCoupon || isAssigningCoupon) && (
                             <Loader2 className="w-4 h-4 animate-spin" />
                         )}
 
                         {savingSubscription
                             ? 'Updating...'
-                            : 'Save Subscription'}
+                            : isValidatingCoupon
+                                ? 'Validating...'
+                                : isAssigningCoupon
+                                    ? 'Applying Coupon...'
+                                    : 'Save Subscription'}
 
                     </button>
 
