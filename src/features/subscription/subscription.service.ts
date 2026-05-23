@@ -93,7 +93,14 @@ export const subscriptionService = {
             const expiryDate = new Date();
 
             expiryDate.setDate(
-                expiryDate.getDate() + 30
+                expiryDate.getDate() + 29
+            );
+
+            expiryDate.setHours(
+                23,
+                59,
+                59,
+                999
             );
 
             await localClient.mutate<any>({
@@ -156,10 +163,22 @@ export const subscriptionService = {
 
     async saveSubscription({
         practiceId,
-        paymentType
+        paymentType,
+        subscription_start_date,
+        subscription_end_date,
+        pending_start_date
     }: {
         practiceId: string;
-        paymentType: 'PAY_PER_PATIENT' | 'PAY_PER_MONTH';
+
+        paymentType:
+        'PAY_PER_PATIENT' |
+        'PAY_PER_MONTH';
+
+        subscription_start_date: string;
+
+        subscription_end_date: string;
+
+        pending_start_date: string;
     }) {
 
         /* =========================
@@ -198,7 +217,26 @@ export const subscriptionService = {
             ? new Date(current.subscription_end_date)
             : null;
 
-        const isActive = end && end.getTime() > now.getTime();
+        const isActive =
+            !!end &&
+            end.getTime() > now.getTime();
+
+        let currentEndDate: Date | null = null;
+
+        if (current?.subscription_end_date) {
+
+            currentEndDate = new Date(
+                current.subscription_end_date
+            );
+
+            currentEndDate.setHours(
+                23,
+                59,
+                59,
+                999
+            );
+
+        }
 
         /* =========================
             LATEST PRICE FROM SETTINGS
@@ -234,7 +272,7 @@ export const subscriptionService = {
                             current.subscription_start_date,
 
                         subscription_end_date:
-                            current.subscription_end_date,
+                            currentEndDate!.toISOString(),
 
                         pending_payment_type:
                             paymentType,
@@ -243,7 +281,7 @@ export const subscriptionService = {
                             latestPrice,
 
                         pending_start_date:
-                            current.subscription_end_date,
+                            pending_start_date,
 
                         is_active: true
                     }
@@ -266,10 +304,11 @@ export const subscriptionService = {
             CASE 2: EXPIRED → APPLY NOW
         ========================= */
 
-        const nowTs = now.toISOString();
+        const nowTs =
+            subscription_start_date;
 
-        const expiry = new Date();
-        expiry.setDate(now.getDate() + 30);
+        const expiry =
+            subscription_end_date;
 
         return await localClient.mutate<any>({
 
@@ -290,7 +329,7 @@ export const subscriptionService = {
                         nowTs,
 
                     subscription_end_date:
-                        expiry.toISOString(),
+                        expiry,
 
                     pending_payment_type: null,
 
