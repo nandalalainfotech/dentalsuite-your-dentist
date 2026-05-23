@@ -183,6 +183,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     // =========================
     // FIND ACTIVE COUPON FOR THIS PRACTICE
     // =========================
+
     const activeCoupon = useMemo(() => {
         if (!allCoupons.length || !practiceId) return null;
 
@@ -193,22 +194,27 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             const practiceData = coupon.practice_usage_json?.[practiceId];
             if (!practiceData) continue;
 
-            // Check if coupon has expired for this practice
+            // IMPORTANT: Check if current month is in the periods array
+            // This is the primary check for month-based coupon activation
+            const periods = practiceData.periods || [];
+            if (!periods.includes(currentMonthKey)) {
+                continue; // Coupon not active for this month
+            }
+
+            // Optional: Check expiry date (if exists)
             if (practiceData.expiresAt) {
                 const expiresAt = new Date(practiceData.expiresAt);
-                if (expiresAt < now) continue; // Expired, skip
+                if (expiresAt < now) {
+                    continue; // Coupon expired
+                }
             }
 
-            // Check if this month is in the periods array (for non-expiry coupons)
-            if (!practiceData.expiresAt && !practiceData.periods?.includes(currentMonthKey)) {
-                continue;
-            }
-
-            // Valid coupon found!
+            // Valid coupon for current month!
             return {
                 ...coupon,
                 appliedAt: practiceData.appliedAt,
                 expiresAt: practiceData.expiresAt,
+                periods: periods,
             };
         }
 

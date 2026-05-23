@@ -355,27 +355,41 @@ export default function PracticeSubscription() {
 
         try {
             const now = new Date();
-            const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth(); // 0-indexed (0 = Jan)
 
-            // Calculate expiry date
-            let expiresAt: string | null = null;
-            if (validatedCoupon.duration_months) {
-                const expiryDate = new Date(now);
-                expiryDate.setMonth(expiryDate.getMonth() + validatedCoupon.duration_months);
-                expiresAt = expiryDate.toISOString();
+            // Duration in months (default to 1 if not specified)
+            const durationMonths = validatedCoupon.duration_months || 1;
+
+            // Calculate months for coupon application (STARTING FROM NEXT MONTH)
+            const monthsToAdd: string[] = [];
+            for (let i = 1; i <= durationMonths; i++) {  // i = 1 means next month
+                const date = new Date(currentYear, currentMonth + i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthsToAdd.push(monthKey);
             }
 
+            // Calculate expiresAt as the LAST DAY of the LAST month at 23:59:59.999
+            const lastMonthDate = new Date(currentYear, currentMonth + durationMonths, 0);
+            lastMonthDate.setHours(23, 59, 59, 999);
+            const expiresAt = lastMonthDate.toISOString();
+
             // Update practice_usage_json
-            // Remove any corrupted "0" and "1" keys from existing data
             const practiceUsage = { ...(validatedCoupon.practice_usage_json || {}) };
 
-            // Clean corrupted keys (from previous bad saves)
+            // Clean corrupted keys
             delete practiceUsage["0"];
             delete practiceUsage["1"];
 
+            // Get existing periods or create new array
+            const existingPeriods = practiceUsage[practiceId]?.periods || [];
+
+            // Merge existing periods with new ones (avoid duplicates)
+            const allPeriods = [...new Set([...existingPeriods, ...monthsToAdd])];
+
             practiceUsage[practiceId] = {
                 count: (practiceUsage[practiceId]?.count || 0) + 1,
-                periods: [...(practiceUsage[practiceId]?.periods || []), currentMonthKey],
+                periods: allPeriods,
                 appliedAt: now.toISOString(),
                 expiresAt: expiresAt,
             };
@@ -388,15 +402,12 @@ export default function PracticeSubscription() {
                 },
             });
 
-            toast.success(`Coupon "${validatedCoupon.code}" assigned to practice!`);
+            toast.success(`Coupon "${validatedCoupon.code}" assigned! Active for ${durationMonths} month(s) starting next month`);
 
             // Reset state
             setCouponCodeInput('');
             setValidatedCoupon(null);
             setCouponValidationError('');
-
-            // Refetch coupons to update active coupon display
-            // refetchCoupons();
 
         } catch (error: any) {
             console.error('ASSIGN COUPON ERROR:', error);
