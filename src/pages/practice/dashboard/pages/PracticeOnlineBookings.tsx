@@ -573,7 +573,7 @@ export default function PracticeOnlineBookings() {
                           <div className="w-16 flex justify-end items-center gap-1 relative">
                             {/* {['pending', 'confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
                             {/* {['confirmed', 'completed'].includes(apt.status) && !isSuperAdminView && ( */}
-                            {['confirmed', 'completed'].includes(apt.status) && apt.isNewPatient === true && !isSuperAdminView && (
+                            {(apt.status === 'confirmed' || (apt.status === 'completed' && apt.isNewPatient === true)) && !isSuperAdminView && (
                               <button
                                 onClick={(e) => {
                                   if (!canEditOnlineBookings) return;
