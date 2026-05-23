@@ -114,6 +114,24 @@ mutation UpdatePracticeSubscription(
 }
 `;
 
+export const UPDATE_PRACTICE_SUBSCRIPTION_DATES = gql`
+mutation UpdatePracticeDates(
+  $id: uuid!,
+  $subscription_started_at: timestamptz!,
+  $subscription_expiry_at: timestamptz!
+) {
+  update_practice_info_by_pk(
+    pk_columns: { id: $id },
+    _set: {
+      subscription_started_at: $subscription_started_at,
+      subscription_expiry_at: $subscription_expiry_at
+    }
+  ) {
+    id
+  }
+}
+`;
+
 export const UPDATE_PRACTICE_STATUS = gql`
   mutation UpdatePracticeStatus($id: uuid!, $status: String!) {
     update_accounts_by_pk(
