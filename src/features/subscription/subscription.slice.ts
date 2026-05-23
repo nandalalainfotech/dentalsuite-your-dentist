@@ -81,7 +81,7 @@ const subscriptionSlice = createSlice({
         state.loading = false;
 
         state.subscription =
-          action.payload;
+          action.payload || null;
       }
     );
 
@@ -113,8 +113,18 @@ const subscriptionSlice = createSlice({
 
         state.saving = false;
 
-        state.subscription =
+        const payload: any =
           action.payload;
+
+        state.subscription =
+
+          payload?.data
+            ?.insert_practice_subscription_one ||
+
+          payload?.data
+            ?.update_practice_subscription_by_pk ||
+
+          payload;
       }
     );
 

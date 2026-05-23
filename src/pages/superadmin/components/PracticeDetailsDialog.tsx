@@ -6,7 +6,6 @@ import {
     Loader2,
     X,
     CalendarDays,
-    Clock3,
     CreditCard
 } from 'lucide-react';
 
@@ -113,6 +112,10 @@ export default function PracticeDetailsDialog({
 
     useEffect(() => {
 
+        /* =========================
+            NO SUBSCRIPTION
+        ========================= */
+
         if (!subscription) {
 
             setSelectedPaymentType(
@@ -122,7 +125,46 @@ export default function PracticeDetailsDialog({
             return;
         }
 
+        /* =========================
+            CHECK EXPIRY
+        ========================= */
+
+        const now = new Date();
+
+        const subscriptionEndDate =
+            subscription.subscription_end_date
+                ? new Date(
+                    subscription.subscription_end_date
+                )
+                : null;
+
+        const isExpired =
+            subscriptionEndDate &&
+            subscriptionEndDate < now;
+
+        /* =========================
+            EXPIRED + NO SCHEDULE
+            → DEFAULT TO PAY_PER_PATIENT
+        ========================= */
+
+        if (
+            isExpired &&
+            !subscription.pending_payment_type
+        ) {
+
+            setSelectedPaymentType(
+                'PAY_PER_PATIENT'
+            );
+
+            return;
+        }
+
+        /* =========================
+            NORMAL FLOW
+        ========================= */
+
         setSelectedPaymentType(
+            subscription.pending_payment_type ||
             subscription.current_payment_type
         );
 
@@ -167,7 +209,11 @@ export default function PracticeDetailsDialog({
 
         const expiry = new Date();
 
-        expiry.setDate(expiry.getDate() + 30);
+        expiry.setDate(
+            expiry.getDate() + 30
+        );
+
+        expiry.setHours(23, 59, 59, 999);
 
         return expiry;
 
@@ -199,15 +245,21 @@ export default function PracticeDetailsDialog({
 
     const remainingDays = useMemo(() => {
 
-        const now = new Date().getTime();
+        const today = new Date();
 
-        const expiry = new Date(expiryDate).getTime();
+        today.setHours(0, 0, 0, 0);
 
-        const diff = expiry - now;
+        const expiry = new Date(expiryDate);
+
+        expiry.setHours(23, 59, 59, 999);
+
+        const diff =
+            expiry.getTime() -
+            today.getTime();
 
         return Math.max(
             0,
-            Math.ceil(diff / (1000 * 60 * 60 * 24))
+            Math.floor(diff / (1000 * 60 * 60 * 24))
         );
 
     }, [expiryDate]);
@@ -220,6 +272,16 @@ export default function PracticeDetailsDialog({
 
     const hasPendingChange = (type: PaymentType) =>
         subscription?.pending_payment_type === type;
+
+    const futureStartDate = subscription?.subscription_end_date
+        ? new Date(subscription.subscription_end_date)
+        : new Date();
+
+    const futureEndDate = new Date(futureStartDate);
+
+    futureEndDate.setDate(
+        futureEndDate.getDate() + 30
+    );
 
     const latestPrice =
         selectedPaymentType === 'PAY_PER_MONTH'
@@ -548,89 +610,184 @@ export default function PracticeDetailsDialog({
                                     Billing based on patients
                                 </p>
 
-                                {isSelected('PAY_PER_PATIENT') && (
 
-                                    <div className="mt-4 space-y-2">
+                                {/* DEFAULT DETAILS */}
+                                <div className="mt-2 rounded-xl border border-gray-200 bg-white p-2 ">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-500">
+                                            Current Price
+                                        </span>
 
-                                        {isActivated('PAY_PER_PATIENT') && (
+                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                            $
+                                            {paymentSettings?.pay_per_patient_amount || 0}
+                                        </span>
+                                    </div>
+                                </div>
 
-                                            <>
+                                {!isActivated('PAY_PER_PATIENT') &&
+                                    !hasPendingChange('PAY_PER_PATIENT') && (
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 space-y-3">
 
-                                                    <CalendarDays className="w-4 h-4 text-orange-500" />
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    Start Date
+                                                </span>
 
-                                                    <span>
+                                                <span className="text-sm font-semibold text-[#1a2b3c]">
 
-                                                        {formatDate(
-                                                            startDate.toISOString()
-                                                        )} to{' '}
+                                                    {formatDate(
+                                                        futureStartDate.toISOString()
+                                                    )}
 
-                                                        {formatDate(
-                                                            expiryDate.toISOString()
-                                                        )}
+                                                </span>
+                                            </div>
 
-                                                    </span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    End Date
+                                                </span>
 
-                                                </div>
+                                                <span className="text-sm font-semibold text-[#1a2b3c]">
 
-                                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                                    {formatDate(
+                                                        futureEndDate.toISOString()
+                                                    )}
 
-                                                    <Clock3 className="w-4 h-4" />
+                                                </span>
+                                            </div>
 
-                                                    <span>
-                                                        {remainingDays} days remaining
-                                                    </span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    Remaining Days
+                                                </span>
 
-                                                </div>
+                                                <span className="text-sm font-semibold text-green-600">
+                                                    30 Days
+                                                </span>
+                                            </div>
 
-                                            </>
-                                        )}
+                                        </div>
 
-                                        {hasPendingChange('PAY_PER_PATIENT') && (
+                                    )}
 
-                                            <>
+                                {/* ACTIVE SUBSCRIPTION */}
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                {subscription?.current_payment_type === 'PAY_PER_PATIENT' && (
 
-                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+                                    <div className="mt-4 p-3 rounded-xl bg-green-50 border border-green-200">
 
-                                                    <span>
+                                        <p className="text-xs font-bold text-green-700 uppercase mb-2">
+                                            Active Subscription
+                                        </p>
 
-                                                        Starts:{' '}
+                                        <div className="space-y-2">
 
-                                                        {pendingStartDate
-                                                            ? formatDate(
-                                                                pendingStartDate.toISOString()
-                                                            )
-                                                            : 'N/A'}
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Start Date</span>
+                                                <span className="font-semibold">
+                                                    {formatDate(startDate.toISOString())}
+                                                </span>
+                                            </div>
 
-                                                    </span>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">End Date</span>
+                                                <span className="font-semibold">
+                                                    {formatDate(expiryDate.toISOString())}
+                                                </span>
+                                            </div>
 
-                                                </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
+                                                </span>
+                                            </div>
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="font-semibold">
+                                                    ${subscription?.current_price || 0}
+                                                </span>
+                                            </div>
 
-                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
-
-                                                    <span>
-
-                                                        Expires:{' '}
-
-                                                        {pendingExpiryDate
-                                                            ? formatDate(
-                                                                pendingExpiryDate.toISOString()
-                                                            )
-                                                            : 'N/A'}
-
-                                                    </span>
-
-                                                </div>
-
-                                            </>
-                                        )}
+                                        </div>
 
                                     </div>
+
+                                )}
+
+                                {/* SCHEDULED PLAN */}
+
+                                {subscription?.pending_payment_type === 'PAY_PER_PATIENT' && (
+
+                                    <div className="mt-4 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+
+                                        <p className="text-xs font-bold text-yellow-700 uppercase mb-2">
+                                            Scheduled Subscription
+                                        </p>
+
+                                        <div className="space-y-2">
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Starts
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+
+                                                    {pendingStartDate
+                                                        ? formatDate(
+                                                            pendingStartDate.toISOString()
+                                                        )
+                                                        : 'N/A'}
+
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Ends
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+
+                                                    {pendingExpiryDate
+                                                        ? formatDate(
+                                                            pendingExpiryDate.toISOString()
+                                                        )
+                                                        : 'N/A'}
+
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Upcoming Price
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+                                                    ${subscription?.pending_price || 0}
+                                                </span>
+
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 )}
 
                             </button>
@@ -681,89 +838,185 @@ export default function PracticeDetailsDialog({
                                     Monthly Subscription
                                 </p>
 
-                                {isSelected('PAY_PER_MONTH') && (
+                                {/* DEFAULT DETAILS */}
+                                <div className="mt-2 rounded-xl border border-gray-200 bg-white p-2">
 
-                                    <div className="mt-4 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-500">
+                                            Current Price
+                                        </span>
 
-                                        {isActivated('PAY_PER_MONTH') && (
+                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                            $
+                                            {paymentSettings?.pay_per_month_amount || 0}
+                                        </span>
+                                    </div>
+                                </div>
 
-                                            <>
+                                {!isActivated('PAY_PER_MONTH') &&
+                                    !hasPendingChange('PAY_PER_MONTH') && (
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 space-y-3">
 
-                                                    <CalendarDays className="w-4 h-4 text-blue-500" />
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    Start Date
+                                                </span>
 
-                                                    <span>
+                                                <span className="text-sm font-semibold text-[#1a2b3c]">
 
-                                                        {formatDate(
-                                                            startDate.toISOString()
-                                                        )} to{' '}
+                                                    {formatDate(
+                                                        futureStartDate.toISOString()
+                                                    )}
 
-                                                        {formatDate(
-                                                            expiryDate.toISOString()
-                                                        )}
+                                                </span>
+                                            </div>
 
-                                                    </span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    End Date
+                                                </span>
 
-                                                </div>
+                                                <span className="text-sm font-semibold text-[#1a2b3c]">
 
-                                                <div className="flex items-center gap-2 text-sm text-orange-600">
+                                                    {formatDate(
+                                                        futureEndDate.toISOString()
+                                                    )}
 
-                                                    <Clock3 className="w-4 h-4" />
+                                                </span>
+                                            </div>
 
-                                                    <span>
-                                                        {remainingDays} days remaining
-                                                    </span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-gray-500">
+                                                    Remaining Days
+                                                </span>
 
-                                                </div>
+                                                <span className="text-sm font-semibold text-green-600">
+                                                    30 Days
+                                                </span>
+                                            </div>
 
-                                            </>
-                                        )}
+                                        </div>
 
-                                        {hasPendingChange('PAY_PER_MONTH') && (
+                                    )}
 
-                                            <>
+                                {/* ACTIVE SUBSCRIPTION */}
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                {subscription?.current_payment_type === 'PAY_PER_MONTH' && (
 
-                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
+                                    <div className="mt-4 p-3 rounded-xl bg-green-50 border border-green-200">
 
-                                                    <span>
+                                        <p className="text-xs font-bold text-green-700 uppercase mb-2">
+                                            Active Subscription
+                                        </p>
 
-                                                        Starts:{' '}
+                                        <div className="space-y-2">
 
-                                                        {pendingStartDate
-                                                            ? formatDate(
-                                                                pendingStartDate.toISOString()
-                                                            )
-                                                            : 'N/A'}
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Start Date</span>
+                                                <span className="font-semibold">
+                                                    {formatDate(startDate.toISOString())}
+                                                </span>
+                                            </div>
 
-                                                    </span>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">End Date</span>
+                                                <span className="font-semibold">
+                                                    {formatDate(expiryDate.toISOString())}
+                                                </span>
+                                            </div>
 
-                                                </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
+                                                </span>
+                                            </div>
 
-                                                <div className="flex items-center gap-2 text-sm">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="font-semibold">
+                                                    ${subscription?.current_price || 0}
+                                                </span>
+                                            </div>
 
-                                                    <CalendarDays className="w-4 h-4 text-yellow-500" />
-
-                                                    <span>
-
-                                                        Expires:{' '}
-
-                                                        {pendingExpiryDate
-                                                            ? formatDate(
-                                                                pendingExpiryDate.toISOString()
-                                                            )
-                                                            : 'N/A'}
-
-                                                    </span>
-
-                                                </div>
-
-                                            </>
-                                        )}
+                                        </div>
 
                                     </div>
+
+                                )}
+
+                                {/* SCHEDULED PLAN */}
+
+                                {subscription?.pending_payment_type === 'PAY_PER_MONTH' && (
+
+                                    <div className="mt-4 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+
+                                        <p className="text-xs font-bold text-yellow-700 uppercase mb-2">
+                                            Scheduled Subscription
+                                        </p>
+
+                                        <div className="space-y-2">
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Starts
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+
+                                                    {pendingStartDate
+                                                        ? formatDate(
+                                                            pendingStartDate.toISOString()
+                                                        )
+                                                        : 'N/A'}
+
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Ends
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+
+                                                    {pendingExpiryDate
+                                                        ? formatDate(
+                                                            pendingExpiryDate.toISOString()
+                                                        )
+                                                        : 'N/A'}
+
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Upcoming Price
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+                                                    ${subscription?.pending_price || 0}
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 )}
 
                             </button>

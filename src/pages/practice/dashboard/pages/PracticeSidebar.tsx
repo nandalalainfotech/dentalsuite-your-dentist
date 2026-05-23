@@ -14,6 +14,7 @@ import { useAppSelector } from '../../../../store';
 interface PracticeSidebarProps {
   onLogout?: () => void;
   onClose?: () => void;
+  isAdminView: boolean;
   permissionSubjectId: string;
 }
 

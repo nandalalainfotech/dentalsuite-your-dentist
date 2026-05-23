@@ -296,7 +296,7 @@ const InvoiceHistoryView = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [, setOpenMenuId] = useState<string | null>(null);
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -452,7 +452,7 @@ const InvoiceHistoryView = () => {
       </div>
 
       {/* Status Tabs */}
-      <div className="sticky top-[120px] z-40 bg-white px-6 pt-4 border-b border-slate-100 shadow-sm">
+      <div className="bg-white px-6 pt-4 border-b border-slate-100 shadow-sm">
         <div className="flex gap-6">
           <button
             onClick={() => {
@@ -501,7 +501,7 @@ const InvoiceHistoryView = () => {
       {/* Search and Table */}
       <div className="p-6">
         <div className="relative group max-w-md mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/4 w-4 h-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
           <input
             type="text"
             placeholder="Search by patient name or treatment..."
@@ -605,7 +605,7 @@ const InvoiceHistoryView = () => {
 
 const PracticeInvoiceHistoryView = () => {
   const { user } = useAppSelector((state: any) => state.auth);
-  const practiceName = user?.practiceName || 'My Practice';
+  const practiceName = user?.practiceName ;
 
   const [activeTab, setActiveTab] = useState<
     'dispute_billing' | 'invoice_history' | 'current_billing'
@@ -625,12 +625,12 @@ const PracticeInvoiceHistoryView = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="sticky top-[60px] z-50 bg-white px-6 border-b border-slate-200 shadow-sm">
+        <div className="bg-white px-3 border-b-2 border-slate-100">
           <div className="flex gap-8">
 
             <button
               onClick={() => setActiveTab('dispute_billing')}
-              className={`relative pb-3 text-base font-semibold transition-all ${activeTab === 'dispute_billing'
+              className={`relative p-3 text-base font-semibold transition-all ${activeTab === 'dispute_billing'
                 ? 'text-orange-500'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -644,7 +644,7 @@ const PracticeInvoiceHistoryView = () => {
 
             <button
               onClick={() => setActiveTab('invoice_history')}
-              className={`relative pb-3 text-base font-semibold transition-all ${activeTab === 'invoice_history'
+              className={`relative p-3 text-base font-semibold transition-all ${activeTab === 'invoice_history'
                 ? 'text-orange-500'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
@@ -658,7 +658,7 @@ const PracticeInvoiceHistoryView = () => {
 
             <button
               onClick={() => setActiveTab('current_billing')}
-              className={`relative pb-3 text-base font-semibold transition-all ${activeTab === 'current_billing'
+              className={`relative p-3 text-base font-semibold transition-all ${activeTab === 'current_billing'
                 ? 'text-orange-500'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
