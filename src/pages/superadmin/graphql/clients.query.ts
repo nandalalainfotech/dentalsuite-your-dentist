@@ -92,9 +92,9 @@ export const UPDATE_PRACTICE_SUBSCRIPTION = gql`
 mutation UpdatePracticeSubscription(
     $id: uuid!,
     $current_payment_type: String,
-    $current_price: numeric,
+    $current_price: jsonb,
     $pending_payment_type: String,
-    $pending_price: numeric,
+    $pending_price: jsonb,
     $pending_start_date: timestamptz
 ) {
     update_practice_subscription_by_pk(

@@ -16,6 +16,7 @@ export const GET_PRACTICE_SUBSCRIPTION = gql`
     ) {
       id
       practice_id
+      monthly_addon_enabled
       current_payment_type
       current_price
       subscription_start_date
@@ -50,6 +51,7 @@ export const UPSERT_PRACTICE_SUBSCRIPTION = gql`
         update_columns: [
           current_payment_type
           current_price
+          monthly_addon_enabled
           subscription_start_date
           subscription_end_date
           pending_payment_type
@@ -64,6 +66,7 @@ export const UPSERT_PRACTICE_SUBSCRIPTION = gql`
       practice_id
       current_payment_type
       current_price
+      monthly_addon_enabled
       subscription_start_date
       subscription_end_date
       pending_payment_type

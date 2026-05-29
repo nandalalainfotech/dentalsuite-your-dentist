@@ -302,11 +302,6 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
         currentMonthCompleted.length +
         currentMonthDispute.length;
 
-    const cancelledCount =
-        currentMonthCancelled.length;
-
-    const creditsCount =
-        currentMonthApprovedDisputes.length;
 
     // ========================================
     // SUBSCRIPTION
@@ -315,79 +310,169 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     const currentPaymentType =
         subscription?.current_payment_type;
 
-    const currentPrice =
-        Number(subscription?.current_price || 0);
+    const priceObj = subscription?.current_price ?? {};
+
+    const pricing = {
+        patient: Number(priceObj.pay_per_patient_amount ?? 0),
+        monthly: Number(priceObj.pay_per_month_amount ?? 0),
+    };
+
+    const patientRate = pricing.patient;
+    const monthlyBasePrice = pricing.monthly;
 
     // ========================================
-    // PATIENT RATE
+    // BILLING COUNTS
     // ========================================
-    const patientRate = currentPaymentType === 'PAY_PER_PATIENT' ? currentPrice : 90;
 
+    const totalAppointments =
+        currentMonthCompleted.length +
+        currentMonthDispute.length +
+        currentMonthCancelled.length;
+
+    const completedAppointments =
+        currentMonthCompleted.length +
+        currentMonthDispute.length;
+
+    const cancelledCount =
+        currentMonthCancelled.length;
+
+    const creditsCount =
+        currentMonthApprovedDisputes.length;
+
+    // ========================================
+    // BILLING AMOUNTS
+    // ========================================
+
+    const appointmentAmount =
+        totalAppointments * patientRate;
+
+    const cancellationAmount =
+        cancelledCount * patientRate;
+
+    const creditsAmount =
+        creditsCount * patientRate;
+
+    // ========================================
+    // GROSS TOTAL
+    // ========================================
+
+    const grossTotal =
+        currentPaymentType === 'PAY_PER_MONTH'
+            ? monthlyBasePrice + appointmentAmount
+            : appointmentAmount;
     // ========================================
     // TOTALS (BEFORE COUPON)
     // ========================================
 
     const patientCharges = chargedCount * patientRate;
-    const creditsAmount = creditsCount * patientRate;
     const patientNetTotal = Math.max(0, patientCharges - creditsAmount);
-    // const netTotalBeforeCoupon = Math.max(0, grossTotal - creditsAmount);
-    const netTotalBeforeCoupon = patientNetTotal;
-    // const netTotalBeforeCoupon = currentPaymentType === 'PAY_PER_MONTH'
-    //     ? currentPrice  // Fixed monthly fee
-    //     : Math.max(0, patientCharges - creditsAmount);  // Per-patient calculation
+
 
     // ========================================
-    // COUPON DISCOUNT CALCULATION
+    // COUPON DISCOUNT CALCULATION (FIXED)
     // ========================================
-    const { discountAmount, discountDescription } = useMemo(() => {
+    const {
+        monthlyDiscountAmount,
+        patientDiscountAmount,
+        discountDescription
+    } = useMemo(() => {
         if (!activeCoupon) {
-            return { discountAmount: 0, discountDescription: '' };
+            return {
+                monthlyDiscountAmount: 0,
+                patientDiscountAmount: 0,
+                discountDescription: ''
+            };
         }
 
-        // For PAY_PER_MONTH: discount applies to currentPrice (shown in badge)
-        // For PAY_PER_PATIENT: discount applies to patient calculations (shown in breakdown)
-        const discountBase = currentPaymentType === 'PAY_PER_MONTH'
-            ? currentPrice
-            : patientNetTotal;
+        const monthlyBase = Number(monthlyBasePrice || 0);
+        const patientBase = Number(patientNetTotal || 0);
 
-        let discount = 0;
+        let monthlyDiscount = 0;
+        let patientDiscount = 0;
         let description = '';
 
         switch (activeCoupon.discount_type) {
-            case 'percentage':
-                discount = discountBase * ((activeCoupon.discount_value || 0) / 100);
-                description = `${activeCoupon.discount_value}% off`;
+
+            case 'percentage': {
+                const value = Number(activeCoupon.discount_value || 0); // Should be 50 for 50% off
+                monthlyDiscount = monthlyBase * (value / 100);
+                patientDiscount = patientBase * (value / 100);
+                description = `${value}% off`;
                 break;
-            case 'fixed':
-                discount = Math.min(discountBase, activeCoupon.discount_value || 0);
-                description = `$${activeCoupon.discount_value} off`;
+            }
+
+            case 'fixed': {
+                const value = Number(activeCoupon.discount_value || 0);
+
+                if (currentPaymentType === 'PAY_PER_MONTH') {
+                    monthlyDiscount = Math.min(monthlyBase, value);
+                } else {
+                    patientDiscount = Math.min(patientBase, value);
+                }
+
+                description = `$${value} off`;
                 break;
-            case 'free_months':
-                discount = discountBase;
-                description = `${activeCoupon.free_months} months free`;
+            }
+
+            case 'free_months': {
+                const months = Number(activeCoupon.free_months || 1);
+
+                if (currentPaymentType === 'PAY_PER_MONTH') {
+                    monthlyDiscount = monthlyBase * months;
+                } else {
+                    patientDiscount = patientBase;
+                }
+
+                description = `${months} months free`;
                 break;
+            }
         }
 
-        discount = Math.min(discount, discountBase);
-
         return {
-            discountAmount: Number(discount.toFixed(2)),
+            monthlyDiscountAmount: Number(monthlyDiscount.toFixed(2)),
+            patientDiscountAmount: Number(patientDiscount.toFixed(2)),
             discountDescription: description
         };
-    }, [activeCoupon, patientNetTotal, currentPaymentType, currentPrice]);
+    }, [
+        activeCoupon,
+        monthlyBasePrice,
+        patientNetTotal,
+        currentPaymentType
+    ]);
 
     // ========================================
     // FINAL TOTALS (AFTER COUPON)
     // ========================================
-    const netTotal = currentPaymentType === 'PAY_PER_MONTH'
-        ? patientNetTotal  // ← FIX: Always use patientNetTotal for breakdown
-        : Number((patientNetTotal - discountAmount).toFixed(2));
+    // ========================================
+    // FINAL TOTALS
+    // ========================================
+
+    const totalDiscount =
+        currentPaymentType === 'PAY_PER_MONTH'
+            ? monthlyDiscountAmount
+            : patientDiscountAmount;
+
+    const netTotal = Number(
+        (
+            grossTotal -
+            cancellationAmount -
+            creditsAmount -
+            totalDiscount
+        ).toFixed(2)
+    );
+
+    const gstAmount =
+        Number((netTotal * GST_RATE).toFixed(2));
+
+    const finalTotal =
+        Number((netTotal + gstAmount).toFixed(2));
 
     // Monthly subscription discounted price (only for badge)
-    const monthlyDiscountedPrice = Number((currentPrice - discountAmount).toFixed(2));
+    const monthlyDiscountedPrice =
+        currentPaymentType === 'PAY_PER_MONTH'
+            ? Math.max(0, monthlyBasePrice - monthlyDiscountAmount)
+            : monthlyBasePrice;
 
-    const gstAmount = Number((netTotal * GST_RATE).toFixed(2));
-    const finalTotal = Number((netTotal + gstAmount).toFixed(2));
 
     // Create product entries for display
     const productEntries = [
@@ -414,7 +499,7 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
             patientName: b.patient_name,
             outcome: 'Not charged' as const,
             type: 'Cancelled' as const,
-            amount: 0
+            amount: patientRate
         })),
         // NEW LOGIC: Use updated_at date for credits (when approval happened)
         ...currentMonthApprovedDisputes.map((b: { id: any; updated_at: any; appointment_date: any; patient_name: any; }) => ({
@@ -429,46 +514,60 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
     ];
 
     const breakdownItems = [
+
+        ...(currentPaymentType === 'PAY_PER_MONTH'
+            ? [{
+                label: 'Monthly Subscription',
+                count: 1,
+                amount: monthlyBasePrice,
+                type: 'neutral' as const,
+            }]
+            : []),
+
         {
             label: 'Total appointments',
-            count: currentMonthCompleted.length + currentMonthDispute.length + currentMonthCancelled.length,
-            amount: (currentMonthCompleted.length + currentMonthDispute.length + currentMonthCancelled.length) * patientRate,
-            type: 'neutral' as const
+            count: totalAppointments,
+            amount: appointmentAmount,
+            type: 'neutral' as const,
         },
+
         {
             label: 'Cancellations',
             count: cancelledCount,
-            amount: -(cancelledCount * patientRate),
-            type: 'error' as const
+            amount: -cancellationAmount,
+            type: 'error' as const,
         },
+
         {
             label: 'Credits for Patient Connect previous invoices',
-            count: -creditsCount,
+            count: creditsCount,
             amount: -creditsAmount,
-            type: 'success' as const
-        },
-        // Only show coupon line for PAY_PER_PATIENT
-        ...(activeCoupon && currentPaymentType !== 'PAY_PER_MONTH' ? [{
-            label: `Discount (${activeCoupon.code})`,
-            count: 0,
-            amount: -discountAmount,
             type: 'success' as const,
-            isCoupon: true,
-            originalAmount: patientNetTotal,
-            discountedAmount: netTotal,
-        }] : []),
+        },
+
+        ...(activeCoupon
+            ? [{
+                label: `Discount (${activeCoupon.code})`,
+                count: 0,
+                amount: -totalDiscount,
+                type: 'success' as const,
+                isCoupon: true,
+            }]
+            : []),
+
         {
             label: 'Total (before GST)',
             count: 0,
             amount: netTotal,
-            type: 'neutral' as const
+            type: 'neutral' as const,
         },
+
         {
             label: 'GST (10%)',
             count: 0,
             amount: gstAmount,
-            type: 'neutral' as const
-        }
+            type: 'neutral' as const,
+        },
     ];
 
     const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -506,7 +605,9 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                                         {activeCoupon.code} Active
                                     </p>
                                     <p className="text-[10px] text-purple-500">
-                                        {discountDescription}
+                                        {currentPaymentType === 'PAY_PER_MONTH'
+                                            ? discountDescription
+                                            : discountDescription}
                                         {activeCoupon.expiresAt && (
                                             <> — Expires: {new Date(activeCoupon.expiresAt).toLocaleDateString('en-ZA', {
                                                 day: '2-digit',
@@ -516,25 +617,6 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                                         )}
                                     </p>
                                 </div>
-                            </div>
-                        )}
-                        {currentPaymentType === 'PAY_PER_MONTH' && (
-                            <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200">
-                                <p className="text-xs text-blue-600 font-semibold">Monthly Subscription</p>
-                                {activeCoupon ? (
-                                    <div>
-                                        <p className="text-xs text-blue-400 line-through">
-                                            Base Plan: {formatCurrency(currentPrice)}
-                                        </p>
-                                        <p className="text-sm text-blue-800 font-bold">
-                                            {formatCurrency(monthlyDiscountedPrice)} <span className="text-[10px] text-purple-500">({discountDescription})</span>
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-blue-800 font-bold">
-                                        Base Plan: {formatCurrency(currentPrice)}
-                                    </p>
-                                )}
                             </div>
                         )}
                     </div>
@@ -598,13 +680,19 @@ const CurrentMonthBillingView: React.FC<{ practiceName: string }> = ({ practiceN
                                     <span>
                                         {item.label.includes('GST') || item.label.includes('Total (before GST)') || item.isCoupon ? '' : item.count}
                                     </span>
-                                    {item.isCoupon ? (
+                                    {item.isDiscounted ? (
                                         <div className="w-24 text-right">
                                             <span className="line-through text-gray-400 mr-1 text-xs">
                                                 {formatCurrency(item.originalAmount)}
                                             </span>
                                             <span className="font-semibold text-purple-600">
-                                                {formatCurrency(item.discountedAmount)}
+                                                {formatCurrency(item.amount)}
+                                            </span>
+                                        </div>
+                                    ) : item.isCoupon ? (
+                                        <div className="w-24 text-right">
+                                            <span className="font-semibold text-purple-600">
+                                                {formatCurrency(item.amount)}
                                             </span>
                                         </div>
                                     ) : (

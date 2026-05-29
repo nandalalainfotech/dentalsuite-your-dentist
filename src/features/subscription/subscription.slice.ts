@@ -6,7 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import { subscriptionService } from './subscription.service';
-import type { PaymentType } from './subscription.types';
+import type { PaymentType, PracticeSubscription } from './subscription.types';
 
 export const fetchPracticeSubscription =
   createAsyncThunk(
@@ -30,12 +30,14 @@ export const savePracticeSubscription =
       {
         practiceId,
         paymentType,
+        monthly_addon_enabled,
         subscription_start_date,
         subscription_end_date,
         pending_start_date
       }: {
         practiceId: string;
         paymentType: PaymentType;
+        monthly_addon_enabled: boolean;
         subscription_start_date: string;
         subscription_end_date: string;
         pending_start_date: string;
@@ -45,7 +47,7 @@ export const savePracticeSubscription =
       return await subscriptionService.saveSubscription({
         practiceId,
         paymentType,
-
+        monthly_addon_enabled,
         subscription_start_date,
         subscription_end_date,
         pending_start_date
@@ -54,7 +56,7 @@ export const savePracticeSubscription =
   );
 
 interface SubscriptionState {
-  subscription: any;
+  subscription: PracticeSubscription | null;
   loading: boolean;
   saving: boolean;
 }

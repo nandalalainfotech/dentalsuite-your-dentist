@@ -631,21 +631,30 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
                                     </div>
 
                                     <h3 className="text-lg font-semibold">
-                                        Pay Per Month
+                                        Pay Per Patient + Monthly Add on
                                     </h3>
 
                                     <p className="text-sm text-gray-500">
-                                        Monthly subscription
+                                        Patient billing with additional monthly subscription fee
                                     </p>
 
                                     <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 space-y-3">
 
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-gray-500">
-                                                Current Price
+                                                Per Patient Fee
                                             </span>
 
-                                            <span className="text-lg font-semibold text-[#1a2b3c]">
+                                            <span className="text-md font-semibold text-[#1a2b3c]">
+                                                ${paymentSettings?.pay_per_patient_amount || 0}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">
+                                                Monthly Add on
+                                            </span>
+
+                                            <span className="text-md font-semibold text-[#1a2b3c]">
                                                 ${paymentSettings?.pay_per_month_amount || 0}
                                             </span>
                                         </div>
