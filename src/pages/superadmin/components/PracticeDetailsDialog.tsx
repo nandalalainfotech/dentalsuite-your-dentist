@@ -51,6 +51,91 @@ interface Props {
     client: Client | null;
 }
 
+const createStartOfDayUTC = (
+    date: Date
+) => {
+
+    const cloned = new Date(date);
+
+    cloned.setUTCHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return cloned;
+};
+
+const createExpiryDate = (
+    start: Date
+) => {
+
+    const expiry =
+        createStartOfDayUTC(start);
+
+    // 30 day subscription inclusive
+    expiry.setUTCDate(
+        expiry.getUTCDate() + 29
+    );
+
+    expiry.setUTCHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+    return expiry;
+};
+
+const createNextStartDate = (
+    endDate: string | Date
+) => {
+
+    const next =
+        createStartOfDayUTC(
+            new Date(endDate)
+        );
+
+    next.setUTCDate(
+        next.getUTCDate() + 1
+    );
+
+    return next;
+};
+
+const calculateRemainingDays = (
+    expiryDate: Date
+) => {
+
+    const today =
+        createStartOfDayUTC(
+            new Date()
+        );
+
+    const expiry =
+        new Date(expiryDate);
+
+    expiry.setUTCHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+    const diff =
+        expiry.getTime() -
+        today.getTime();
+
+    return Math.max(
+        0,
+        Math.ceil(
+            diff / (1000 * 60 * 60 * 24)
+        )
+    );
+};
+
 export default function PracticeDetailsDialog({
     onClose,
     client
@@ -152,11 +237,9 @@ export default function PracticeDetailsDialog({
         const now = new Date();
 
         const subscriptionEndDate =
-            subscription?.subscription_end_date
-                ? new Date(
-                    subscription?.subscription_end_date
-                )
-                : null;
+            createExpiryDate(
+                new Date(subscription.subscription_end_date)
+            );
 
         const isExpired =
             subscriptionEndDate &&
@@ -196,6 +279,7 @@ export default function PracticeDetailsDialog({
         return new Date(dateStr).toLocaleDateString(
             'en-AU',
             {
+                timeZone: 'UTC',
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
@@ -213,7 +297,9 @@ export default function PracticeDetailsDialog({
 
         const start = new Date();
 
-        start.setDate(start.getDate() + 30);
+        start.setUTCDate(
+            start.getUTCDate() + 30
+        );
 
         return start;
 
@@ -224,10 +310,10 @@ export default function PracticeDetailsDialog({
         if (subscription?.subscription_end_date) {
 
             const expiry = new Date(
-                subscription?.subscription_end_date
+                subscription.subscription_end_date
             );
 
-            expiry.setHours(
+            expiry.setUTCHours(
                 23,
                 59,
                 59,
@@ -239,11 +325,11 @@ export default function PracticeDetailsDialog({
 
         const expiry = new Date();
 
-        expiry.setDate(
-            expiry.getDate() + 30
+        expiry.setUTCDate(
+            expiry.getUTCDate() + 29
         );
 
-        expiry.setHours(
+        expiry.setUTCHours(
             23,
             59,
             59,
@@ -254,6 +340,7 @@ export default function PracticeDetailsDialog({
 
     }, [subscription]);
 
+
     const pendingStartDate = useMemo(() => {
 
         if (subscription?.pending_start_date) {
@@ -262,14 +349,14 @@ export default function PracticeDetailsDialog({
                 subscription.pending_start_date
             );
 
-            pending.setHours(
+            pending.setUTCHours(
                 0,
                 0,
                 0,
                 0
             );
 
-            return pending;
+            return createStartOfDayUTC(pending);
         }
 
         return null;
@@ -280,63 +367,24 @@ export default function PracticeDetailsDialog({
 
         if (!pendingStartDate) return null;
 
-        const expiry = new Date(
+        return createExpiryDate(
             pendingStartDate
         );
-
-        expiry.setDate(
-            expiry.getDate() + 29
-        );
-
-        expiry.setHours(
-            23,
-            59,
-            59,
-            999
-        );
-
-        return expiry;
 
     }, [pendingStartDate]);
 
     const remainingDays = useMemo(() => {
 
-        const today = new Date();
-
-        today.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-        const expiry = new Date(expiryDate);
-
-        expiry.setHours(
-            23,
-            59,
-            59,
-            999
-        );
-
-        const diff =
-            expiry.getTime() -
-            today.getTime();
-
-        return Math.max(
-            0,
-            Math.floor(
-                diff / (1000 * 60 * 60 * 24)
-            )
+        return calculateRemainingDays(
+            expiryDate
         );
 
     }, [expiryDate]);
 
-    const nextStartDate = new Date(subscription?.subscription_end_date);
-
-    nextStartDate.setDate(nextStartDate.getDate() + 1);
-
-    nextStartDate.setHours(0, 0, 0, 0);
+    const nextStartDate =
+        createNextStartDate(
+            subscription?.subscription_end_date
+        );
 
     const isSelected = (type: PaymentType) =>
         selectedPaymentType === type;
@@ -351,71 +399,68 @@ export default function PracticeDetailsDialog({
 
         if (!subscription?.subscription_end_date) {
 
-            const today = new Date();
-
-            today.setHours(0, 0, 0, 0);
-
-            return today;
+            return createStartOfDayUTC(
+                new Date()
+            );
         }
 
         const next = new Date(
-            subscription?.subscription_end_date
+            subscription.subscription_end_date
         );
 
-        next.setDate(
-            next.getDate() + 1
+        next.setUTCDate(
+            next.getUTCDate() + 1
         );
 
-        next.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-        return next;
+        return createStartOfDayUTC(next);
 
     }, [subscription]);
 
     const futureEndDate = useMemo(() => {
 
-        const end = new Date(futureStartDate);
-
-        end.setDate(
-            end.getDate() + 29
+        return createExpiryDate(
+            futureStartDate
         );
-
-        end.setHours(
-            23,
-            59,
-            59,
-            999
-        );
-
-        return end;
 
     }, [futureStartDate]);
 
-    const originalPrice =
-        selectedPaymentType === 'PAY_PER_MONTH'
-            ? paymentSettings?.pay_per_month_amount || 0
-            : paymentSettings?.pay_per_patient_amount || 0;
+    const monthlyPrice =
+        paymentSettings?.pay_per_month_amount || 0;
 
     const calculateDiscountedPrice = (price: number): number => {
+
         if (!validatedCoupon) return price;
+
+        // ONLY apply actual discount for PAY_PER_MONTH
+        if (selectedPaymentType !== 'PAY_PER_MONTH') {
+            return price;
+        }
 
         let discountedPrice = price;
 
         if (validatedCoupon.discount_type === "PERCENTAGE") {
-            discountedPrice = price * (1 - validatedCoupon.discount_value / 100);
+
+            discountedPrice =
+                price * (
+                    1 - validatedCoupon.discount_value / 100
+                );
+
         } else if (validatedCoupon.discount_type === "FIXED") {
-            discountedPrice = Math.max(0, price - validatedCoupon.discount_value);
+
+            discountedPrice =
+                Math.max(
+                    0,
+                    price - validatedCoupon.discount_value
+                );
         }
 
         return Math.round(discountedPrice * 100) / 100;
     };
 
-    const latestPrice = calculateDiscountedPrice(originalPrice);
+    const latestPrice =
+        calculateDiscountedPrice(
+            monthlyPrice
+        );
 
     const isCouponApplicable = validatedCoupon && (
         validatedCoupon.applicable_payment_type === "BOTH" ||
@@ -563,8 +608,16 @@ export default function PracticeDetailsDialog({
                 couponId: validatedCoupon.id,
                 discountType: validatedCoupon.discount_type,
                 discountValue: validatedCoupon.discount_value,
-                originalPrice: originalPrice,
-                discountedPrice: latestPrice
+
+                originalPrice:
+                    selectedPaymentType === 'PAY_PER_MONTH'
+                        ? monthlyPrice
+                        : 0,
+
+                discountedPrice:
+                    selectedPaymentType === 'PAY_PER_MONTH'
+                        ? latestPrice
+                        : 0
             };
 
         } catch (error: any) {
@@ -595,7 +648,12 @@ export default function PracticeDetailsDialog({
                     couponInfo = await assignCouponToPractice(client.id);
                 }
 
-                const finalPrice = couponInfo ? couponInfo.discountedPrice : latestPrice;
+                const finalPrice =
+                    selectedPaymentType === 'PAY_PER_MONTH'
+                        ? (couponInfo
+                            ? couponInfo.discountedPrice
+                            : latestPrice)
+                        : 0;
 
                 await createPracticeSubscription({
 
@@ -610,7 +668,15 @@ export default function PracticeDetailsDialog({
 
                             pending_payment_type: null,
 
-                            current_price: finalPrice,
+                            current_price: {
+                                pay_per_patient_amount:
+                                    paymentSettings?.pay_per_patient_amount || 0,
+
+                                pay_per_month_amount:
+                                    selectedPaymentType === 'PAY_PER_MONTH'
+                                        ? finalPrice
+                                        : 0
+                            },
 
                             subscription_start_date:
                                 today.toISOString(),
@@ -648,7 +714,7 @@ export default function PracticeDetailsDialog({
 
             const isSubscriptionActive =
                 subscriptionEndDate &&
-                subscriptionEndDate > today;
+                subscriptionEndDate.getTime() > Date.now();
 
             // Apply coupon if exists and subscription is active (for renewal)
             let couponInfo = null;
@@ -677,8 +743,15 @@ export default function PracticeDetailsDialog({
                         pending_payment_type:
                             selectedPaymentType,
 
-                        pending_price:
-                            finalPrice,
+                        pending_price: {
+                            pay_per_patient_amount:
+                                paymentSettings?.pay_per_patient_amount || 0,
+
+                            pay_per_month_amount:
+                                selectedPaymentType === 'PAY_PER_MONTH'
+                                    ? finalPrice
+                                    : 0
+                        },
 
                         pending_start_date: nextStartDate.toISOString()
                     }
@@ -700,8 +773,15 @@ export default function PracticeDetailsDialog({
                         current_payment_type:
                             selectedPaymentType,
 
-                        current_price:
-                            finalPrice,
+                        current_price: {
+                            pay_per_patient_amount:
+                                paymentSettings?.pay_per_patient_amount || 0,
+
+                            pay_per_month_amount:
+                                selectedPaymentType === 'PAY_PER_MONTH'
+                                    ? finalPrice
+                                    : 0
+                        },
 
                         pending_payment_type: null,
 
@@ -1013,8 +1093,7 @@ export default function PracticeDetailsDialog({
                                         </span>
 
                                         <span className={`text-lg font-semibold ${validatedCoupon && isCouponApplicable ? "line-through text-gray-400" : "text-[#1a2b3c]"}`}>
-                                            $
-                                            {paymentSettings?.pay_per_patient_amount || 0}
+                                            ${paymentSettings?.pay_per_patient_amount || 0}
                                         </span>
                                     </div>
 
@@ -1113,16 +1192,16 @@ export default function PracticeDetailsDialog({
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Remaining</span>
-                                                <span className="font-semibold text-green-600">
-                                                    {remainingDays} days
+                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="font-semibold">
+                                                    ${subscription?.current_price?.pay_per_patient_amount || 0}
                                                 </span>
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Current Price</span>
-                                                <span className="font-semibold">
-                                                    ${subscription?.current_price || 0}
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
                                                 </span>
                                             </div>
 
@@ -1187,7 +1266,7 @@ export default function PracticeDetailsDialog({
                                                 </span>
 
                                                 <span className="font-semibold text-[#1a2b3c]">
-                                                    ${subscription?.pending_price || 0}
+                                                    ${subscription?.pending_price?.pay_per_patient_amount || 0}
                                                 </span>
 
                                             </div>
@@ -1249,11 +1328,11 @@ export default function PracticeDetailsDialog({
                                 </div>
 
                                 <h3 className="text-lg font-semibold">
-                                    Pay Per Month
+                                    Pay Per Patient + Monthly Add on
                                 </h3>
 
                                 <p className="text-sm text-gray-500">
-                                    Monthly Subscription
+                                    Patient billing with additional monthly subscription fee
                                 </p>
 
                                 {/* DEFAULT DETAILS */}
@@ -1261,12 +1340,21 @@ export default function PracticeDetailsDialog({
 
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-500">
+                                            Per Patient Fee
+                                        </span>
+
+                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                            ${paymentSettings?.pay_per_patient_amount || 0}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-500">
                                             {validatedCoupon && isCouponApplicable ? "Original Price" : "Current Price"}
                                         </span>
 
                                         <span className={`text-lg font-semibold ${validatedCoupon && isCouponApplicable ? "line-through text-gray-400" : "text-[#1a2b3c]"}`}>
-                                            $
-                                            {paymentSettings?.pay_per_month_amount || 0}
+                                            ${paymentSettings?.pay_per_month_amount || 0}
                                         </span>
                                     </div>
 
@@ -1356,16 +1444,23 @@ export default function PracticeDetailsDialog({
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Remaining</span>
-                                                <span className="font-semibold text-green-600">
-                                                    {remainingDays} days
+                                                <span className="text-gray-500">Patient Amount</span>
+                                                <span className="font-semibold">
+                                                    ${subscription?.current_price?.pay_per_patient_amount || 0}
                                                 </span>
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="text-gray-500">Monthly Add on</span>
                                                 <span className="font-semibold">
-                                                    ${subscription?.current_price || 0}
+                                                    ${subscription?.current_price?.pay_per_month_amount || 0}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Remaining</span>
+                                                <span className="font-semibold text-green-600">
+                                                    {remainingDays} days
                                                 </span>
                                             </div>
 
@@ -1426,11 +1521,23 @@ export default function PracticeDetailsDialog({
                                             <div className="flex items-center justify-between text-sm">
 
                                                 <span className="text-gray-500">
-                                                    Upcoming Price
+                                                    Patient Amount
                                                 </span>
 
                                                 <span className="font-semibold text-[#1a2b3c]">
-                                                    ${subscription?.pending_price || 0}
+                                                    ${subscription?.pending_price?.pay_per_patient_amount || 0}
+                                                </span>
+
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Monthly Add on
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+                                                    ${subscription?.pending_price?.pay_per_month_amount || 0}
                                                 </span>
 
                                             </div>

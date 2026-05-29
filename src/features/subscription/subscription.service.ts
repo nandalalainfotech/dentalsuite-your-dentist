@@ -3,6 +3,22 @@
 import { localClient } from "../../api/apollo/localClient";
 import { GET_PRACTICE_SUBSCRIPTION, UPSERT_PRACTICE_SUBSCRIPTION } from "../../pages/practice/dashboard/graphql/subscription.query";
 import { GET_PAYMENT_SETTINGS } from "../../pages/superadmin/graphql/payment.query";
+import type { SubscriptionPrice } from "./subscription.types";
+
+
+const buildPriceObject = (
+    paymentType: 'PAY_PER_PATIENT' | 'PAY_PER_MONTH',
+    settings: any
+): SubscriptionPrice => ({
+
+    pay_per_patient_amount:
+        settings.pay_per_patient_amount,
+
+    pay_per_month_amount:
+        paymentType === 'PAY_PER_MONTH'
+            ? settings.pay_per_month_amount
+            : 0
+});
 
 export const subscriptionService = {
 
@@ -96,7 +112,7 @@ export const subscriptionService = {
                 expiryDate.getDate() + 29
             );
 
-            expiryDate.setHours(
+            expiryDate.setUTCHours(
                 23,
                 59,
                 59,
@@ -118,7 +134,10 @@ export const subscriptionService = {
                             'PAY_PER_PATIENT',
 
                         current_price:
-                            settings.pay_per_patient_amount,
+                            buildPriceObject(
+                                'PAY_PER_PATIENT',
+                                settings
+                            ),
 
                         subscription_start_date:
                             startDate.toISOString(),
@@ -164,15 +183,19 @@ export const subscriptionService = {
     async saveSubscription({
         practiceId,
         paymentType,
+        monthly_addon_enabled,
         subscription_start_date,
         subscription_end_date,
         pending_start_date
     }: {
+
         practiceId: string;
 
         paymentType:
         'PAY_PER_PATIENT' |
         'PAY_PER_MONTH';
+
+        monthly_addon_enabled: boolean;
 
         subscription_start_date: string;
 
@@ -229,7 +252,7 @@ export const subscriptionService = {
                 current.subscription_end_date
             );
 
-            currentEndDate.setHours(
+            currentEndDate.setUTCHours(
                 23,
                 59,
                 59,
@@ -237,15 +260,6 @@ export const subscriptionService = {
             );
 
         }
-
-        /* =========================
-            LATEST PRICE FROM SETTINGS
-        ========================= */
-
-        const latestPrice =
-            paymentType === 'PAY_PER_MONTH'
-                ? settings.pay_per_month_amount
-                : settings.pay_per_patient_amount;
 
         /* =========================
             CASE 1: MID CYCLE
@@ -263,7 +277,9 @@ export const subscriptionService = {
                         practice_id: practiceId,
 
                         current_payment_type:
-                            current.current_payment_type,
+                            current?.current_payment_type || 'PAY_PER_PATIENT',
+
+                        monthly_addon_enabled,
 
                         current_price:
                             current.current_price,
@@ -278,7 +294,10 @@ export const subscriptionService = {
                             paymentType,
 
                         pending_price:
-                            latestPrice,
+                            buildPriceObject(
+                                paymentType,
+                                settings
+                            ),
 
                         pending_start_date:
                             pending_start_date,
@@ -322,8 +341,13 @@ export const subscriptionService = {
                     current_payment_type:
                         paymentType,
 
+                    monthly_addon_enabled,
+
                     current_price:
-                        latestPrice,
+                        buildPriceObject(
+                            paymentType,
+                            settings
+                        ),
 
                     subscription_start_date:
                         nowTs,

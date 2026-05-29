@@ -26,11 +26,6 @@ import { localClient } from '../../../../api/apollo/localClient';
 import toast from 'react-hot-toast';
 import { ASSIGN_COUPON_TO_PRACTICE, GET_ALL_COUPONS, GET_PAYMENT_SETTINGS, REMOVE_COUPON_FROM_PRACTICE, VALIDATE_COUPON_BY_CODE } from '../graphql/subscription.query';
 
-// =========================
-// TYPES
-// =========================
-
-type PaymentType = 'PAY_PER_PATIENT' | 'PAY_PER_MONTH';
 
 interface Coupon {
     id: string;
@@ -146,6 +141,7 @@ export default function PracticeSubscription() {
         return new Date(dateStr).toLocaleDateString(
             'en-AU',
             {
+                timeZone: 'UTC',
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
@@ -157,8 +153,8 @@ export default function PracticeSubscription() {
         STATES
     ========================================= */
 
-    const [selectedPaymentType, setSelectedPaymentType] =
-        useState<PaymentType>('PAY_PER_PATIENT');
+    const [monthlyAddonEnabled, setMonthlyAddonEnabled] =
+        useState(false);
 
     /* =========================================
         FETCH
@@ -190,7 +186,10 @@ export default function PracticeSubscription() {
 
     useEffect(() => {
         if (!subscription) return;
-        setSelectedPaymentType(subscription.current_payment_type);
+
+        setMonthlyAddonEnabled(
+            subscription.current_payment_type === 'PAY_PER_MONTH'
+        );
     }, [subscription]);
 
     /* =========================================
@@ -221,7 +220,7 @@ export default function PracticeSubscription() {
                 subscription.subscription_end_date
             );
 
-            expiry.setHours(
+            expiry.setUTCHours(
                 23,
                 59,
                 59,
@@ -233,11 +232,18 @@ export default function PracticeSubscription() {
 
         const expiry = new Date();
 
-        expiry.setDate(
-            expiry.getDate() + 30
+        expiry.setUTCHours(
+            0,
+            0,
+            0,
+            0
         );
 
-        expiry.setHours(
+        expiry.setUTCDate(
+            expiry.getUTCDate() + 29
+        );
+
+        expiry.setUTCHours(
             23,
             59,
             59,
@@ -256,7 +262,7 @@ export default function PracticeSubscription() {
                 subscription.pending_start_date
             );
 
-            pending.setHours(
+            pending.setUTCHours(
                 0,
                 0,
                 0,
@@ -278,11 +284,18 @@ export default function PracticeSubscription() {
             pendingStartDate
         );
 
-        expiry.setDate(
-            expiry.getDate() + 29
+        expiry.setUTCHours(
+            0,
+            0,
+            0,
+            0
         );
 
-        expiry.setHours(
+        expiry.setUTCDate(
+            expiry.getUTCDate() + 29
+        );
+
+        expiry.setUTCHours(
             23,
             59,
             59,
@@ -326,16 +339,12 @@ export default function PracticeSubscription() {
         if (!subscription) return;
 
         if (isExpiredWithoutPending) {
-
-            setSelectedPaymentType(
-                'PAY_PER_PATIENT'
-            );
-
+            setMonthlyAddonEnabled(false);
             return;
         }
 
-        setSelectedPaymentType(
-            subscription.current_payment_type
+        setMonthlyAddonEnabled(
+            subscription.current_payment_type === 'PAY_PER_MONTH'
         );
     }, [
         subscription,
@@ -351,7 +360,7 @@ export default function PracticeSubscription() {
 
         const today = new Date();
 
-        today.setHours(
+        today.setUTCHours(
             0,
             0,
             0,
@@ -360,7 +369,7 @@ export default function PracticeSubscription() {
 
         const expiry = new Date(expiryDate);
 
-        expiry.setHours(
+        expiry.setUTCHours(
             23,
             59,
             59,
@@ -373,7 +382,7 @@ export default function PracticeSubscription() {
 
         return Math.max(
             0,
-            Math.floor(
+            Math.ceil(
                 diff / (1000 * 60 * 60 * 24)
             )
         );
@@ -386,13 +395,22 @@ export default function PracticeSubscription() {
 
     const subscriptionStartDate = new Date();
 
-    const subscriptionEndDate = new Date();
-
-    subscriptionEndDate.setDate(
-        subscriptionEndDate.getDate() + 30
+    const subscriptionEndDate = new Date(
+        subscriptionStartDate
     );
 
-    subscriptionEndDate.setHours(
+    subscriptionEndDate.setUTCHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    subscriptionEndDate.setUTCDate(
+        subscriptionEndDate.getUTCDate() + 29
+    );
+
+    subscriptionEndDate.setUTCHours(
         23,
         59,
         59,
@@ -403,11 +421,11 @@ export default function PracticeSubscription() {
         subscriptionEndDate
     );
 
-    nextPendingStartDate.setDate(
-        nextPendingStartDate.getDate() + 1
+    nextPendingStartDate.setUTCDate(
+        nextPendingStartDate.getUTCDate() + 1
     );
 
-    nextPendingStartDate.setHours(
+    nextPendingStartDate.setUTCHours(
         0,
         0,
         0,
@@ -416,14 +434,24 @@ export default function PracticeSubscription() {
 
     const handleSaveSubscription = async () => {
         try {
+
             if (!practiceId) {
                 alert('Practice ID not found');
                 return;
             }
+
             await dispatch(
                 savePracticeSubscription({
+
                     practiceId,
-                    paymentType: selectedPaymentType,
+
+                    paymentType: monthlyAddonEnabled
+                        ? 'PAY_PER_MONTH'
+                        : 'PAY_PER_PATIENT',
+
+                    monthly_addon_enabled:
+                        monthlyAddonEnabled,
+
 
                     subscription_start_date:
                         subscriptionStartDate.toISOString(),
@@ -433,12 +461,17 @@ export default function PracticeSubscription() {
 
                     pending_start_date:
                         nextPendingStartDate.toISOString()
+
                 })
             ).unwrap();
+
             toast.success('Subscription updated');
+
         } catch (error) {
+
             console.error(error);
             toast.error('Failed to save subscription');
+
         }
     };
 
@@ -546,7 +579,7 @@ export default function PracticeSubscription() {
 
             // Calculate expiresAt as the LAST DAY of the LAST month at 23:59:59.999
             const lastMonthDate = new Date(currentYear, currentMonth + durationMonths, 0);
-            lastMonthDate.setHours(23, 59, 59, 999);
+            lastMonthDate.setUTCHours(23, 59, 59, 999);
             const expiresAt = lastMonthDate.toISOString();
 
             // Update practice_usage_json
@@ -630,20 +663,62 @@ export default function PracticeSubscription() {
         HELPERS
     ========================================= */
 
-    const isSelected = (type: PaymentType) => selectedPaymentType === type;
+    const isSelected = (monthlyPlan: boolean) =>
+        monthlyAddonEnabled === monthlyPlan;
 
-    const isActivated = (type: PaymentType) => subscription?.current_payment_type === type;
+    const isActivated = (monthlyPlan: boolean) =>
+        monthlyPlan
+            ? subscription?.current_payment_type === 'PAY_PER_MONTH'
+            : subscription?.current_payment_type === 'PAY_PER_PATIENT';
 
-    const hasPendingChange = (type: PaymentType) => subscription?.pending_payment_type === type;
+    const hasPendingChange = (monthlyPlan: boolean) =>
+        monthlyPlan
+            ? subscription?.pending_payment_type === 'PAY_PER_MONTH'
+            : subscription?.pending_payment_type === 'PAY_PER_PATIENT';
 
     const futureStartDate = subscription?.subscription_end_date
-        ? new Date(subscription.subscription_end_date)
+        ? (() => {
+
+            const date = new Date(
+                subscription.subscription_end_date
+            );
+
+            date.setUTCDate(
+                date.getUTCDate() + 1
+            );
+
+            date.setUTCHours(
+                0,
+                0,
+                0,
+                0
+            );
+
+            return date;
+
+        })()
         : new Date();
 
-    const futureEndDate = new Date(futureStartDate);
+    const futureEndDate = new Date(
+        futureStartDate
+    );
 
-    futureEndDate.setDate(
-        futureEndDate.getDate() + 30
+    futureEndDate.setUTCHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    futureEndDate.setUTCDate(
+        futureEndDate.getUTCDate() + 29
+    );
+
+    futureEndDate.setUTCHours(
+        23,
+        59,
+        59,
+        999
     );
 
 
@@ -725,9 +800,9 @@ export default function PracticeSubscription() {
 
                             <button
                                 onClick={() =>
-                                    setSelectedPaymentType('PAY_PER_PATIENT')
+                                    setMonthlyAddonEnabled(false)
                                 }
-                                className={`border rounded-2xl p-5 text-left transition-all ${isSelected('PAY_PER_PATIENT')
+                                className={`border rounded-2xl p-5 text-left transition-all ${isSelected(false)
                                     ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-100'
                                     : 'border-gray-200 bg-white hover:border-orange-300'
                                     }`}
@@ -741,13 +816,13 @@ export default function PracticeSubscription() {
 
                                     <div className="flex items-center gap-2">
 
-                                        {isActivated('PAY_PER_PATIENT') && (
+                                        {isActivated(false) && (
                                             <span className="px-3 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
                                                 ACTIVATED
                                             </span>
                                         )}
 
-                                        {hasPendingChange('PAY_PER_PATIENT') && (
+                                        {hasPendingChange(false) && (
                                             <span className="px-3 py-1 rounded-full bg-yellow-500 text-white text-xs font-semibold">
                                                 SCHEDULED
                                             </span>
@@ -774,8 +849,8 @@ export default function PracticeSubscription() {
                                     </div>
                                 </div>
 
-                                {!isActivated('PAY_PER_PATIENT') &&
-                                    !hasPendingChange('PAY_PER_PATIENT') && (
+                                {!isActivated(false) &&
+                                    !hasPendingChange(false) && (
 
                                         <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 space-y-3">
 
@@ -846,9 +921,9 @@ export default function PracticeSubscription() {
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="text-gray-500">Active Price</span>
                                                 <span className="font-semibold">
-                                                    ${subscription?.current_price || 0}
+                                                    ${subscription?.current_price?.pay_per_patient_amount || 0}
                                                 </span>
                                             </div>
 
@@ -917,7 +992,7 @@ export default function PracticeSubscription() {
                                                 </span>
 
                                                 <span className="font-semibold text-[#1a2b3c]">
-                                                    ${subscription?.pending_price || 0}
+                                                    ${subscription?.pending_price?.pay_per_patient_amount || 0}
                                                 </span>
 
                                             </div>
@@ -939,9 +1014,9 @@ export default function PracticeSubscription() {
                             {/* ================= MONTH ================= */}
                             <button
                                 onClick={() =>
-                                    setSelectedPaymentType('PAY_PER_MONTH')
+                                    setMonthlyAddonEnabled(true)
                                 }
-                                className={`border rounded-2xl p-5 text-left transition-all ${isSelected('PAY_PER_MONTH')
+                                className={`border rounded-2xl p-5 text-left transition-all ${isSelected(true)
                                     ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-100'
                                     : 'border-gray-200 bg-white hover:border-orange-300'
                                     }`}
@@ -955,13 +1030,13 @@ export default function PracticeSubscription() {
 
                                     <div className="flex items-center gap-2">
 
-                                        {isActivated('PAY_PER_MONTH') && (
+                                        {isActivated(true) && (
                                             <span className="px-3 py-1 rounded-full bg-green-600 text-white text-xs font-semibold">
                                                 ACTIVATED
                                             </span>
                                         )}
 
-                                        {hasPendingChange('PAY_PER_MONTH') && (
+                                        {hasPendingChange(true) && (
                                             <span className="px-3 py-1 rounded-full bg-yellow-500 text-white text-xs font-semibold">
                                                 SCHEDULED
                                             </span>
@@ -972,18 +1047,27 @@ export default function PracticeSubscription() {
                                 </div>
 
                                 <h3 className="text-lg font-semibold">
-                                    Pay Per Month
+                                    Pay Per Patient + Monthly Add on
                                 </h3>
 
                                 <p className="text-sm text-gray-500">
-                                    Monthly Subscription
+                                    Patient billing with additional monthly subscription fee
                                 </p>
 
                                 <div className="mt-2 rounded-xl border border-gray-200 bg-white p-2">
 
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-500">
-                                            Current Price
+                                            Per Patient Fee
+                                        </span>
+
+                                        <span className="text-lg font-semibold text-[#1a2b3c]">
+                                            ${paymentSettings?.pay_per_patient_amount || 0}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-500">
+                                            Monthly Add on
                                         </span>
 
                                         <span className="text-lg font-semibold text-[#1a2b3c]">
@@ -992,8 +1076,8 @@ export default function PracticeSubscription() {
                                     </div>
                                 </div>
 
-                                {!isActivated('PAY_PER_MONTH') &&
-                                    !hasPendingChange('PAY_PER_MONTH') && (
+                                {!isActivated(true) &&
+                                    !hasPendingChange(true) && (
 
                                         <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 space-y-3">
 
@@ -1064,9 +1148,15 @@ export default function PracticeSubscription() {
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-gray-500">Current Price</span>
+                                                <span className="text-gray-500">Patient Amount</span>
                                                 <span className="font-semibold">
-                                                    ${subscription?.current_price || 0}
+                                                    ${subscription?.current_price?.pay_per_patient_amount || 0}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-500">Monthly Add on</span>
+                                                <span className="font-semibold">
+                                                    ${subscription?.current_price?.pay_per_month_amount || 0}
                                                 </span>
                                             </div>
 
@@ -1128,17 +1218,31 @@ export default function PracticeSubscription() {
                                                 </span>
 
                                             </div>
+
                                             <div className="flex items-center justify-between text-sm">
 
                                                 <span className="text-gray-500">
-                                                    Upcoming Price
+                                                    Patient Amount
                                                 </span>
 
                                                 <span className="font-semibold text-[#1a2b3c]">
-                                                    ${subscription?.pending_price || 0}
+                                                    ${subscription?.pending_price?.pay_per_patient_amount || 0}
                                                 </span>
 
                                             </div>
+
+                                            <div className="flex items-center justify-between text-sm">
+
+                                                <span className="text-gray-500">
+                                                    Monthly Add on
+                                                </span>
+
+                                                <span className="font-semibold text-[#1a2b3c]">
+                                                    ${subscription?.pending_price?.pay_per_month_amount || 0}
+                                                </span>
+
+                                            </div>
+
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-500">Plan will active in</span>
                                                 <span className="font-semibold text-green-600">

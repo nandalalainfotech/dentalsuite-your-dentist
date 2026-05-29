@@ -110,7 +110,7 @@ const getNextRequestNumber = async (): Promise<number> => {
 };
 
 // --- 7. GET TICKET MESSAGES ---
-const getTicketMessages = async (ticketId: string, limit = 10, offset = 0) => {
+const getTicketMessages = async (ticketId: string, limit = 20, offset = 0) => {
   const response = await localClient.query({
     query: GET_TICKET_MESSAGES,
     variables: {
