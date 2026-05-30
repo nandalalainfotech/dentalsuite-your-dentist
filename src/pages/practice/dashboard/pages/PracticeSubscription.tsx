@@ -343,36 +343,42 @@ export default function PracticeSubscription() {
             const currentMonth = now.getMonth();
             const durationMonths = coupon.duration_months || 1;
 
-            // Determine if we're applying to current active plan or scheduled plan
-            const hasActiveSubscription = subscription?.subscription_start_date &&
-                subscription.subscription_start_date <= now.toISOString() &&
-                subscription.subscription_end_date &&
-                new Date(subscription.subscription_end_date) > now;
+            // 1. Determine the Start Offset
+            // If the selected plan is the one currently active, start = 0 (Current Month)
+            // If the selected plan is the one scheduled (pending), start = 1 (Next Month)
+
+            const isCurrentPlan = planType === 'pay_per_month'
+                ? subscription?.current_payment_type === 'PAY_PER_MONTH'
+                : subscription?.current_payment_type === 'PAY_PER_PATIENT';
+
+            const isPendingPlan = planType === 'pay_per_month'
+                ? subscription?.pending_payment_type === 'PAY_PER_MONTH'
+                : subscription?.pending_payment_type === 'PAY_PER_PATIENT';
+
+            // Start from current month (0) if it's the active plan, 
+            // otherwise start from next month (1) if it's scheduled.
+            const startOffset = isCurrentPlan ? 0 : (isPendingPlan ? 1 : 0);
 
             let monthsToAdd: string[] = [];
 
-            if (!hasActiveSubscription) {
-                // No active subscription - apply to current month for selected plan
-                for (let i = 0; i < durationMonths; i++) {
-                    const date = new Date(currentYear, currentMonth + i, 1);
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    monthsToAdd.push(monthKey);
-                }
-            } else {
-                // Has active subscription - apply to next month (scheduled plan) for selected plan
-                for (let i = 1; i <= durationMonths; i++) {
-                    const date = new Date(currentYear, currentMonth + i, 1);
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    monthsToAdd.push(monthKey);
-                }
+            // 2. Generate the periods based on the offset
+            for (let i = startOffset; i < startOffset + durationMonths; i++) {
+                const date = new Date(currentYear, currentMonth + i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthsToAdd.push(monthKey);
             }
 
-            const startMonth = !hasActiveSubscription ? currentMonth : currentMonth + 1;
-            const lastMonthDate = new Date(currentYear, startMonth + durationMonths - 1, 0);
+            // 3. Calculate Expiry Date correctly 
+            // (Last day of the last month in the periods array)
+            const expiryMonthIndex = currentMonth + startOffset + durationMonths;
+            const lastMonthDate = new Date(currentYear, expiryMonthIndex, 0);
             lastMonthDate.setUTCHours(23, 59, 59, 999);
             const expiresAt = lastMonthDate.toISOString();
 
+            // 4. Update usage JSON
             const practiceUsage = { ...(coupon.practice_usage_json || {}) };
+
+            // Clean up legacy keys
             delete practiceUsage["0"];
             delete practiceUsage["1"];
 
@@ -384,7 +390,7 @@ export default function PracticeSubscription() {
                 periods: allPeriods,
                 appliedAt: now.toISOString(),
                 expiresAt: expiresAt,
-                appliedToPlan: planType // Save which plan this coupon belongs to
+                appliedToPlan: planType
             };
 
             await assignCoupon({
@@ -395,7 +401,8 @@ export default function PracticeSubscription() {
                 },
             });
 
-            toast.success(`Coupon "${coupon.code}" applied to ${planType === 'pay_per_patient' ? 'Pay Per Patient' : 'Monthly Add-on'} plan!`);
+            const startMessage = startOffset === 0 ? "current month" : "next month (scheduled)";
+            toast.success(`Coupon "${coupon.code}" applied starting from ${startMessage}!`);
 
         } catch (error: any) {
             console.error('APPLY COUPON ERROR:', error);
