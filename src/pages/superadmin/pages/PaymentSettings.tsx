@@ -47,7 +47,7 @@ interface Coupon {
     id: string;
     code: string;
     description: string;
-    duration_months: number | null; // ADD THIS
+    duration_months: number | null;
     discount_type: "percentage" | "fixed" | "free_months";
     discount_value: number | null;
     free_months: number | null;
@@ -58,6 +58,7 @@ interface Coupon {
     used_count: number;
     practice_usage_json: Record<string, any>;
     created_at: string;
+    coupon_applies_to: "pay_per_patient" | "pay_per_month" | "both"; // ADD THIS
 }
 
 // =========================
@@ -96,6 +97,7 @@ const PaymentSettings = () => {
         valid_until: "",
         max_uses: "",
         is_active: true,
+        coupon_applies_to: "both" as "pay_per_patient" | "pay_per_month" | "both", // ADD THIS
     });
     const [isSavingCoupon, setIsSavingCoupon] = useState(false);
 
@@ -256,6 +258,7 @@ const PaymentSettings = () => {
             valid_until: "",
             max_uses: "",
             is_active: true,
+            coupon_applies_to: "both", // ADD THIS
         });
         setEditingCoupon(null);
         setShowCouponForm(false);
@@ -269,11 +272,12 @@ const PaymentSettings = () => {
             discount_type: coupon.discount_type,
             discount_value: coupon.discount_value?.toString() || "",
             free_months: coupon.free_months?.toString() || "",
-            duration_months: coupon.duration_months?.toString() || "", // ADD THIS
+            duration_months: coupon.duration_months?.toString() || "",
             valid_from: coupon.valid_from || "",
             valid_until: coupon.valid_until || "",
             max_uses: coupon.max_uses?.toString() || "",
             is_active: coupon.is_active,
+            coupon_applies_to: coupon.coupon_applies_to || "both", // ADD THIS
         });
         setShowCouponForm(true);
     };
@@ -317,11 +321,12 @@ const PaymentSettings = () => {
                         : null,
                 duration_months: couponForm.duration_months
                     ? parseInt(couponForm.duration_months)
-                    : null, // ADD THIS
+                    : null,
                 is_active: couponForm.is_active,
                 valid_from: couponForm.valid_from || null,
                 valid_until: couponForm.valid_until || null,
                 max_uses: couponForm.max_uses ? parseInt(couponForm.max_uses) : null,
+                coupon_applies_to: couponForm.coupon_applies_to, // ADD THIS
             };
 
             if (editingCoupon) {
@@ -360,6 +365,12 @@ const PaymentSettings = () => {
     }
 
     const coupons = couponsData?.coupons || [];
+
+    const formatAppliesTo = (appliesTo: string) => {
+        if (appliesTo === "pay_per_patient") return "Per Patient";
+        if (appliesTo === "pay_per_month") return "Per Month";
+        return "Both";
+    };
 
     // =========================
     // UI
@@ -603,6 +614,26 @@ const PaymentSettings = () => {
                                     </select>
                                 </div>
 
+                                {/* Coupon Applies To - NEW FIELD */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                        Applies To *
+                                    </label>
+                                    <select
+                                        name="coupon_applies_to"
+                                        value={couponForm.coupon_applies_to}
+                                        onChange={handleCouponFormChange}
+                                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                                    >
+                                        <option value="both">Both</option>
+                                        <option value="pay_per_patient">pay_per_patient</option>
+                                        <option value="pay_per_month">pay_per_month</option>
+                                    </select>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Which billing plan this coupon applies to.
+                                    </p>
+                                </div>
+
                                 {/* Discount Value (for percentage/fixed) */}
                                 {couponForm.discount_type !== "free_months" && (
                                     <div>
@@ -687,6 +718,26 @@ const PaymentSettings = () => {
                                     />
                                 </div>
 
+                                {/* Duration Months - Only show for percentage and fixed */}
+                                {couponForm.discount_type !== "free_months" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                            Duration (Months)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="duration_months"
+                                            value={couponForm.duration_months}
+                                            onChange={handleCouponFormChange}
+                                            placeholder="6"
+                                            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                                        />
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            How many months this discount lasts. Leave blank for one-month use.
+                                        </p>
+                                    </div>
+                                )}
+
                                 {/* Description */}
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -701,6 +752,8 @@ const PaymentSettings = () => {
                                         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                                     />
                                 </div>
+
+
 
                                 {/* <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -718,26 +771,6 @@ const PaymentSettings = () => {
                                         How many months this discount lasts. Leave blank for one-time use.
                                     </p>
                                 </div> */}
-
-                                {/* Duration Months - Only show for percentage and fixed */}
-                                {couponForm.discount_type !== "free_months" && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Duration (Months)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="duration_months"
-                                            value={couponForm.duration_months}
-                                            onChange={handleCouponFormChange}
-                                            placeholder="6"
-                                            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
-                                        />
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            How many months this discount lasts. Leave blank for one-time use.
-                                        </p>
-                                    </div>
-                                )}
 
                                 {/* Active Toggle */}
                                 <div className="flex items-center gap-3 pt-1">
@@ -814,6 +847,7 @@ const PaymentSettings = () => {
                                             {/* <th className="text-left px-6 py-4 font-semibold text-gray-600">Description</th> */}
                                             <th className="text-left px-6 py-4 font-semibold text-gray-600">Type</th>
                                             <th className="text-left px-6 py-4 font-semibold text-gray-600">Value</th>
+                                            <th className="text-left px-6 py-4 font-semibold text-gray-600">Applies To</th>
                                             <th className="text-left px-6 py-4 font-semibold text-gray-600">Duration</th>
                                             <th className="text-left px-6 py-4 font-semibold text-gray-600">Status</th>
                                             <th className="text-left px-6 py-4 font-semibold text-gray-600">Used</th>
@@ -841,6 +875,16 @@ const PaymentSettings = () => {
                                                         : coupon.discount_type === "percentage"
                                                             ? `${coupon.discount_value}%`
                                                             : `$${coupon.discount_value}`}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${coupon.coupon_applies_to === "both"
+                                                        ? "bg-purple-100 text-purple-700"
+                                                        : coupon.coupon_applies_to === "pay_per_patient"
+                                                            ? "bg-orange-100 text-orange-700"
+                                                            : "bg-blue-100 text-blue-700"
+                                                        }`}>
+                                                        {formatAppliesTo(coupon.coupon_applies_to)}
+                                                    </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-600">
                                                     {coupon.duration_months ? `${coupon.duration_months} months` : '—'}

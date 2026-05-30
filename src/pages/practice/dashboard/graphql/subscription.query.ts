@@ -95,6 +95,7 @@ export const GET_ALL_COUPONS = gql`
       max_uses
       used_count
       practice_usage_json
+      coupon_applies_to
     }
   }
 `;
@@ -156,6 +157,7 @@ export const VALIDATE_COUPON_BY_CODE = gql`
       max_uses
       used_count
       practice_usage_json
+      coupon_applies_to
     }
   }
 `;
