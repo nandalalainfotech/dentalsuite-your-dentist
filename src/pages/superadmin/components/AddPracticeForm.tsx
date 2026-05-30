@@ -332,7 +332,7 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
             const currentMonth = now.getMonth();
             const durationMonths = coupon.duration_months || 1;
 
-            // For new practice, always apply from current month
+            // For new practice, always apply starting from current month (i = 0)
             let monthsToAdd: string[] = [];
             for (let i = 0; i < durationMonths; i++) {
                 const date = new Date(currentYear, currentMonth + i, 1);
@@ -340,11 +340,16 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
                 monthsToAdd.push(monthKey);
             }
 
-            const lastMonthDate = new Date(currentYear, currentMonth + durationMonths - 1, 0);
+            // Calculate Expiry: Last day of the final month in the sequence
+            // We use '0' as the day on the month AFTER the duration to get the last day of the target month
+            const expiryMonthIndex = currentMonth + durationMonths;
+            const lastMonthDate = new Date(currentYear, expiryMonthIndex, 0);
             lastMonthDate.setUTCHours(23, 59, 59, 999);
             const expiresAt = lastMonthDate.toISOString();
 
             const practiceUsage = { ...(coupon.practice_usage_json || {}) };
+
+            // Clean up legacy keys if they exist
             delete practiceUsage["0"];
             delete practiceUsage["1"];
 
@@ -364,7 +369,8 @@ export default function AddPracticeForm({ onClose, onSuccess }: Props) {
                 },
             });
 
-            toast.success(`Coupon "${coupon.code}" applied successfully!`);
+            // No toast here as it's part of a larger submission flow, 
+            // but you can add one if desired.
         } catch (error: any) {
             console.error('APPLY COUPON ERROR:', error);
             throw new Error(error?.message || 'Failed to apply coupon');

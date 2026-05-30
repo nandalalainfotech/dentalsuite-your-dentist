@@ -174,6 +174,7 @@ export const GET_PRACTICE_COUPONS = gql`
       free_months
       duration_months
       practice_usage_json
+      coupon_applies_to
     }
   }
 `;

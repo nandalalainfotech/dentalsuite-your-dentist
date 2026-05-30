@@ -461,30 +461,41 @@ export default function PracticeDetailsDialog({ onClose, client }: Props) {
             const currentMonth = now.getMonth();
             const durationMonths = coupon.duration_months || 1;
 
-            let monthsToAdd: string[] = [];
+            // 1. Determine the Start Offset
+            // If the selected plan matches what is currently active -> Start this month (0)
+            // If the selected plan matches what is scheduled -> Start next month (1)
+            let startOffset = 0;
 
-            if (!hasActiveSubscription) {
-                // No active subscription - apply to current month
-                for (let i = 0; i < durationMonths; i++) {
-                    const date = new Date(currentYear, currentMonth + i, 1);
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    monthsToAdd.push(monthKey);
-                }
-            } else {
-                // Has active subscription - apply to next month
-                for (let i = 1; i <= durationMonths; i++) {
-                    const date = new Date(currentYear, currentMonth + i, 1);
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    monthsToAdd.push(monthKey);
+            if (subscription) {
+                const isCurrentPlanActive = selectedPaymentType === subscription.current_payment_type;
+                const isPendingPlanActive = selectedPaymentType === subscription.pending_payment_type;
+
+                if (isCurrentPlanActive) {
+                    startOffset = 0;
+                } else if (isPendingPlanActive) {
+                    startOffset = 1;
                 }
             }
 
-            const startMonth = !hasActiveSubscription ? currentMonth : currentMonth + 1;
-            const lastMonthDate = new Date(currentYear, startMonth + durationMonths - 1, 0);
+            let monthsToAdd: string[] = [];
+
+            // 2. Generate the periods based on the offset
+            for (let i = startOffset; i < startOffset + durationMonths; i++) {
+                const date = new Date(currentYear, currentMonth + i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthsToAdd.push(monthKey);
+            }
+
+            // 3. Calculate Expiry Date correctly
+            // (Last day of the final month in the sequence)
+            const expiryMonthIndex = currentMonth + startOffset + durationMonths;
+            const lastMonthDate = new Date(currentYear, expiryMonthIndex, 0);
             lastMonthDate.setUTCHours(23, 59, 59, 999);
             const expiresAt = lastMonthDate.toISOString();
 
             const practiceUsage = { ...(coupon.practice_usage_json || {}) };
+
+            // Clean up legacy keys
             delete practiceUsage["0"];
             delete practiceUsage["1"];
 
@@ -507,7 +518,8 @@ export default function PracticeDetailsDialog({ onClose, client }: Props) {
                 },
             });
 
-            toast.success(`Coupon "${coupon.code}" applied to ${planType === 'pay_per_patient' ? 'Pay Per Patient' : 'Monthly Add-on'} plan!`);
+            const timeMsg = startOffset === 0 ? "current month" : "next month (scheduled period)";
+            toast.success(`Coupon "${coupon.code}" applied to ${selectedPlanName} starting from ${timeMsg}!`);
 
         } catch (error: any) {
             console.error('APPLY COUPON ERROR:', error);
