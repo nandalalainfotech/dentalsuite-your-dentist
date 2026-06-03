@@ -1,26 +1,52 @@
-import React, { useState, useRef } from 'react';
-import type { UserWithDashboard } from '../../data/users';
+import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from './Icons';
+import type { PatientProfile } from '../../features/patient/dashboard/dashboard.types';
 
 
 interface ProfileProps {
-  user: UserWithDashboard;
-  onUpdateUser: (updatedUser: UserWithDashboard) => void;
+  user: PatientProfile;
+  // onUpdateUser: (updatedUser: PatientProfile) => Promise<void>;
+  onUpdateUser: (data: FormData) => Promise<void>;
 }
 
 export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: user.firstName,
-    lastName: user.lastName,
+  type ProfileImage = File | string | null;
+  const [preview, setPreview] = useState<string | null>(null);
+  const [formData, setFormData] = useState<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    date_of_birth: string;
+    gender: string;
+    mobile_number: string;
+    profile_image: ProfileImage;
+  }>({
+    first_name: user.first_name,
+    last_name: user.last_name,
     email: user.email,
-    dateOfBirth: user.dateOfBirth,
+    date_of_birth: user.date_of_birth,
     gender: user.gender,
-    mobileNumber: user.mobileNumber,
-    profileImage: user.profileImage || null,
+    mobile_number: user.mobile_number,
+    profile_image: user.profile_image ?? null,
   });
+
+  console.log("====>", formData);
+
+
+  useEffect(() => {
+    setFormData({
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      date_of_birth: user.date_of_birth,
+      gender: user.gender,
+      mobile_number: user.mobile_number,
+      profile_image: user.profile_image ?? null,
+    });
+  }, [user]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isEditingImage, setIsEditingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -36,12 +62,12 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName?.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.first_name?.trim()) {
+      newErrors.first_name = 'First name is required';
     }
 
-    if (!formData.lastName?.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!formData.last_name?.trim()) {
+      newErrors.last_name = 'Last name is required';
     }
 
     if (!formData.email?.trim()) {
@@ -50,48 +76,156 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
       newErrors.email = 'Invalid email format';
     }
 
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = 'Date of birth is required';
+    if (!formData.date_of_birth) {
+      newErrors.date_of_birth = 'Date of birth is required';
     }
 
-    if (!formData.mobileNumber?.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^\+?[\d\s()-]+$/.test(formData.mobileNumber)) {
-      newErrors.mobileNumber = 'Invalid mobile number format';
+    if (!formData.mobile_number?.trim()) {
+      newErrors.mobile_number = 'Mobile number is required';
+    } else if (!/^\+?[\d\s()-]+$/.test(formData.mobile_number)) {
+      newErrors.mobile_number = 'Invalid mobile number format';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+
+  //   if (!validateForm()) return;
+
+  //   const updatedUser: PatientProfile = {
+  //     ...user,
+  //     first_name: formData.first_name,
+  //     last_name: formData.last_name,
+  //     email: formData.email,
+  //     mobile_number: formData.mobile_number,
+  //     date_of_birth: formData.date_of_birth,
+  //     gender: formData.gender,
+  //     profile_image: formData.profile_image || undefined,
+  //   };
+
+  //   try {
+  //     await onUpdateUser(updatedUser);
+  //     setIsEditing(false);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  //   setIsEditing(false);
+  // };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      const updatedUser: UserWithDashboard = {
-        ...user,
-        ...formData,
-        profileImage: formData.profileImage || undefined,
+    if (!validateForm()) return;
+
+    const formDataToSend = new FormData();
+
+    formDataToSend.append("first_name", formData.first_name);
+    formDataToSend.append("last_name", formData.last_name);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("mobile_number", formData.mobile_number);
+    formDataToSend.append("date_of_birth", formData.date_of_birth);
+    formDataToSend.append("gender", formData.gender);
+
+    // ONLY convert if new file selected
+    // if (formData.profile_image instanceof File) {
+    //   const webpBlob = await convertImageToWebP(formData.profile_image);
+    //   formDataToSend.append("profile_image", webpBlob, "profile.webp");
+    // }
+
+    if (formData.profile_image instanceof File) {
+      console.log("📥 ORIGINAL FILE:");
+      console.log(formData.profile_image);
+
+      const webpBlob = await convertImageToWebP(formData.profile_image);
+
+      console.log("WEBP TYPE:", webpBlob.type);
+      console.log("WEBP SIZE:", webpBlob.size);
+      console.log("🔥 WEBP RESULT:");
+      console.log("Type:", webpBlob.type);
+      console.log("Size (KB):", (webpBlob.size / 1024).toFixed(2));
+
+      formDataToSend.append("profile_image", webpBlob, "profile.webp");
+    }
+
+    try {
+      await onUpdateUser(formDataToSend);
+      setIsEditing(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const convertImageToWebP = (file: File, quality = 0.8): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        img.src = reader.result as string;
       };
 
-      onUpdateUser(updatedUser);
-      setIsEditing(false);
-    }
+      console.log("📦 profile_image raw value:", formData.profile_image);
+      console.log("📦 typeof:", typeof formData.profile_image);
+      console.log("📦 is File?", formData.profile_image instanceof File);
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 1024;
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > MAX_SIZE) {
+          height = (height * MAX_SIZE) / width;
+          width = MAX_SIZE;
+        } else if (height > MAX_SIZE) {
+          width = (width * MAX_SIZE) / height;
+          height = MAX_SIZE;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("Canvas not supported");
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject("Conversion failed");
+
+            console.log("🟢 CANVAS TO BLOB RESULT:");
+            console.log("Type:", blob.type); // MUST be image/webp
+            console.log("Size (KB):", (blob.size / 1024).toFixed(2));
+
+            resolve(blob);
+          },
+          "image/webp",
+          quality
+        );
+      };
+
+      img.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleCancel = () => {
     setFormData({
-      firstName: user.firstName,
-      lastName: user.lastName,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
-      dateOfBirth: user.dateOfBirth,
+      date_of_birth: user.date_of_birth,
       gender: user.gender,
-      mobileNumber: user.mobileNumber,
-      profileImage: user.profileImage || null,
+      mobile_number: user.mobile_number,
+      profile_image: user.profile_image ?? null,
     });
     setErrors({});
     setIsEditing(false);
-    setIsEditingImage(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -113,22 +247,30 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     return fieldName !== 'gender';
   };
 
-  // Image handling functions
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, profileImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // // Image handling functions
+  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setFormData(prev => ({ ...prev, profile_image: reader.result as string }));
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleRemoveImage = () => {
-    setFormData(prev => ({ ...prev, profileImage: null }));
-    setIsEditingImage(false);
+    const previewUrl = URL.createObjectURL(file);
+
+    setFormData((prev) => ({
+      ...prev,
+      profile_image: file,
+    }));
+
+    setPreview(previewUrl);
   };
 
   return (
@@ -165,27 +307,25 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <label className="block text-sm font-medium text-gray-700 mb-3">Profile Picture</label>
             <div className="flex items-center gap-6">
               <div className="relative">
-                {formData.profileImage ? (
+                {formData.profile_image ? (
                   <img
-                    src={formData.profileImage}
-                    alt={`${formData.firstName} ${formData.lastName}`}
+                    src={
+                      preview ||
+                      (typeof formData.profile_image === "string"
+                        ? formData.profile_image
+                        : "")
+                    }
                     className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = target.nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
                   />
                 ) : null}
-                <div className={`w-24 h-24 bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-2xl ${formData.profileImage ? 'hidden' : ''}`}>
+                <div className={`w-24 h-24 bg-gradient-to-br from-gray-100 via-orange-600 to-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-2xl ${formData.profile_image ? 'hidden' : ''}`}>
                   <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsEditingImage(true)}
+                  onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors shadow-lg"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,17 +343,25 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                   >
                     Upload Photo
                   </button>
-                  {formData.profileImage && (
+
+                  {formData.profile_image && (
                     <button
                       type="button"
-                      onClick={handleRemoveImage}
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          profile_image: null,
+                        }))
+                      }
                       className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm"
                     >
                       Remove
                     </button>
                   )}
                 </div>
+
               </div>
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -229,20 +377,20 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 First Name
-                {isRequired('firstName') && <RequiredSymbol />}
+                {isRequired('first_name') && <RequiredSymbol />}
               </label>
               <input
                 type="text"
-                name="firstName"
-                value={formData.firstName}
+                name="first_name"
+                value={formData.first_name}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg  ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg  ${errors.first_name ? 'border-red-500' : 'border-gray-300'
                   }`}
                 required
               />
-              {errors.firstName && (
+              {errors.first_name && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  {errors.firstName}
+                  {errors.first_name}
                 </p>
               )}
             </div>
@@ -251,20 +399,20 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Last Name
-                {isRequired('lastName') && <RequiredSymbol />}
+                {isRequired('last_name') && <RequiredSymbol />}
               </label>
               <input
                 type="text"
-                name="lastName"
-                value={formData.lastName}
+                name="last_name"
+                value={formData.last_name}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.last_name ? 'border-red-500' : 'border-gray-300'
                   }`}
                 required
               />
-              {errors.lastName && (
+              {errors.last_name && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  {errors.lastName}
+                  {errors.last_name}
                 </p>
               )}
             </div>
@@ -295,20 +443,20 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Mobile Number
-                {isRequired('mobileNumber') && <RequiredSymbol />}
+                {isRequired('mobile_number') && <RequiredSymbol />}
               </label>
               <input
                 type="tel"
-                name="mobileNumber"
-                value={formData.mobileNumber}
+                name="mobile_number"
+                value={formData.mobile_number}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.mobileNumber ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.mobile_number ? 'border-red-500' : 'border-gray-300'
                   }`}
                 required
               />
-              {errors.mobileNumber && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  {errors.mobileNumber}
+              {errors.mobile_number && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.mobile_number}
                 </p>
               )}
             </div>
@@ -317,20 +465,20 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 Date of Birth
-                {isRequired('dateOfBirth') && <RequiredSymbol />}
+                {isRequired(' date_of_birth') && <RequiredSymbol />}
               </label>
               <input
                 type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
+                name="date_of_birth"
+                value={formData.date_of_birth}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
                   }`}
                 required
               />
-              {errors.dateOfBirth && (
+              {errors.date_of_birth && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  {errors.dateOfBirth}
+                  {errors.date_of_birth}
                 </p>
               )}
             </div>
@@ -376,7 +524,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
-                <p className="text-gray-900 font-medium">{`${user.firstName} ${user.lastName}`}</p>
+                <p className="text-gray-900 font-medium">{`${user.first_name} ${user.last_name}`}</p>
               </div>
 
               <div>
@@ -386,24 +534,19 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Date of Birth</label>
-                <p className="text-gray-900 font-medium">{formatDate(user.dateOfBirth)}</p>
+                <p className="text-gray-900 font-medium">{formatDate(user.date_of_birth)}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Mobile Number</label>
-                <p className="text-gray-900 font-medium">{user.mobileNumber}</p>
+                <p className="text-gray-900 font-medium">{user.mobile_number}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Gender</label>
                 <p className="text-gray-900 font-medium capitalize">{user.gender}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">Member Since</label>
-                <p className="text-gray-900 font-medium">{formatDate(user.createdAt)}</p>
               </div>
             </div>
           </div>

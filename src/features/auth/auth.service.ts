@@ -8,8 +8,10 @@ import type {
   StateOption,
   LoginResponse,
 } from "./auth.types";
+import API_ENDPOINTS from "../../config/api";
 
-const API_BASE_URL = "http://localhost:3000/auth";
+const API_BASE_URL =
+  API_ENDPOINTS.PRACTICE_AUTH;
 
 // =========================
 // TYPES

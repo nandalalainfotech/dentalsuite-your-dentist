@@ -12,18 +12,21 @@ import {
     MoreVertical,
     Filter,
     ChevronDown,
-    Search} from "lucide-react";
+    Search
+} from "lucide-react";
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef } from '@mui/x-data-grid';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputAdornment, Select, TextField, Typography } from '@mui/material';
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import {
     DELETE_CLIENT,
     GET_CLIENTS,
-    UPDATE_PRACTICE_STATUS} from "../graphql/clients.query";
+    UPDATE_PRACTICE_STATUS
+} from "../graphql/clients.query";
 import { localClient } from "../../../api/apollo/localClient";
 import AddPracticeForm from '../components/AddPracticeForm';
 import PracticeDetailsDialog from '../components/PracticeDetailsDialog';
+import { API_ENDPOINTS } from '../../../config/api';
 
 interface Client {
     id: string;
@@ -87,7 +90,7 @@ export default function Clients() {
         try {
             const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
-            const response = await fetch("http://localhost:3000/auth/impersonate", {
+            const response = await fetch(API_ENDPOINTS.IMPERSONATE_AUTH, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -237,6 +240,13 @@ export default function Clients() {
                     {/* ACTIVE */}
                     {status === "ACTIVE" && (
                         <>
+                        <MenuItem
+                                onClick={() => { handleViewDetails(row); handleClose(); }}
+                                sx={{ gap: 1.5 }}
+                            >
+                                <ArrowRight size={16} className="text-blue-500" />
+                                <span className="font-medium text-gray-700">Practice Details</span>
+                            </MenuItem>
                             <MenuItem
                                 onClick={() => { handleAdminView(row.id); handleClose(); }}
                                 sx={{ gap: 1.5 }}
@@ -409,38 +419,103 @@ export default function Clients() {
             )}
 
             {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-8 mb-6">
-                {/* Search */}
-                <div className="flex items-center w-full md:w-[400px] bg-gray-100 rounded-full px-4 py-2 border border-gray-200 focus-within:ring-2 focus-within:ring-orange-500 transition">
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by Practice Name, Email, Location.."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        className="bg-transparent outline-none w-full text-medium px-2"
-                    />
-                </div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
 
-                {/* Status Filter */}
-                <div className="relative w-[220px]">
-                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-full px-4 py-2.5 hover:border-gray-300 focus-within:ring-2 focus-within:ring-orange-500 transition">
-                        <Filter className="w-4 h-4 text-gray-500" />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none bg-transparent outline-none w-full text-sm font-semibold text-gray-700 cursor-pointer"
-                        >
-                            <option value="ALL">All Status</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="VERIFIED">Verified</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="INACTIVE">Inactive</option>
-                            <option value="DECLINED">Declined</option>
-                        </select>
-                        <ChevronDown className="w-4 h-4 text-gray-400 pointer-events-none" />
-                    </div>
-                </div>
+                {/* SEARCH */}
+                <TextField
+                    placeholder="Search by Practice Name, Email, Location..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    size="small"
+                    fullWidth
+                    sx={{
+                        maxWidth: 420,
+
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: '999px',
+                            backgroundColor: '#f9fafb',
+
+                            '& fieldset': {
+                                borderColor: '#e5e7eb',
+                            },
+
+                            '&:hover fieldset': {
+                                borderColor: '#f47521',
+                            },
+
+                            '&.Mui-focused fieldset': {
+                                borderColor: '#f47521',
+                            },
+                        },
+                    }}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search
+                                        size={18}
+                                        className="text-gray-400"
+                                    />
+                                </InputAdornment>
+                            ),
+                        },
+                    }}
+                />
+
+                {/* STATUS FILTER */}
+                <FormControl
+                    size="small"
+                    sx={{
+                        minWidth: 220,
+
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: '999px',
+                            backgroundColor: '#f9fafb',
+
+                            '& fieldset': {
+                                borderColor: '#e5e7eb',
+                            },
+
+                            '&:hover fieldset': {
+                                borderColor: '#f47521',
+                            },
+
+                            '&.Mui-focused fieldset': {
+                                borderColor: '#f47521',
+                            },
+                        },
+                    }}
+                >
+                    <Select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        displayEmpty
+
+                        startAdornment={
+                            <InputAdornment position="start">
+                                <Filter
+                                    size={16}
+                                    className="text-gray-400"
+                                />
+                            </InputAdornment>
+                        }
+
+                        IconComponent={(props) => (
+                            <ChevronDown
+                                {...props}
+                                size={18}
+                                className="text-gray-400 mr-2"
+                            />
+                        )}
+                    >
+                        <MenuItem value="ALL">All Status</MenuItem>
+                        <MenuItem value="PENDING">Pending</MenuItem>
+                        <MenuItem value="VERIFIED">Verified</MenuItem>
+                        <MenuItem value="ACTIVE">Active</MenuItem>
+                        <MenuItem value="INACTIVE">Inactive</MenuItem>
+                        <MenuItem value="DECLINED">Declined</MenuItem>
+                    </Select>
+                </FormControl>
             </div>
 
             {/* DataGrid */}
@@ -450,7 +525,7 @@ export default function Clients() {
                     columns={columns}
                     pageSizeOptions={[5, 10, 20]}
                     initialState={{
-                        pagination: { paginationModel: { pageSize: 5 } }
+                        pagination: { paginationModel: { pageSize: 10 } }
                     }}
                     disableRowSelectionOnClick
                     sx={{

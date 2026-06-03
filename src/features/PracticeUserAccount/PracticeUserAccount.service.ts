@@ -7,7 +7,11 @@ import {
     INVITE_ACCOUNT_MUTATION
 } from '../../pages/practice/useraccount/graphql/PracticeUserAccount.query';
 import type { GraphQLAccount, UpdateUserData, InviteUserData } from './PracticeUserAccount.types';
-const API_BASE_URL = "http://localhost:3000/auth";
+
+import API_ENDPOINTS from "../../config/api";
+
+const API_BASE_URL =
+  API_ENDPOINTS.PRACTICE_AUTH;
 
 // Service functions
 export const PracticeUserAccountService = {

@@ -13,11 +13,11 @@ import BookingAuthStep from '../components/booking/BookingAuthStep'
 import BookingStep4 from '../components/booking/BookingStep4'
 import BookingStep5 from '../components/booking/BookingStep5'
 import BookingSuccess from '../components/booking/BookingSuccess'
-import { ProtectedRoute } from '../components/layout/ProtectedRoute'
 import Aboutus from '../pages/Aboutus'
 import ListYourPractice from '../pages/ListYourPractice'
 import PracticeRoutes from './PracticeRoutes'
 import SuperAdminRoutes from './SuperAdminRoutes'
+import ProtectedRoute from '../components/layout/ProtectedRoute'
 
 function AppRoutes() {
     return (

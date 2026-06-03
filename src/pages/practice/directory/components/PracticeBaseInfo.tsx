@@ -22,8 +22,8 @@ interface PracticeFormData {
     address: string;
     phoneNumber: string;
     altPhoneNumber: string;
-    banner: string | null;
-    logo: string | null;
+    banner: string ;
+    logo: string ;
     description: string;
 }
 
@@ -45,8 +45,8 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: D
         address: '',
         phoneNumber: '',
         altPhoneNumber: '',
-        banner: null,
-        logo: null,
+        banner: '',
+        logo: '',
         description: '',
     });
 
@@ -64,11 +64,11 @@ export default function PracticeBaseInfo({ clinicData, onNext }: { clinicData: D
                 phoneNumber: clinicData.practice_phone || '', 
                 altPhoneNumber: clinicData.mobile || '', 
                 practice_name: clinicData.practice_name || '', // Correctly reading from Parent
-                logo: clinicData.logo || null,                 // Correctly reading from Parent
+                logo: clinicData.logo ,                 // Correctly reading from Parent
 
                 // --- Base Info (Child Table) ---
                 description: clinicData.description || '',
-                banner: clinicData.banner_image || null,
+                banner: clinicData.banner_image ,
                 
                 // Calculated
                 name: fullName,

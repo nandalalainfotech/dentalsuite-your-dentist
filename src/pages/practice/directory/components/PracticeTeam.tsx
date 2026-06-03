@@ -30,7 +30,6 @@ interface AppointmentType {
     duration: number;
     enabled: boolean;
     bookingLimit?: number;
-    terms?: string;
 }
 
 interface TeamMember {
@@ -179,23 +178,21 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
     const newType = getType('New');
 
     const [exEnabled, setExEnabled] = useState(existingType?.enabled || false);
-    const [exDuration, setExDuration] = useState(existingType?.duration || 30);
+    const [exDuration, setExDuration] = useState(existingType?.duration );
     const [exLimit, setExLimit] = useState(existingType?.bookingLimit || '');
-    const [exTerms, setExTerms] = useState(existingType?.terms || '');
 
     const [newEnabled, setNewEnabled] = useState(newType?.enabled || false);
-    const [newDuration, setNewDuration] = useState(newType?.duration || 30);
+    const [newDuration, setNewDuration] = useState(newType?.duration );
     const [newLimit, setNewLimit] = useState(newType?.bookingLimit || '');
-    const [newTerms, setNewTerms] = useState(newType?.terms || '');
 
     const handleSave = () => {
         const updatedList = allTypes.map((t: any) => {
             if (t.name === appointmentName) {
                 if (t.patientType === 'Existing') {
-                    return { ...t, enabled: exEnabled, duration: exDuration, bookingLimit: Number(exLimit), terms: exTerms };
+                    return { ...t, enabled: exEnabled, duration: exDuration, bookingLimit: Number(exLimit), };
                 }
                 if (t.patientType === 'New') {
-                    return { ...t, enabled: newEnabled, duration: newDuration, bookingLimit: Number(newLimit), terms: newTerms };
+                    return { ...t, enabled: newEnabled, duration: newDuration, bookingLimit: Number(newLimit), };
                 }
             }
             return t;
@@ -203,7 +200,7 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
         onSave(updatedList);
     };
 
-    const ColumnForm = ({ title, enabled, setEnabled, duration, setDuration, limit, setLimit, terms, setTerms, limitLabel }: any) => (
+    const ColumnForm = ({ title, enabled, setEnabled, duration, setDuration, limit, setLimit, limitLabel }: any) => (
         <div className="h-full bg-gray-50/50 rounded-xl p-6 border border-gray-100">
             <h3 className="font-bold text-gray-900 mb-4 text-base flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
@@ -233,16 +230,6 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
                             placeholder="e.g. 30"
                         />
                         <p className="text-xs text-gray-500">{limitLabel}</p>
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-700 flex items-center gap-1">Terms & Conditions
-                            <Info className="w-3.5 h-3.5 text-gray-400" />
-                        </label>
-                        <textarea value={terms}
-                            onChange={(e) => setTerms(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-sm focus:ring-1 focus:ring-orange-500 outline-none min-h-[100px] resize-none"
-                            placeholder="Optional message to patients..."
-                        />
                     </div>
                 </div>
             )}
@@ -274,10 +261,10 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
                     </div>
                     <div className={`p-6 lg:p-8 grid grid-cols-1 ${colClass} gap-8`}>
                         {existingType && (
-                            <ColumnForm title="Existing Patients" enabled={exEnabled} setEnabled={setExEnabled} duration={exDuration} setDuration={setExDuration} limit={exLimit} setLimit={setExLimit} terms={exTerms} setTerms={setExTerms} limitLabel="Max days existing patients can book ahead." />
+                            <ColumnForm title="Existing Patients" enabled={exEnabled} setEnabled={setExEnabled} duration={exDuration} setDuration={setExDuration} limit={exLimit} setLimit={setExLimit}  limitLabel="Max days existing patients can book ahead." />
                         )}
                         {newType && (
-                            <ColumnForm title="New Patients" enabled={newEnabled} setEnabled={setNewEnabled} duration={newDuration} setDuration={setNewDuration} limit={newLimit} setLimit={setNewLimit} terms={newTerms} setTerms={setNewTerms} limitLabel="Max days new patients can book ahead." />
+                            <ColumnForm title="New Patients" enabled={newEnabled} setEnabled={setNewEnabled} duration={newDuration} setDuration={setNewDuration} limit={newLimit} setLimit={setNewLimit} limitLabel="Max days new patients can book ahead." />
                         )}
                     </div>
                 </div>
