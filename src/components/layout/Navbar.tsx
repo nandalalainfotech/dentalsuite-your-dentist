@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.svg";
-import { useAuth } from "../../hooks/useAuth";
 import UserDropdown from "./UserDropdown";
+import { useProfile } from "../../features/patient/dashboard/dashboard.hooks";
+import { useAuth } from "../../features/patient/auth/auth.hooks";
 
 const Navbar: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
+    const { isAuthenticated, logout } = useAuth();
+    const { patient } = useProfile();
 
     const handleLogout = async () => {
         await logout();
@@ -33,7 +35,7 @@ const Navbar: React.FC = () => {
                         </button>
                     </Link>
 
-                    {isAuthenticated && user ? (
+                    {isAuthenticated() && patient ? (
                         <UserDropdown />
                     ) : (
                         <Link to="/login">
@@ -64,7 +66,7 @@ const Navbar: React.FC = () => {
                         </button>
                     </Link>
 
-                    {isAuthenticated && user ? (
+                    {isAuthenticated() && patient ? (
                         <>
                             <button
                                 onClick={() => {
@@ -73,7 +75,7 @@ const Navbar: React.FC = () => {
                                 }}
                                 className="w-full px-4 py-2 rounded-lg text-left font-medium text-sm text-gray-700 hover:text-orange-600 transition"
                             >
-                                {user.firstName} {user.lastName}
+                                {patient.first_name} {patient.last_name}
                             </button>
                             <button onClick={handleLogout} className="w-full px-4 py-2 rounded-lg font-bold text-sm text-red-600 hover:text-red-700 transition">
                                 Logout

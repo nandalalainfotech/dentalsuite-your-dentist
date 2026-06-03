@@ -6,7 +6,9 @@ import {
     Phone, MapPin, Star, CheckCircle, Mail, Globe, Clock,
     Facebook, Instagram, Twitter, Youtube, FileText,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Bell,
+    Calendar
 } from 'lucide-react';
 
 import type { DirectoryProfile } from '../../../../features/directory/directory.types';
@@ -133,7 +135,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                     {/* Logo & Name */}
                                     <h1 className="flex flex-row items-center justify-start gap-3 text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-orange-600 mb-2">
                                         <img
-                                            src={clinicData.logo }
+                                            src={clinicData.logo || undefined}
                                             alt={clinicData.practice_name || clinicData.practice_name}
                                             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-orange-100 flex-shrink-0 bg-white"
                                             onError={(e) => (e.currentTarget.src = "")}
@@ -214,7 +216,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                     <div key={cert.id} className="flex flex-col items-center bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 group cursor-pointer h-full">
                                         <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden mb-3 border border-gray-100 flex items-center justify-center relative">
                                             <img
-                                                src={cert.image_url}
+                                                src={cert.image_url || undefined}
                                                 alt={cert.title}
                                                 className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
                                                 onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -250,7 +252,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                         <div className="relative w-28 h-28 mb-5 flex-shrink-0">
                                             <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-50 shadow-inner transition-colors duration-300 bg-gray-100 flex items-center justify-center">
                                                 <img
-                                                    src={member.image }
+                                                    src={member.image || undefined}
                                                     alt={member.first_name}
                                                     className="w-full h-full object-cover object-center"
                                                     onError={(e) => (e.currentTarget.style.display = "none")}
@@ -300,7 +302,7 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                         <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden mb-3 border border-gray-100 flex items-center justify-center relative">
                                             {award.image_url ? (
                                                 <img
-                                                    src={award.image_url}
+                                                    src={award.image_url || undefined}
                                                     alt={award.title}
                                                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                                                     onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -393,38 +395,155 @@ export default function ClinicProfilePreview({ clinicData }: { clinicData: Direc
                                 )}
                             </div>
 
-                            {/* Opening Hours */}
-                            <div>
-                                <h4 className="text-orange-600 font-bold flex items-center gap-2 mb-4">
-                                    <Clock className="w-4 h-4" /> Opening Hours
-                                </h4>
-                                <div className="space-y-3 text-sm">
-                                    {weekDays.map((day) => {
-                                        // Match day safely with DB snake_case day_of_week
-                                        const found = clinicData.practice_opening_hours?.find(
-                                            loc => loc.day_of_week?.toLowerCase() === day.toLowerCase()
-                                        );
+                            {/* Alert Message */}
+                            {clinicData.alert_message && (
+                                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                            <Bell className="w-4 h-4 text-orange-600" />
+                                        </div>
 
-                                        let timeString = "Closed";
-                                        if (found && found.is_open) {
-                                            // Handle JSONB time slots if they exist, otherwise show Open
-                                            if (Array.isArray(found.time_slots) && found.time_slots.length > 0) {
-                                                timeString = found.time_slots.map((s: any) => `${s.start} - ${s.end}`).join(', ');
-                                            } else {
-                                                timeString = "Open";
-                                            }
-                                        }
+                                        <div>
+                                            <h4 className="text-orange-700 font-bold text-sm mb-1">
+                                                Important Update
+                                            </h4>
 
-                                        return (
-                                            <div key={day} className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                                <span className="text-gray-600 font-medium">{day}</span>
-                                                <span className={timeString !== "Closed" ? "text-gray-700" : "text-red-500 font-semibold"}>
-                                                    {timeString}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
+                                            <p className="text-sm text-orange-900 leading-relaxed">
+                                                {clinicData.alert_message}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
+                            )}
+
+                            {/* Opening Hours + Exceptions */}
+                            <div className="space-y-6">
+
+                                {/* HEADING */}
+                                <div>
+                                    <h4 className="text-orange-600 font-bold flex items-center gap-2 mb-4">
+                                        <Clock className="w-4 h-4" />
+                                        Opening Hours
+                                    </h4>
+
+                                    {/* WEEKLY HOURS */}
+                                    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                                        <div className="divide-y divide-gray-100">
+                                            {weekDays.map((day) => {
+
+                                                const found = clinicData.practice_opening_hours?.find(
+                                                    loc => loc.day_of_week?.toLowerCase() === day.toLowerCase()
+                                                );
+
+                                                let timeString = "Closed";
+
+                                                if (found && found.is_open) {
+                                                    if (
+                                                        Array.isArray(found.time_slots) &&
+                                                        found.time_slots.length > 0
+                                                    ) {
+                                                        timeString = found.time_slots
+                                                            .map((s: any) => `${s.start} - ${s.end}`)
+                                                            .join(', ');
+                                                    } else {
+                                                        timeString = "Open";
+                                                    }
+                                                }
+
+                                                return (
+                                                    <div
+                                                        key={day}
+                                                        className="flex justify-between items-center px-5 py-4 hover:bg-gray-50 transition"
+                                                    >
+                                                        <span className="text-gray-700 font-semibold">
+                                                            {day}
+                                                        </span>
+
+                                                        {timeString !== "Closed" ? (
+                                                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
+                                                                {timeString}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">
+                                                                Closed
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* EXCEPTIONS */}
+                                {clinicData.practice_exceptions &&
+                                    clinicData.practice_exceptions.length > 0 && (
+                                        <div>
+                                            <h4 className="text-orange-600 font-bold flex items-center gap-2 mb-4">
+                                                <Calendar className="w-4 h-4" />
+                                                Special Hours & Holidays
+                                            </h4>
+
+                                            <div className="space-y-3">
+                                                {clinicData.practice_exceptions.map((ex: any) => (
+                                                    <div
+                                                        key={ex.id}
+                                                        className="bg-gray-50 border border-gray-200 rounded-2xl p-4 hover:shadow-sm transition"
+                                                    >
+                                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                                                            {/* LEFT */}
+                                                            <div className="flex items-start gap-4">
+
+                                                                <div
+                                                                    className={`w-11 h-11 rounded-xl flex items-center justify-center ${ex.is_closed
+                                                                            ? "bg-red-100"
+                                                                            : "bg-green-100"
+                                                                        }`}
+                                                                >
+                                                                    <Calendar
+                                                                        className={`w-5 h-5 ${ex.is_closed
+                                                                                ? "text-red-600"
+                                                                                : "text-green-600"
+                                                                            }`}
+                                                                    />
+                                                                </div>
+
+                                                                <div>
+                                                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                                        <h5 className="font-bold text-gray-900 text-sm">
+                                                                            {ex.label || "Special Hours"}
+                                                                        </h5>
+
+                                                                        <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
+                                                                            {ex.exception_date}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {ex.is_closed ? (
+                                                                        <span className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
+                                                                            Closed All Day
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
+                                                                            <Clock className="w-3 h-3" />
+                                                                            {ex.start_time} - {ex.end_time}
+                                                                        </span>
+                                                                    )}
+
+                                                                    {ex.note && (
+                                                                        <p className="text-sm text-gray-500 mt-2">
+                                                                            {ex.note}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                             </div>
 
                             {/* Follow Us */}

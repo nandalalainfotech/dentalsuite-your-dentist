@@ -137,14 +137,31 @@ export const UPDATE_PRACTICE_DIRECTORY_MUTATION = gql`
   mutation UpdatePracticeDirectory(
     $id: uuid!, 
     $infoChanges: practice_info_set_input!,
-    $baseInfoChanges: practice_base_info_set_input!
+    $baseInfoObject: practice_base_info_insert_input!
   ) {
-    update_practice_info_by_pk(pk_columns: { id: $id }, _set: $infoChanges) { id }
-    update_practice_base_info(
-      where: { practice_id: { _eq: $id } 
-    },
-      _set: $baseInfoChanges
-  ) {
+    update_practice_info_by_pk(
+      pk_columns: { id: $id },
+      _set: $infoChanges
+    ) {
+      id
+    }
+
+    insert_practice_base_info(
+      objects: [$baseInfoObject],
+      on_conflict: {
+        constraint: practice_base_info_practice_id_key,
+        update_columns: [
+          website,
+          directions,
+          alert_message,
+          facebook_url,
+          instagram_url,
+          twitter_url,
+          youtube_url,
+          formatted_address
+        ]
+      }
+    ) {
       affected_rows
     }
   }

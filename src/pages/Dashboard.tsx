@@ -11,13 +11,14 @@ import { useBooking } from '../hooks/booking/useBookingContext';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
 import { Icons } from '../components/dashboard/Icons';
 import { AlertCircle } from 'lucide-react';
-import type { DashboardUser } from '../types/dashboard';
 import { Profile } from '../components/dashboard/Profile';
-import { updateUserProfile } from '../data/userApi';
 import { clinics } from '../data/clinics';
 import BookingModal from '../components/booking/BookingModal';
 import type { Clinic } from '../types';
 import Footer from '../components/layout/Footer';
+import { useProfile } from '../features/patient/dashboard/dashboard.hooks';
+import { updateProfile } from '../features/patient/dashboard/dashboard.service';
+import type { PatientProfile } from '../features/patient/dashboard/dashboard.types';
 
 interface NavLinkProps {
   icon: React.ReactNode;
@@ -81,7 +82,7 @@ const MobileNav: React.FC<{
   onNavClick: (view: string) => void;
   onClose: () => void;
   onLogout: () => void;
-  user: DashboardUser | null;
+  user: PatientProfile | null;
   unreadCount: number;
 }> = ({ activeView, onNavClick, onClose, onLogout, user, unreadCount }) => {
 
@@ -129,10 +130,10 @@ const MobileNav: React.FC<{
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-2">
                 <div className="w-16 h-16 rounded-full overflow-hidden shadow-md border-2 border-white/20">
-                  {user?.profileImage ? (
+                  {user?.profile_image ? (
                     <img
-                      src={user.profileImage}
-                      alt={user?.name}
+                      src={user.profile_image}
+                      alt={user?.first_name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -146,7 +147,9 @@ const MobileNav: React.FC<{
               </div>
 
               <h2 className="font-bold text-gray-700 text-base">
-                {user?.name || 'Loading...'}
+                {user
+                  ? `${user.first_name} ${user.last_name}`
+                  : 'Loading...'}
               </h2>
               <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mt-1">
                 User profile
@@ -208,8 +211,6 @@ const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const {
-    dashboardUser,
-    fullUserData,
     appointments,
     notifications,
     familyMembers,
@@ -217,6 +218,12 @@ const Dashboard: React.FC = () => {
     updateNotifications,
     updateFamilyMembers
   } = useDashboardData();
+
+  const {
+    patient,
+    loading,
+    fetchProfile,
+  } = useProfile();
 
   const { setRescheduleAppointmentId } = useBooking();
 
@@ -233,8 +240,8 @@ const Dashboard: React.FC = () => {
   const [selectedDentistId, setSelectedDentistId] = useState<string>('');
 
   useEffect(() => {
-  setSearchParams({ view: activeView }, { replace: true });
-}, [activeView, setSearchParams]);
+    setSearchParams({ view: activeView }, { replace: true });
+  }, [activeView, setSearchParams]);
 
   const handleNavClick = (view: ActiveViewType) => {
     setActiveView(view);
@@ -344,22 +351,29 @@ const Dashboard: React.FC = () => {
       notifications: (
         <NotificationsPanel notifications={notifications} onMarkAsRead={handleMarkAsRead} />
       ),
-      profile: fullUserData ? (
+      profile: loading ? (
+        <div>Loading profile...</div>
+      ) : patient ? (
         <Profile
-          user={fullUserData}
-          onUpdateUser={(updatedUser) => {
-            const result = updateUserProfile(updatedUser.id, {
-              firstName: updatedUser.firstName,
-              lastName: updatedUser.lastName,
-              email: updatedUser.email,
-              dateOfBirth: updatedUser.dateOfBirth,
-              gender: updatedUser.gender,
-              mobileNumber: updatedUser.mobileNumber
-            });
-            if (result) console.log('Profile updated:', result);
+          user={{
+            id: patient.id,
+            first_name: patient.first_name,
+            last_name: patient.last_name,
+            email: patient.email,
+            mobile_number: patient.mobile_number,
+            date_of_birth: patient.date_of_birth,
+            gender: patient.gender,
+            profile_image: patient.profile_image,
+            status: patient.status,
+          }}
+          onUpdateUser={async (formData) => {
+            await updateProfile(formData);
+            await fetchProfile();
           }}
         />
-      ) : null,
+      ) : (
+        <div>Profile not found</div>
+      ),
       family: (
         <FamilyMembers
           members={familyMembers}
@@ -407,10 +421,10 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-4">
                     <div className="w-20 h-20 rounded-full overflow-hidden shadow-md">
-                      {dashboardUser?.profileImage ? (
+                      {patient?.profile_image ? (
                         <img
-                          src={dashboardUser.profileImage}
-                          alt={dashboardUser?.name}
+                          src={patient.profile_image}
+                          alt={patient?.first_name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -424,7 +438,9 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <h2 className="font-bold text-gray-900 text-lg">
-                    {dashboardUser?.name || 'Loading...'}
+                    {patient
+                      ? `${patient.first_name} ${patient.last_name}`
+                      : 'Loading...'}
                   </h2>
                   <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
                     User profile
@@ -466,7 +482,7 @@ const Dashboard: React.FC = () => {
               <div>
                 <h1 className="text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
                   Welcome back,
-                  <span className='text-orange-500 mx-1'>{dashboardUser?.name?.split(' ')[0] || 'User'}!
+                  <span className='text-orange-500 mx-1'>{patient?.first_name || 'User'}!
                   </span>
                 </h1>
                 <p className="text-gray-600">
@@ -537,10 +553,10 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="relative flex-shrink-0">
                     <div className="w-16 h-16 rounded-full overflow-hidden shadow-md">
-                      {dashboardUser?.profileImage ? (
+                      {patient?.profile_image ? (
                         <img
-                          src={dashboardUser.profileImage}
-                          alt={dashboardUser?.name}
+                          src={patient.profile_image}
+                          alt={patient?.first_name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -555,9 +571,9 @@ const Dashboard: React.FC = () => {
 
                   <div className="flex-1 min-w-0">
                     <h2 className="font-bold text-gray-900 text-lg truncate">
-                      {dashboardUser?.name || 'Loading...'}
+                      {`${patient?.first_name ?? ""} ${patient?.last_name ?? ""}`}
                     </h2>
-                    <p className="text-gray-500 text-sm truncate">{dashboardUser?.email || ''}</p>
+                    <p className="text-gray-500 text-sm truncate">{patient?.email}</p>
                     <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-1">
                       User profile
                     </p>
@@ -625,7 +641,7 @@ const Dashboard: React.FC = () => {
           }}
           onClose={() => setShowMobileNav(false)}
           onLogout={handleLogoutClick}
-          user={dashboardUser}
+          user={patient}
           unreadCount={unreadNotifications}
         />
       )}

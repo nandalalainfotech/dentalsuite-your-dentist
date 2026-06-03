@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../features/patient/auth/auth.hooks";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -10,11 +10,11 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
     gender: "" as "male" | "female" | "other" | "",
-    mobileNumber: "",
+    mobile_number: "",
     termsAccepted: false
   });
 
@@ -50,8 +50,8 @@ export default function Signup() {
 
   const validateForm = () => {
     if (!formData.email || !formData.password || !formData.confirmPassword ||
-      !formData.firstName || !formData.lastName || !formData.dateOfBirth ||
-      !formData.gender || !formData.mobileNumber) {
+      !formData.first_name || !formData.last_name || !formData.date_of_birth ||
+      !formData.gender || !formData.mobile_number) {
       setError("Please fill in all fields");
       return false;
     }
@@ -92,11 +92,11 @@ export default function Signup() {
     const result = await signup({
       email: formData.email,
       password: formData.password,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      dateOfBirth: formData.dateOfBirth,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      date_of_birth: formData.date_of_birth,
       gender: formData.gender as "male" | "female" | "other",
-      mobileNumber: formData.mobileNumber
+      mobile_number: formData.mobile_number
     });
 
     if (result.success) {
@@ -115,7 +115,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white p-4">
-      
+
       {/* Toast Notifications */}
       <div className="fixed top-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
         {/* Error Toast */}
@@ -182,8 +182,8 @@ export default function Signup() {
                 </label>
                 <input
                   type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                  name="first_name"
+                  value={formData.first_name}
                   onChange={handleInputChange}
                   placeholder="First name"
                   className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'}`}
@@ -195,8 +195,8 @@ export default function Signup() {
                 </label>
                 <input
                   type="text"
-                  name="lastName"
-                  value={formData.lastName}
+                  name="last_name"
+                  value={formData.last_name}
                   onChange={handleInputChange}
                   placeholder="Last name"
                   className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'}`}
@@ -224,8 +224,8 @@ export default function Signup() {
               </label>
               <input
                 type="tel"
-                name="mobileNumber"
-                value={formData.mobileNumber}
+                name="mobile_number"
+                value={formData.mobile_number}
                 onChange={handleInputChange}
                 placeholder="+1 (555) 123-4567"
                 className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'}`}
@@ -240,8 +240,8 @@ export default function Signup() {
                 </label>
                 <input
                   type="date"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
+                  name="date_of_birth"
+                  value={formData.date_of_birth}
                   onChange={handleInputChange}
                   className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'} text-gray-500`}
                 />
@@ -340,14 +340,14 @@ export default function Signup() {
           <div className="space-y-3">
             <button className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70497C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z" fill="#EA4335"/>
-                <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z" fill="#4285F4"/>
-                <path d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.2749 6.60986C0.464899 8.22986 0 10.0599 0 11.9999C0 13.9399 0.464899 15.7699 1.2749 17.3899L5.26498 14.2949Z" fill="#FBBC05"/>
-                <path d="M12.0003 24C15.2403 24 17.9653 22.935 19.9453 21.095L16.0803 18.095C15.0053 18.82 13.6203 19.25 12.0003 19.25C8.87028 19.25 6.21525 17.14 5.27028 14.295L1.28027 17.39C3.25527 21.31 7.31028 24 12.0003 24Z" fill="#34A853"/>
+                <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70497C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z" fill="#EA4335" />
+                <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z" fill="#4285F4" />
+                <path d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.2749 6.60986C0.464899 8.22986 0 10.0599 0 11.9999C0 13.9399 0.464899 15.7699 1.2749 17.3899L5.26498 14.2949Z" fill="#FBBC05" />
+                <path d="M12.0003 24C15.2403 24 17.9653 22.935 19.9453 21.095L16.0803 18.095C15.0053 18.82 13.6203 19.25 12.0003 19.25C8.87028 19.25 6.21525 17.14 5.27028 14.295L1.28027 17.39C3.25527 21.31 7.31028 24 12.0003 24Z" fill="#34A853" />
               </svg>
               Continue with Google
             </button>
-            
+
             <button className="w-full flex items-center justify-center gap-3 border border-gray-300 text-gray-700 py-3 rounded-xl hover:bg-gray-50 transition font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

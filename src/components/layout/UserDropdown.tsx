@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { User, LogOut, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useProfile } from '../../features/patient/dashboard/dashboard.hooks';
+import { useAuth } from '../../features/patient/auth/auth.hooks';
 
 interface UserDropdownProps {
   className?: string;
 }
 
-const UserDropdown: React.FC<UserDropdownProps> = ({ className = '' }) => {
-  const { user, logout } = useAuth();
+const UserDropdown: React.FC<UserDropdownProps> = ({
+  className = '',
+}) => {
+  const { logout } = useAuth();
+  const { patient } = useProfile();
+
   const navigate = useNavigate();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] =
+    useState(false);
 
   const handleDashboard = () => {
     navigate('/dashboard');
@@ -35,20 +41,22 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ className = '' }) => {
     setShowLogoutModal(false);
   };
 
-  if (!user) return null;
+  if (!patient) return null;
 
   return (
     <>
-      {/* --- TOP BAR CONTROLS --- */}
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div
+        className={`flex items-center gap-2 ${className}`}
+      >
         <button
           onClick={handleDashboard}
           className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-orange-600 transition-colors"
           title="Go to Dashboard"
         >
           <User size={18} />
+
           <span className="text-sm font-medium hidden sm:inline">
-            {user.firstName} {user.lastName}
+            {patient.first_name} {patient.last_name}
           </span>
         </button>
 
@@ -63,49 +71,53 @@ const UserDropdown: React.FC<UserDropdownProps> = ({ className = '' }) => {
         </button>
       </div>
 
-      {/* --- LOGOUT CONFIRMATION MODAL (PORTAL) --- */}
-      {showLogoutModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Full Screen Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={cancelLogout}
-          ></div>
+      {showLogoutModal &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={cancelLogout}
+            />
 
-          {/* Modal Content */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 m-4">
-            <div className="p-6 text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="text-red-600" size={24} />
-              </div>
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 m-4">
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle
+                    className="text-red-600"
+                    size={24}
+                  />
+                </div>
 
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
-                Sign out?
-              </h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  Sign out?
+                </h3>
 
-              <p className="text-sm text-gray-600 mb-6">
-                Are you sure you want to sign out? You will need to log in again to access your dashboard.
-              </p>
+                <p className="text-sm text-gray-600 mb-6">
+                  Are you sure you want to sign out?
+                  You will need to log in again to access
+                  your dashboard.
+                </p>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={cancelLogout}
-                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmLogout}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
-                >
-                  Sign Out
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={cancelLogout}
+                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={confirmLogout}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 };

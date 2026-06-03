@@ -127,7 +127,7 @@ export interface DirectoryProfile {
 
   practice_id?: string; 
   
-  banner_image: string | null;
+  banner_image: string;
   description: string;
   website: string;
   directions: string;
