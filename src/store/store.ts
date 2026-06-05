@@ -8,6 +8,7 @@ import permissionsReducer from "../features/permissions/permissions.slice";
 import practiceUsersReducer from "../features/PracticeUserAccount/PracticeUserAccount.slice";
 import invoiceHistoryReducer from "../features/practice_invoice_history/invoiceHistory.slice";
 import subscriptionReducer from '../features/subscription/subscription.slice';
+import practiceReducer from '../features/patient/Practicefilters/practiceSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     practiceUsers: practiceUsersReducer,
     invoiceHistory: invoiceHistoryReducer,
     subscription: subscriptionReducer,
+    practice: practiceReducer,
   },
 });
 

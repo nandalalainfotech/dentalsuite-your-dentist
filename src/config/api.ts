@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
     IMPERSONATE_AUTH: `${BASE_URL}/practice/auth/impersonate`,
     PATIENT: `${BASE_URL}/patient`,
     PRACTICE: `${BASE_URL}/practice`,
+    FILTER: `${BASE_URL}/clinics`,
 };
 
 export default API_ENDPOINTS;
