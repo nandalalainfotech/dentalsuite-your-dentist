@@ -12,6 +12,8 @@ import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { deleteDirectoryTeamMember, updateDirectoryTeam } from '../../../../features/directory/directory.slice';
 import type { DirectoryProfile, PracticeService } from '../../../../features/directory/directory.types';
 import { fetchAppointmentData } from '../../../../features/appointment_types/appointment_types.slice';
+import { localClient } from '../../../../api/apollo/localClient';
+import { GET_ALL_LANGUAGES_QUERY } from '../graphql/directory.query';
 
 const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -42,7 +44,7 @@ interface TeamMember {
     gender: string;
     ahpra: string;
     education: string;
-    languages: string;
+    languages: Array<{ id: string; name: string }>; // Changed to array of language objects
     professionalStatement: string;
     selectedServiceIds: string[];
     image?: string | any;
@@ -171,6 +173,110 @@ export function PracticeServicesDropdown({ selectedIds, onChange, practiceServic
         </div>
     );
 }
+interface LanguagesDropdownProps {
+    selectedLanguages: Array<{ id: string; name: string }>;
+    onChange: (languages: Array<{ id: string; name: string }>) => void;
+    allLanguages: Array<{ id: string; name: string }>;
+}
+
+export function LanguagesDropdown({ selectedLanguages, onChange, allLanguages }: LanguagesDropdownProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+                setSearchTerm('');
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const filteredOptions = allLanguages.filter(language =>
+        language.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !selectedLanguages.some(selected => selected.id === language.id)
+    );
+
+    const addLanguage = (language: { id: string; name: string }) => {
+        onChange([...selectedLanguages, language]);
+        setSearchTerm('');
+        inputRef.current?.focus();
+    };
+
+    const removeLanguage = (languageId: string) => {
+        onChange(selectedLanguages.filter(lang => lang.id !== languageId));
+    };
+
+    return (
+        <div className="font-sans relative" ref={containerRef}>
+            <div
+                className={`w-full px-4 py-3 border rounded-xl bg-white flex items-center justify-between cursor-text transition-all ${isOpen ? 'border-orange-500 ring-1 ring-orange-500' : 'border-gray-200'}`}
+                onClick={() => {
+                    setIsOpen(!isOpen);
+                    if (!isOpen) setTimeout(() => inputRef.current?.focus(), 0);
+                }}
+            >
+                <input
+                    ref={inputRef}
+                    type="text"
+                    className="w-full outline-none bg-transparent text-sm text-gray-700 placeholder-gray-400"
+                    placeholder={selectedLanguages.length === 0 ? "Select languages..." : "Add another..."}
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setIsOpen(true);
+                    }}
+                />
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+
+            {isOpen && (
+                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                    {filteredOptions.length > 0 ? (
+                        filteredOptions.map((language) => (
+                            <div
+                                key={language.id}
+                                className="px-4 py-2.5 text-sm cursor-pointer flex items-center justify-between transition-colors text-gray-700 hover:bg-gray-50"
+                                onClick={() => addLanguage(language)}
+                            >
+                                <span>{language.name}</span>
+                                <Plus className="w-4 h-4 text-gray-400" />
+                            </div>
+                        ))
+                    ) : (
+                        <div className="px-4 py-3 text-sm text-gray-400 italic">
+                            {searchTerm ? "No matching languages found." : "All languages selected or no languages available."}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {selectedLanguages.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                    {selectedLanguages.map(language => (
+                        <span
+                            key={language.id}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-xs font-medium border border-orange-100"
+                        >
+                            {language.name}
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); removeLanguage(language.id); }}
+                                className="hover:bg-orange-200 rounded-full p-0.5 transition-colors"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, onBack, onSave }: any) => {
     const getType = (pt: 'New' | 'Existing') => allTypes.find((t: any) => t.name === appointmentName && t.patientType === pt);
@@ -178,11 +284,11 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
     const newType = getType('New');
 
     const [exEnabled, setExEnabled] = useState(existingType?.enabled || false);
-    const [exDuration, setExDuration] = useState(existingType?.duration );
+    const [exDuration, setExDuration] = useState(existingType?.duration);
     const [exLimit, setExLimit] = useState(existingType?.bookingLimit || '');
 
     const [newEnabled, setNewEnabled] = useState(newType?.enabled || false);
-    const [newDuration, setNewDuration] = useState(newType?.duration );
+    const [newDuration, setNewDuration] = useState(newType?.duration);
     const [newLimit, setNewLimit] = useState(newType?.bookingLimit || '');
 
     const handleSave = () => {
@@ -261,7 +367,7 @@ const AppointmentTypeEditor = ({ practitionerName, appointmentName, allTypes, on
                     </div>
                     <div className={`p-6 lg:p-8 grid grid-cols-1 ${colClass} gap-8`}>
                         {existingType && (
-                            <ColumnForm title="Existing Patients" enabled={exEnabled} setEnabled={setExEnabled} duration={exDuration} setDuration={setExDuration} limit={exLimit} setLimit={setExLimit}  limitLabel="Max days existing patients can book ahead." />
+                            <ColumnForm title="Existing Patients" enabled={exEnabled} setEnabled={setExEnabled} duration={exDuration} setDuration={setExDuration} limit={exLimit} setLimit={setExLimit} limitLabel="Max days existing patients can book ahead." />
                         )}
                         {newType && (
                             <ColumnForm title="New Patients" enabled={newEnabled} setEnabled={setNewEnabled} duration={newDuration} setDuration={setNewDuration} limit={newLimit} setLimit={setNewLimit} limitLabel="Max days new patients can book ahead." />
@@ -331,12 +437,24 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
             let finalAppts = [];
             if (dynamicBaseAppts.length > 0) {
                 finalAppts = dynamicBaseAppts.map(base => {
-                    // Match securely using the real ID we added in the service earlier
                     const found = savedAppts.find((s: any) => s.id === base.id && s.patientType === base.patientType);
                     return found ? { ...base, ...found } : base;
                 });
             } else {
                 finalAppts = savedAppts;
+            }
+
+            // Parse languages from jsonb - it should already be an array of objects
+            let parsedLanguages = [];
+            if (t.languages) {
+                try {
+                    parsedLanguages = typeof t.languages === 'string'
+                        ? JSON.parse(t.languages)
+                        : t.languages;
+                } catch (e) {
+                    console.error("Failed to parse languages:", e);
+                    parsedLanguages = [];
+                }
             }
 
             return {
@@ -349,11 +467,9 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                 gender: t.gender || '',
                 ahpra: t.ahpra_number || '',
                 education: t.education || '',
-                languages: t.languages || '',
+                languages: parsedLanguages, // Array of { id, name } objects
                 professionalStatement: t.professional_statement || '',
-
                 selectedServiceIds: t.practitioner_practice_services?.map((ps: any) => ps.practice_service_id).filter(Boolean) || [],
-
                 image: t.image || '',
                 isVisibleOnline: t.is_visible_online || false,
                 allowMultipleBookings: t.allow_multiple_bookings ?? true,
@@ -446,6 +562,26 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
         if (activeTab === 'hidden') return !member.isVisibleOnline;
         return true;
     });
+
+    const [allLanguages, setAllLanguages] = useState<Array<{ id: string; name: string }>>([]);
+
+    // Add this useEffect to fetch languages
+    useEffect(() => {
+        const fetchLanguages = async () => {
+            try {
+                // You'll need to create this query (see step 4)
+                const response = await localClient.query({
+                    query: GET_ALL_LANGUAGES_QUERY,
+                    fetchPolicy: "cache-first",
+                });
+                setAllLanguages((response as any).data.all_languages || []);
+            } catch (error) {
+                console.error("Failed to fetch languages:", error);
+            }
+        };
+
+        fetchLanguages();
+    }, []);
 
     const handleSaveAndNext = async () => {
         setIsSaving(true);
@@ -579,6 +715,17 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm bg-white"
                                     />
                                 </div>
+                                <div className="space-y-1.5 relative">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Languages Spoken
+                                    </label>
+
+                                    <LanguagesDropdown
+                                        selectedLanguages={formData.languages}
+                                        onChange={(languages) => updateField('languages', languages)}
+                                        allLanguages={allLanguages}
+                                    />
+                                </div>
                                 <div className="space-y-1.5">
                                     <label className="text-sm font-medium text-gray-700">AHPRA Registration Number</label>
                                     <input type="text" value={formData.ahpra}
@@ -601,14 +748,6 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                                         onChange={(e) => updateField('education', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm"
                                         placeholder="e.g. University of Sydney"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-gray-700">Languages Spoken</label>
-                                    <input type="text" value={formData.languages}
-                                        onChange={(e) => updateField('languages', e.target.value)}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-1 focus:ring-orange-500 outline-none text-sm"
-                                        placeholder="English, Spanish, Mandarin..."
                                     />
                                 </div>
                             </div>
@@ -819,7 +958,7 @@ export default function PracticeTeam({ clinicData, onNext }: { clinicData: Direc
                             gender: '',
                             ahpra: '',
                             education: '',
-                            languages: '',
+                            languages: [],
                             professionalStatement: '',
                             selectedServiceIds: [],
                             isVisibleOnline: false,

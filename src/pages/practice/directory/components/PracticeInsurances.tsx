@@ -10,14 +10,14 @@ import type { DirectoryProfile } from '../../../../features/directory/directory.
 
 // Common US Insurance providers for "Quick Add" suggestions
 const POPULAR_INSURANCES = [
-    "Aetna", "Blue Cross Blue Shield", "Cigna", "UnitedHealthcare", 
-    "Medicare", "Medicaid", "Humana", "Kaiser Permanente", 
+    "Aetna", "Blue Cross Blue Shield", "Cigna", "UnitedHealthcare",
+    "Medicare", "Medicaid", "Humana", "Kaiser Permanente",
     "Anthem", "Tricare", "Guardian", "MetLife"
 ];
 
 export default function PracticeInsurances({ clinicData, onNext }: { clinicData: DirectoryProfile, onNext: () => void }) {
     const dispatch = useAppDispatch();
-    
+
     // State to hold selected insurances
     const [selectedInsurances, setSelectedInsurances] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
@@ -96,7 +96,7 @@ export default function PracticeInsurances({ clinicData, onNext }: { clinicData:
             </div>
 
             {/* INPUT SECTION */}
-            <div className="mb-10">
+            {/* <div className="mb-10">
                 <label className="text-sm font-bold text-gray-900 block mb-2">Add Insurance Provider</label>
                 <div className="relative flex items-center group">
                     <div className="absolute left-4 text-gray-400 group-focus-within:text-orange-500 transition-colors">
@@ -120,7 +120,7 @@ export default function PracticeInsurances({ clinicData, onNext }: { clinicData:
                         </button>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* QUICK ADD / POPULAR LIST */}
             <div className="mb-8">
@@ -134,8 +134,8 @@ export default function PracticeInsurances({ clinicData, onNext }: { clinicData:
                                 onClick={() => toggleInsurance(ins)}
                                 className={`
                                     group flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all duration-200
-                                    ${isSelected 
-                                        ? 'bg-orange-50 border-orange-200 text-orange-700 ring-1 ring-orange-200 shadow-sm' 
+                                    ${isSelected
+                                        ? 'bg-orange-50 border-orange-200 text-orange-700 ring-1 ring-orange-200 shadow-sm'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                                     }
                                 `}
@@ -159,7 +159,7 @@ export default function PracticeInsurances({ clinicData, onNext }: { clinicData:
                         Active Providers <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs">{selectedInsurances.length}</span>
                     </h3>
                     {selectedInsurances.length > 0 && (
-                        <button 
+                        <button
                             onClick={() => setSelectedInsurances([])}
                             className="text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
                         >
@@ -180,8 +180,8 @@ export default function PracticeInsurances({ clinicData, onNext }: { clinicData:
                     ) : (
                         <div className="flex flex-wrap gap-3">
                             {selectedInsurances.map((ins, index) => (
-                                <div 
-                                    key={index} 
+                                <div
+                                    key={index}
                                     className="group flex items-center gap-3 pl-4 pr-2 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-200 animate-in zoom-in-95"
                                 >
                                     <span className="w-2 h-2 rounded-full bg-green-500"></span>

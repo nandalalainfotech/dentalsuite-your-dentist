@@ -49,8 +49,8 @@ const getDirectory = async (id: string): Promise<DirectoryProfile> => {
   if (!raw) throw new Error("Directory information not found");
 
   const baseInfo = Array.isArray(raw.practice_base_info)
-  ? raw.practice_base_info[0] || {}
-  : raw.practice_base_info || {};
+    ? raw.practice_base_info[0] || {}
+    : raw.practice_base_info || {};
 
   return {
     ...raw,
@@ -131,7 +131,7 @@ const updateTeamMembers = async (practiceId: string, team: any[]): Promise<strin
       gender: t.gender,
       ahpra_number: t.ahpra || t.ahpra_number,
       education: t.education,
-      languages: t.languages,
+      languages: t.languages || [], // Make sure this is 'languages' (plural)
       professional_statement: t.professionalStatement || t.professional_statement,
       image: finalImage,
       is_visible_online: t.isVisibleOnline ?? t.is_visible_online ?? false,

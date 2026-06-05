@@ -168,7 +168,6 @@ export const UPDATE_PRACTICE_DIRECTORY_MUTATION = gql`
 `;
 
 // --- 3. TEAM MEMBER MUTATIONS (UPDATED FOR NEW JUNCTION TABLE) ---
-
 export const UPDATE_PRACTICE_TEAM_MUTATION = gql`
   mutation UpdatePracticeTeam(
     $objects: [practice_team_members_insert_input!]!,
@@ -181,20 +180,36 @@ export const UPDATE_PRACTICE_TEAM_MUTATION = gql`
       on_conflict: {
         constraint: practice_team_members_pkey,
         update_columns: [
-          first_name, last_name, type, password, email, role, qualification, gender, ahpra_number, education, 
-          languages, professional_statement, image, is_visible_online, 
-          allow_multiple_bookings, booking_time_limit, booking_time_limit_unit, 
-          cancel_time_limit, cancel_time_limit_unit, appointment_types
+          first_name, 
+          last_name, 
+          type, 
+          password, 
+          email, 
+          role, 
+          qualification, 
+          gender, 
+          ahpra_number, 
+          education, 
+          languages, 
+          professional_statement, 
+          image, 
+          is_visible_online, 
+          allow_multiple_bookings, 
+          booking_time_limit, 
+          booking_time_limit_unit, 
+          cancel_time_limit, 
+          cancel_time_limit_unit, 
+          appointment_types
         ]
       }
     ) { affected_rows }
 
-    # 2. Clear old service links for this practice's doctors (using the new table name)
+    # 2. Clear old service links for this practice's doctors
     delete_practitioner_practice_services(
       where: { practice_team_member: { practice_id: { _eq: $practiceId } } }
     ) { affected_rows }
 
-    # 3. Insert fresh service links (using the new table name)
+    # 3. Insert fresh service links
     insert_practitioner_practice_services(objects: $junctionObjects) { affected_rows }
   }
 `;
@@ -278,5 +293,14 @@ export const UPDATE_PRACTICE_EXCEPTIONS_MUTATION = gql`
   mutation UpdatePracticeExceptions($practiceId: uuid!, $exceptions: [practice_exceptions_insert_input!]!) {
     delete_practice_exceptions(where: { practice_id: { _eq: $practiceId } }) { affected_rows }
     insert_practice_exceptions(objects: $exceptions) { affected_rows }
+  }
+`;
+
+export const GET_ALL_LANGUAGES_QUERY = gql`
+  query GetAllLanguages {
+    all_languages(order_by: { name: asc }) {
+      id
+      name
+    }
   }
 `;
