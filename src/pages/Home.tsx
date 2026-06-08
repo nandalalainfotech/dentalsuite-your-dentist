@@ -4,6 +4,7 @@ import Filters from "../components/filters/Filters";
 import ServicesSection from "../components/services/ServiceSection";
 import ReviewCard from "../components/reviews/ReviewCard";
 import BrowseByState from "../components/BrowseByState";
+import defaultLogo from "../assets/logo.webp"
 import BlogSection from "../components/BlogSection";
 import Footer from "../components/layout/Footer";
 import { usePracticeData } from "../features/patient/Practicefilters/practice.hooks";
@@ -609,7 +610,8 @@ const Home = () => {
                         <div className="p-4 sm:p-6">
                           <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6">
                             <img
-                              src={clinic.logo || "https://via.placeholder.com/100"}
+                              // src={clinic.logo || }
+                              src={clinic.logo ? clinic.logo : defaultLogo}
                               alt={clinic.practice_name || "Clinic"}
                               className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-lg object-cover mx-auto sm:mx-0 flex-shrink-0"
                             />

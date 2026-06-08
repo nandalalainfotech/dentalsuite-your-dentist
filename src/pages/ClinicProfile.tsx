@@ -236,7 +236,7 @@ const ClinicProfile = () => {
         >
           <div className="relative h-56 sm:h-64 md:h-80 w-full overflow-visible">
             <img
-              src={clinic.banner_image ? clinic.banner_image : bannerimage}
+              src={clinic.banner_image?.trim() ? clinic.banner_image : bannerimage}
               alt="Clinic Banner"
               className="w-full h-full object-cover object-center"
             />

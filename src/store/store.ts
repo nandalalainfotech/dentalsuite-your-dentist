@@ -9,6 +9,7 @@ import practiceUsersReducer from "../features/PracticeUserAccount/PracticeUserAc
 import invoiceHistoryReducer from "../features/practice_invoice_history/invoiceHistory.slice";
 import subscriptionReducer from '../features/subscription/subscription.slice';
 import practiceReducer from '../features/patient/Practicefilters/practiceSlice';
+import practitionerProfileReducer from '../features/patient/dentistprofile/practitionerProfile.slice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     invoiceHistory: invoiceHistoryReducer,
     subscription: subscriptionReducer,
     practice: practiceReducer,
+    practitionerProfile: practitionerProfileReducer,
   },
 });
 
