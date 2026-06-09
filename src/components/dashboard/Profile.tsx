@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from './Icons';
 import type { PatientProfile } from '../../features/patient/dashboard/dashboard.types';
+import { uploadFile } from '../../features/common/upload.service';
 
 
 interface ProfileProps {
@@ -11,7 +12,7 @@ interface ProfileProps {
 
 export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   const [isEditing, setIsEditing] = useState(false);
-  type ProfileImage = File | string | null;
+  type ProfileImage = string;
   const [preview, setPreview] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     first_name: string;
@@ -28,10 +29,9 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
     date_of_birth: user.date_of_birth,
     gender: user.gender,
     mobile_number: user.mobile_number,
-    profile_image: user.profile_image ?? null,
+    profile_image: user.profile_image ?? "",
   });
 
-  console.log("====>", formData);
 
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
       date_of_birth: user.date_of_birth,
       gender: user.gender,
       mobile_number: user.mobile_number,
-      profile_image: user.profile_image ?? null,
+      profile_image: user.profile_image ?? "",
     });
   }, [user]);
 
@@ -103,7 +103,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   //     mobile_number: formData.mobile_number,
   //     date_of_birth: formData.date_of_birth,
   //     gender: formData.gender,
-  //     profile_image: formData.profile_image || undefined,
+  //     profile_image: formData.profile_image,
   //   };
 
   //   try {
@@ -114,105 +114,29 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   //   }
   //   setIsEditing(false);
   // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    const formDataToSend = new FormData();
+    const payload = new FormData();
 
-    formDataToSend.append("first_name", formData.first_name);
-    formDataToSend.append("last_name", formData.last_name);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("mobile_number", formData.mobile_number);
-    formDataToSend.append("date_of_birth", formData.date_of_birth);
-    formDataToSend.append("gender", formData.gender);
-
-    // ONLY convert if new file selected
-    // if (formData.profile_image instanceof File) {
-    //   const webpBlob = await convertImageToWebP(formData.profile_image);
-    //   formDataToSend.append("profile_image", webpBlob, "profile.webp");
-    // }
-
-    if (formData.profile_image instanceof File) {
-      console.log("📥 ORIGINAL FILE:");
-      console.log(formData.profile_image);
-
-      const webpBlob = await convertImageToWebP(formData.profile_image);
-
-      console.log("WEBP TYPE:", webpBlob.type);
-      console.log("WEBP SIZE:", webpBlob.size);
-      console.log("🔥 WEBP RESULT:");
-      console.log("Type:", webpBlob.type);
-      console.log("Size (KB):", (webpBlob.size / 1024).toFixed(2));
-
-      formDataToSend.append("profile_image", webpBlob, "profile.webp");
-    }
+    payload.append("first_name", formData.first_name);
+    payload.append("last_name", formData.last_name);
+    payload.append("email", formData.email);
+    payload.append("mobile_number", formData.mobile_number);
+    payload.append("date_of_birth", formData.date_of_birth);
+    payload.append("gender", formData.gender);
+    payload.append("profile_image", formData.profile_image);
 
     try {
-      await onUpdateUser(formDataToSend);
+      await onUpdateUser(payload);
       setIsEditing(false);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const convertImageToWebP = (file: File, quality = 0.8): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        img.src = reader.result as string;
-      };
-
-      console.log("📦 profile_image raw value:", formData.profile_image);
-      console.log("📦 typeof:", typeof formData.profile_image);
-      console.log("📦 is File?", formData.profile_image instanceof File);
-
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_SIZE = 1024;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height && width > MAX_SIZE) {
-          height = (height * MAX_SIZE) / width;
-          width = MAX_SIZE;
-        } else if (height > MAX_SIZE) {
-          width = (width * MAX_SIZE) / height;
-          height = MAX_SIZE;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject("Canvas not supported");
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) return reject("Conversion failed");
-
-            console.log("🟢 CANVAS TO BLOB RESULT:");
-            console.log("Type:", blob.type); // MUST be image/webp
-            console.log("Size (KB):", (blob.size / 1024).toFixed(2));
-
-            resolve(blob);
-          },
-          "image/webp",
-          quality
-        );
-      };
-
-      img.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
 
   const handleCancel = () => {
     setFormData({
@@ -222,7 +146,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
       date_of_birth: user.date_of_birth,
       gender: user.gender,
       mobile_number: user.mobile_number,
-      profile_image: user.profile_image ?? null,
+      profile_image: user.profile_image ?? "",
     });
     setErrors({});
     setIsEditing(false);
@@ -259,19 +183,19 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
   //   }
   // };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
 
-    const previewUrl = URL.createObjectURL(file);
+  //   const previewUrl = URL.createObjectURL(file);
 
-    setFormData((prev) => ({
-      ...prev,
-      profile_image: file,
-    }));
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     profile_image: file,
+  //   }));
 
-    setPreview(previewUrl);
-  };
+  //   setPreview(previewUrl);
+  // };
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8">
@@ -350,7 +274,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                       onClick={() =>
                         setFormData((prev) => ({
                           ...prev,
-                          profile_image: null,
+                          profile_image: "",
                         }))
                       }
                       className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm"
@@ -366,8 +290,24 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUpdateUser }) => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
                 className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  try {
+                    const uploadedFile = await uploadFile(file);
+
+                    setFormData(prev => ({
+                      ...prev,
+                      profile_image: uploadedFile.url,
+                    }));
+
+                    setPreview(uploadedFile.url);
+                  } catch (error) {
+                    console.error(error);
+                  }
+                }}
               />
             </div>
           </div>

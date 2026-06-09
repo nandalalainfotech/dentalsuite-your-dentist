@@ -9,6 +9,9 @@ export const API_ENDPOINTS = {
     PATIENT: `${BASE_URL}/patient`,
     PRACTICE: `${BASE_URL}/practice`,
     FILTER: `${BASE_URL}/clinics`,
+    SUPPORT: `${BASE_URL}/support`,
+    UPLOADS: `${BASE_URL}/uploads`
+    
 };
 
 export default API_ENDPOINTS;

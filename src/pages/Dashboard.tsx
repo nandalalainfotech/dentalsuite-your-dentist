@@ -3,9 +3,7 @@ import { createPortal } from 'react-dom';
 import { Appointments } from '../components/dashboard/Appointments';
 import { NotificationsPanel } from '../components/dashboard/NotificationsPanel';
 import { FamilyMembers } from '../components/dashboard/FamilyMembers';
-import { HelpAndSupport } from '../components/dashboard/HelpAndSupport';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { useAuth } from '../hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBooking } from '../hooks/booking/useBookingContext';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
@@ -19,6 +17,9 @@ import Footer from '../components/layout/Footer';
 import { useProfile } from '../features/patient/dashboard/dashboard.hooks';
 import { updateProfile } from '../features/patient/dashboard/dashboard.service';
 import type { PatientProfile } from '../features/patient/dashboard/dashboard.types';
+import { useFamilyMembers } from '../features/patient/family/family.hooks';
+import { useAuth } from '../features/patient/auth/auth.hooks';
+import PatientSupport from '../components/dashboard/PatientSupport';
 
 interface NavLinkProps {
   icon: React.ReactNode;
@@ -102,7 +103,7 @@ const MobileNav: React.FC<{
     { id: 'profile', label: 'Profile', icon: <Icons.User /> },
     { id: 'security', label: 'Security', icon: <Icons.Shield />, },
     { id: 'family', label: 'Family Members', icon: <Icons.Family /> },
-    { id: 'help', label: 'Help Centre', icon: <Icons.Help /> },
+    { id: 'support', label: 'Help Centre', icon: <Icons.Help /> },
     { id: 'logout', label: 'Log Out', icon: <Icons.Logout /> },
   ];
 
@@ -203,7 +204,7 @@ const MobileNav: React.FC<{
   );
 };
 
-type ActiveViewType = 'appointments' | 'notifications' | 'profile' | 'family' | 'help' | 'security';
+type ActiveViewType = 'appointments' | 'notifications' | 'profile' | 'family' | 'support' | 'security';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -213,10 +214,8 @@ const Dashboard: React.FC = () => {
   const {
     appointments,
     notifications,
-    familyMembers,
     updateAppointments,
     updateNotifications,
-    updateFamilyMembers
   } = useDashboardData();
 
   const {
@@ -225,16 +224,23 @@ const Dashboard: React.FC = () => {
     fetchProfile,
   } = useProfile();
 
+  const {
+    members,
+    createMember,
+    editMember,
+    removeMember,
+  } = useFamilyMembers();
+
   const { setRescheduleAppointmentId } = useBooking();
 
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false); // 4. State for logout modal
   const [activeView, setActiveView] = useState<ActiveViewType>(() => {
     const viewParam = searchParams.get('view');
-    const validViews: ActiveViewType[] = ['appointments', 'notifications', 'profile', 'family', 'help', 'security'];
+    const validViews: ActiveViewType[] = ['appointments', 'notifications', 'profile', 'family', 'support', 'security'];
     return validViews.includes(viewParam as ActiveViewType) ? (viewParam as ActiveViewType) : 'appointments';
   });
-  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [selectedDentistId, setSelectedDentistId] = useState<string>('');
@@ -263,11 +269,6 @@ const Dashboard: React.FC = () => {
   };
 
   const handleBookAppointment = () => navigate('/');
-  const handleContactSupport = () => console.log('Contact support');
-  const handleSubmitFeedback = () => {
-    setFeedbackSuccess(true);
-    setTimeout(() => setFeedbackSuccess(false), 3000);
-  };
   const handleRescheduleAppointment = (appointmentId: string) => {
     const appointment = appointments.find(apt => apt.id === appointmentId);
     if (!appointment) return;
@@ -298,25 +299,6 @@ const Dashboard: React.FC = () => {
     );
     updateNotifications(updatedNotifications);
   };
-  const handleAddFamilyMember = () => {
-    const newFamilyMembers = [
-      ...familyMembers,
-      { id: String(Date.now()), name: 'New Member', relationship: 'child' as const, isActive: false }
-    ];
-    updateFamilyMembers(newFamilyMembers);
-  };
-  const handleSwitchActiveMember = (memberId: string) => {
-    const updatedFamilyMembers = familyMembers.map(m => ({
-      ...m,
-      isActive: m.id === memberId
-    }));
-    updateFamilyMembers(updatedFamilyMembers);
-  };
-  const handleEditMember = (memberId: string) => console.log('Edit member:', memberId);
-  const handleDeleteMember = (memberId: string) => {
-    const updatedFamilyMembers = familyMembers.filter(m => m.id !== memberId);
-    updateFamilyMembers(updatedFamilyMembers);
-  };
   const handleCancelAppointment = (appointmentId: string) => {
     const updatedAppointments = appointments.map(apt =>
       apt.id === appointmentId ? { ...apt, status: 'cancelled' as const } : apt
@@ -334,7 +316,7 @@ const Dashboard: React.FC = () => {
     { id: 'profile' as ActiveViewType, label: 'Profile', icon: <Icons.User /> },
     { id: 'security' as ActiveViewType, label: 'Security', icon: <Icons.Shield />, },
     { id: 'family' as ActiveViewType, label: 'Family Members', icon: <Icons.Family /> },
-    { id: 'help' as ActiveViewType, label: 'Help Centre', icon: <Icons.Help /> },
+    { id: 'support' as ActiveViewType, label: 'Support', icon: <Icons.Help /> },
   ];
 
   const renderContent = () => {
@@ -376,25 +358,15 @@ const Dashboard: React.FC = () => {
       ),
       family: (
         <FamilyMembers
-          members={familyMembers}
-          onAddMember={handleAddFamilyMember}
-          onSwitchActive={handleSwitchActiveMember}
-          onEditMember={handleEditMember}
-          onDeleteMember={handleDeleteMember}
+          members={members}
+          onAddMember={createMember}
+          onSwitchActive={() => { }}
+          onEditMember={editMember}
+          onDeleteMember={removeMember}
         />
       ),
-      help: (
-        <>
-          {feedbackSuccess && (
-            <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center gap-3 animate-in slide-in-from-top shadow-sm">
-              <div className="text-emerald-500"><Icons.CheckCircle /></div>
-              <span className="text-emerald-800 font-medium">
-                Feedback submitted successfully. Thank you!
-              </span>
-            </div>
-          )}
-          <HelpAndSupport onContactSupport={handleContactSupport} onSubmitFeedback={handleSubmitFeedback} />
-        </>
+      support: (
+        <PatientSupport />
       ),
       security: (
         <SecuritySettings
@@ -521,7 +493,7 @@ const Dashboard: React.FC = () => {
                 },
                 {
                   title: 'Active Members',
-                  value: familyMembers.length.toString(),
+                  value: members.length.toString(),
                   sub: 'Family Members',
                   icon: <Icons.Family />,
                   color: 'text-emerald-500',
@@ -635,7 +607,7 @@ const Dashboard: React.FC = () => {
         <MobileNav
           activeView={activeView}
           onNavClick={(view) => {
-            if (['appointments', 'notifications', 'profile', 'family', 'help', 'security'].includes(view)) {
+            if (['appointments', 'notifications', 'profile', 'family', 'support', 'security'].includes(view)) {
               handleNavClick(view as ActiveViewType);
             }
           }}
