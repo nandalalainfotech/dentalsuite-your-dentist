@@ -47,7 +47,7 @@ export const useProfile = () => {
 
       setPatient(response.patient);
     } catch (error) {
-      console.error(error);
+      // console.error(error);
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,15 @@
 /* eslint-disable react-hooks/static-components */
 import React, { useState } from 'react';
-import type { FamilyMember } from '../../types/dashboard';
+import type { FamilyMember } from '../../features/patient/family/family.types';
 
 interface NewMemberFormData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email?: string;
-  phone?: string;
+  mobile_number?: string;
   gender?: 'male' | 'female' | 'other' | '';
-  dob?: string;
-  relationship: FamilyMember['relationship'] | '';
+  date_of_birth?: string;
+  relation: FamilyMember['relation'] | '';
 }
 
 interface EditMemberFormData extends NewMemberFormData {
@@ -90,21 +91,40 @@ const MemberModal: React.FC<MemberModalProps> = ({
           <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-3 sm:space-y-4">
 
             {/* Name Field */}
-            <div>
-              <label htmlFor={`${mode}MemberName`} className="block text-sm font-medium text-gray-700 mb-1.5">
-                Full Name <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="text"
-                id={`${mode}MemberName`}
-                name="name"
-                value={formData.name}
-                onChange={onChange}
-                className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
-                placeholder="Enter full name"
-                required
-                autoFocus={mode === 'add'}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label htmlFor={`${mode}MemberFirstName`} className="block text-sm font-medium text-gray-700 mb-1.5">
+                  First Name <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id={`${mode}MemberFirstName`}
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={onChange}
+                  className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  placeholder="Enter first name"
+                  required
+                  autoFocus={mode === 'add'}
+                />
+              </div>
+
+              <div>
+                <label htmlFor={`${mode}MemberLastName`} className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Last Name <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id={`${mode}MemberLastName`}
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={onChange}
+                  className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                  placeholder="Enter last name"
+                  required
+                  autoFocus={mode === 'add'}
+                />
+              </div>
             </div>
 
             {/* Email Field */}
@@ -133,8 +153,8 @@ const MemberModal: React.FC<MemberModalProps> = ({
                 <input
                   type="tel"
                   id={`${mode}MemberPhone`}
-                  name="phone"
-                  value={formData.phone || ''}
+                  name="mobile_number"
+                  value={formData.mobile_number || ''}
                   onChange={onChange}
                   className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="+1 (555) 123-4567"
@@ -177,8 +197,8 @@ const MemberModal: React.FC<MemberModalProps> = ({
                   <input
                     type="date"
                     id={`${mode}MemberDob`}
-                    name="dob"
-                    value={formData.dob || ''}
+                    name="date_of_birth"
+                    value={formData.date_of_birth || ''}
                     onChange={onChange}
                     className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors appearance-none pr-10"
                     placeholder="dd-mm-yyyy"
@@ -194,8 +214,8 @@ const MemberModal: React.FC<MemberModalProps> = ({
                 <div className="relative">
                   <select
                     id={`${mode}MemberRelationship`}
-                    name="relationship"
-                    value={formData.relationship}
+                    name="relation"
+                    value={formData.relation}
                     onChange={onChange}
                     className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors appearance-none pr-10 bg-white"
                     required
@@ -235,8 +255,8 @@ const MemberModal: React.FC<MemberModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  disabled={!formData.name.trim() || !formData.relationship}
-                  className={`flex-1 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${(!formData.name.trim() || !formData.relationship)
+                  disabled={!formData.first_name.trim() || !formData.relation}
+                  className={`flex-1 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${(!formData.first_name.trim() || !formData.relation)
                     ? 'bg-orange-500 cursor-not-allowed'
                     : 'bg-orange-600 hover:bg-orange-700'
                     }`}
@@ -264,45 +284,50 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showEditMemberModal, setShowEditMemberModal] = useState(false);
 
-  const [newMemberForm, setNewMemberForm] = useState<NewMemberFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    gender: '',
-    dob: '',
-    relationship: '',
-  });
+  const [newMemberForm, setNewMemberForm] =
+    useState<NewMemberFormData>({
+      first_name: '',
+      last_name: '',
+      email: '',
+      mobile_number: '',
+      gender: '',
+      date_of_birth: '',
+      relation: '',
+    });
 
   const [editMemberForm, setEditMemberForm] = useState<EditMemberFormData>({
     id: '',
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
+    mobile_number: '',
     gender: '',
-    dob: '',
-    relationship: '',
+    date_of_birth: '',
+    relation: '',
   });
 
   const resetNewMemberForm = () => {
     setNewMemberForm({
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      phone: '',
+      mobile_number: '',
       gender: '',
-      dob: '',
-      relationship: '',
+      date_of_birth: '',
+      relation: '',
     });
   };
 
   const resetEditMemberForm = () => {
     setEditMemberForm({
       id: '',
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
-      phone: '',
+      mobile_number: '',
       gender: '',
-      dob: '',
-      relationship: '',
+      date_of_birth: '',
+      relation: '',
     });
   };
 
@@ -319,12 +344,13 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   const handleOpenEditMemberModal = (member: FamilyMember) => {
     setEditMemberForm({
       id: member.id,
-      name: member.name,
+      first_name: member.first_name || '',
+      last_name: member.last_name || '',
       email: member.email || '',
-      phone: member.phone || '',
+      mobile_number: member.mobile_number || '',
       gender: member.gender || '',
-      dob: member.dateOfBirth || '',
-      relationship: member.relationship,
+      date_of_birth: member.date_of_birth || '',
+      relation: member.relation,
     });
     setShowEditMemberModal(true);
   };
@@ -353,36 +379,38 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
   };
 
   const handleAddMemberSubmit = () => {
-    if (!newMemberForm.name.trim() || !newMemberForm.relationship || !newMemberForm.relationship) {
+    if (!newMemberForm.first_name.trim() || !newMemberForm.last_name.trim() || !newMemberForm.relation) {
       alert('Name and Relationship are required!');
       return;
     }
 
     onAddMember({
-      name: newMemberForm.name.trim(),
+      first_name: newMemberForm.first_name.trim(),
+      last_name: newMemberForm.last_name.trim() || undefined,
       email: newMemberForm.email?.trim() || undefined,
-      phone: newMemberForm.phone?.trim() || undefined,
+      mobile_number: newMemberForm.mobile_number?.trim() || undefined,
       gender: newMemberForm.gender as 'male' | 'female' | 'other' | undefined,
-      dateOfBirth: newMemberForm.dob || undefined,
-      relationship: newMemberForm.relationship as FamilyMember['relationship'],
+      date_of_birth: newMemberForm.date_of_birth || undefined,
+      relation: newMemberForm.relation as FamilyMember['relation'],
     });
 
     handleCloseAddMemberModal();
   };
 
   const handleEditMemberSubmit = () => {
-    if (!editMemberForm.name.trim() || !editMemberForm.relationship) {
+    if (!editMemberForm.first_name.trim() || !editMemberForm.relation) {
       alert('Name and Relationship are required!');
       return;
     }
 
     onEditMember(editMemberForm.id, {
-      name: editMemberForm.name.trim(),
+      first_name: editMemberForm.first_name.trim(),
+      last_name: editMemberForm.last_name.trim() || undefined,
       email: editMemberForm.email?.trim() || undefined,
-      phone: editMemberForm.phone?.trim() || undefined,
+      mobile_number: editMemberForm.mobile_number?.trim() || undefined,
       gender: editMemberForm.gender as 'male' | 'female' | 'other' | undefined,
-      dateOfBirth: editMemberForm.dob || undefined,
-      relationship: editMemberForm.relationship as FamilyMember['relationship'],
+      date_of_birth: editMemberForm.date_of_birth || undefined,
+      relation: editMemberForm.relation as FamilyMember['relation'],
     });
 
     handleCloseEditMemberModal();
@@ -393,8 +421,8 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     setShowDeleteConfirm(null);
   };
 
-  const getRelationshipIcon = (relationship: FamilyMember['relationship']) => {
-    switch (relationship) {
+  const getRelationshipIcon = (relation: FamilyMember['relation']) => {
+    switch (relation) {
       case 'self':
         return (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,9 +453,9 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
     }
   };
 
-  const getRelationshipLabel = (relationship: FamilyMember['relationship'] | '') => {
-    if (!relationship) return 'Not set';
-    return relationship.charAt(0).toUpperCase() + relationship.slice(1);
+  const getRelationshipLabel = (relation: FamilyMember['relation'] | '') => {
+    if (!relation) return 'Not set';
+    return relation.charAt(0).toUpperCase() + relation.slice(1);
   };
 
   return (
@@ -469,13 +497,13 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                 {/* Icon Box */}
                 <div className={`p-3 rounded-lg flex-shrink-0 ${member.isActive ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
                   }`}>
-                  {getRelationshipIcon(member.relationship)}
+                  {getRelationshipIcon(member.relation)}
                 </div>
 
                 {/* Data Column - Vertical Stack */}
                 <div className="flex flex-col space-y-1.5">
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-gray-900 text-base">{member.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-base">{`${member.first_name} ${member.last_name || ''}`.trim()}</h3>
                     {member.isActive && (
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-full">
                         Active
@@ -485,7 +513,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
 
                   {/* Relationship */}
                   <p className="text-sm font-medium text-gray-500">
-                    {getRelationshipLabel(member.relationship)}
+                    {getRelationshipLabel(member.relation)}
                   </p>
 
                   {/* Additional Information Stack */}
@@ -495,15 +523,15 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
                     </p>
                   )}
 
-                  {member.phone && (
+                  {member.mobile_number && (
                     <p className="text-sm text-gray-500 flex items-center gap-2">
-                      {member.phone}
+                      {member.mobile_number}
                     </p>
                   )}
 
-                  {member.dateOfBirth && (
+                  {member.date_of_birth && (
                     <p className="text-sm text-gray-500 flex items-center gap-2">
-                      {new Date(member.dateOfBirth).toLocaleDateString()}
+                      {new Date(member.date_of_birth).toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -511,7 +539,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
 
               {/* Action Buttons */}
               <div className="flex items-center space-x-1 sm:space-x-2">
-                {member.relationship !== 'self' && (
+                {member.relation !== 'self' && (
                   <>
                     <button
                       onClick={(e) => {
@@ -550,7 +578,7 @@ export const FamilyMembers: React.FC<FamilyMembersProps> = ({
               <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg animate-fadeIn">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <p className="text-sm text-red-700 font-medium">
-                    Are you sure you want to remove {member.name}?
+                    Are you sure you want to remove {`${member.first_name} ${member.last_name || ''}`.trim()}?
                   </p>
                   <div className="flex items-center space-x-3">
                     <button
